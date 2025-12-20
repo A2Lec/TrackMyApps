@@ -5,8 +5,8 @@ import fs from 'fs';
 
 const uploadDir = process.env.UPLOAD_DIR || './uploads';
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync(uploadDir)) {
+// Create uploads directory if it doesn't exist (only in development)
+if (process.env.NODE_ENV !== 'production' && !fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
