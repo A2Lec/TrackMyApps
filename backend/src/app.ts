@@ -49,7 +49,22 @@ app.use('/uploads', express.static(path.resolve(uploadDir)));
 
 // Health check at root
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'TrackMyApps API is running' });
+  try {
+    res.json({ 
+      status: 'ok', 
+      message: 'TrackMyApps API is running',
+      env: process.env.NODE_ENV,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Root route error:', error);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+});
+
+// Favicon
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
 });
 
 // API routes
