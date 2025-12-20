@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// En production, utiliser l'URL complète du backend
-// En développement, utiliser le proxy Vite (/api)
+// En production, on utilise le proxy Vercel défini dans vercel.json
+// En développement, on utilise le proxy Vite
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
