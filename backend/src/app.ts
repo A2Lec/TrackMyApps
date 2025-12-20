@@ -17,6 +17,7 @@ const allowedOrigins = [
   'http://localhost:5175',
   'http://localhost:5176',
   'http://localhost:5177',
+  'https://track-my-apps-frontend1.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -45,6 +46,11 @@ app.use((req, res, next) => {
 // Serve uploaded files
 const uploadDir = process.env.UPLOAD_DIR || './uploads';
 app.use('/uploads', express.static(path.resolve(uploadDir)));
+
+// Health check at root
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'TrackMyApps API is running' });
+});
 
 // API routes
 app.use('/api', routes);
