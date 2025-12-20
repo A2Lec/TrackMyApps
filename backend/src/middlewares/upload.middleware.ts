@@ -1,0 +1,44 @@
+import multer from 'multer';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+
+const uploadDir = process.env.UPLOAD_DIR || './uploads';
+
+// Create uploads directory if it doesn't exist
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  },
+});
+
+const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedMimeTypes = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Format de fichier non autorisé. Seuls PDF et DOCX sont acceptés.'));
+  }
+};
+
+const maxSize = parseInt(process.env.MAX_FILE_SIZE || '5242880', 10); // 5MB
+
+export const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: maxSize,
+  },
+});

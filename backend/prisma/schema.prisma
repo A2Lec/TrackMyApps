@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  password         String
+  firstName        String
+  lastName         String
+  school           String?
+  graduationYear   Int?
+  fieldOfStudy     String?
+  avatarUrl        String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  emailNotifications Boolean @default(true)
+  relanceFrequency   Int     @default(7)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applications   Application[]
+  documents      Document[]
+  reminders      Reminder[]
+  interviewPreps InterviewPrep[]
+  companyReviews CompanyReview[]
+  companies      Company[]
+
+  @@map("users")
+}
+
+model Application {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id])
+  companyName String
+
+  position String
+  jobType  String
+  location String
+  status   String   @default("SENT")
+
+  applicationDate DateTime @default(now())
+  jobUrl          String?
+  salary          String?
+  notes           String?
+  contactName     String?
+  contactEmail    String?
+
+  cvUsedId String?
+  cvUsed   Document? @relation("ApplicationCV", fields: [cvUsedId], references: [id])
+
+  lmUsedId String?
+  lmUsed   Document? @relation("ApplicationLM", fields: [lmUsedId], references: [id])
+
+  lastRelanceDate DateTime?
+  interviewDate   DateTime?
+  decisionDate    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events    ApplicationEvent[]
+  reminders Reminder[]
+  documents Document[]         @relation("ApplicationDocuments")
+
+  @@map("applications")
+}
+
+model ApplicationEvent {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  type        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@map("application_events")
+}
+
+model Document {
+  id        String  @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  name      String
+  version   String?
+  fileUrl   String
+  fileName  String
+  fileSize  Int
+  mimeType  String
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationsCV  Application[] @relation("ApplicationCV")
+  applicationsLM  Application[] @relation("ApplicationLM")
+  applicationDocs Application[] @relation("ApplicationDocuments")
+
+  @@map("documents")
+}
+
+model Company {
+  id          String  @id @default(uuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  industry    String?
+  size        String?
+  location    String?
+  website     String?
+  description String?
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applications Application[]
+  reviews      CompanyReview[]
+
+  @@map("companies")
+}
+
+model CompanyReview {
+  id        String  @id @default(uuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+
+  createdAt DateTime @default(now())
+
+  @@map("company_reviews")
+}
+
+model Reminder {
+  id            String       @id @default(uuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  type        String
+  dueDate     DateTime
+  isCompleted Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@map("reminders")
+}
+
+model InterviewPrep {
+  id         String  @id @default(uuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   String
+  answer     String?
+  category   String
+  notes      String?
+  isFavorite Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("interview_preps")
+}

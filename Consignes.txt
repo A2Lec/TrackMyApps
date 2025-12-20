@@ -1,0 +1,1077 @@
+Tu es un développeur full-stack expert. Je veux créer TrackMyApps, un SaaS de suivi de candidatures (stages, alternances, jobs étudiants) spécialement conçu pour les étudiants.
+Contexte et objectifs
+Créer une application web moderne permettant aux étudiants de suivre efficacement toutes leurs candidatures, de ne manquer aucune relance, de préparer leurs entretiens et d'analyser leur performance. L'application doit être intuitive, rapide, motivante et mobile-friendly.
+Stack technique imposée
+Frontend :
+
+React 18+ avec TypeScript
+Tailwind CSS pour le styling
+Shadcn/ui pour les composants UI réutilisables
+React Router v6 pour la navigation
+TanStack Query (React Query) pour la gestion des données et cache
+Zustand pour l'état global léger
+React DnD Kit pour le drag & drop du Kanban
+Recharts pour les graphiques et analytics
+React Hook Form + Zod pour les formulaires et validation
+Date-fns pour la manipulation des dates
+Lucide React pour les icônes
+
+Backend :
+
+Node.js 18+ avec Express.js
+PostgreSQL comme base de données
+Prisma comme ORM
+JWT pour l'authentification
+Bcrypt pour le hashing des mots de passe
+Multer pour l'upload de fichiers
+Node-cron pour les tâches planifiées (rappels, notifications)
+Nodemailer pour les emails (notifications, relances)
+Express-validator pour la validation des requêtes
+
+Infrastructure :
+
+Docker et Docker Compose pour la conteneurisation
+Variables d'environnement pour la configuration (.env)
+AWS S3 ou solution locale pour le stockage des fichiers (CV, lettres)
+
+Fonctionnalités à développer (MVP)
+1. Authentification et gestion utilisateurs
+Inscription / Connexion
+
+Inscription avec email, mot de passe, prénom, nom
+Champs profil : école/université, année de diplôme, domaine d'études
+Validation email (optionnel pour MVP, mais prévoir la structure)
+Connexion avec JWT
+Déconnexion
+Reset password (envoi email avec token)
+
+Profil utilisateur
+
+Modification des informations personnelles
+Upload d'avatar
+Préférences (types de notifications)
+Objectif de recherche (stage, alternance, CDI, job étudiant)
+
+2. Gestion des candidatures (cœur de l'app)
+CRUD Candidatures
+
+Création de candidature avec :
+
+Nom de l'entreprise (autocomplete si existe en base)
+Poste visé
+Type (stage, alternance, CDI, job étudiant)
+Localisation (ville)
+Date de candidature
+URL de l'annonce (optionnel)
+Salaire/rémunération (optionnel)
+Statut initial : "Envoyée"
+Notes personnelles
+CV utilisé (sélection depuis bibliothèque)
+Lettre de motivation utilisée (sélection depuis bibliothèque)
+
+
+Modification complète de candidature
+Suppression avec confirmation
+Changement rapide de statut via dropdown ou drag & drop
+
+Statuts disponibles
+
+Brouillon (idée de candidature)
+Envoyée (candidature postée)
+Vue par recruteur (optionnel, si l'info est connue)
+Entretien programmé
+En attente de réponse
+Refusée
+Acceptée
+Ghosted (pas de réponse après relances)
+
+Vues multiples
+
+Vue Kanban : colonnes par statut, drag & drop pour changer de colonne
+Vue Liste : tableau avec tri et filtres (date, statut, type, entreprise)
+Vue Calendrier : timeline avec dates de candidature et entretiens
+Compteur par statut en haut de page
+
+Détail d'une candidature
+
+Page dédiée avec toutes les infos
+Timeline des événements (création, relances, changements de statut, entretiens)
+Affichage des documents liés (CV, LM) avec possibilité de les télécharger
+Informations sur l'entreprise (si disponible)
+Section notes éditables
+Boutons d'action : Modifier, Supprimer, Relancer, Planifier entretien
+
+3. Gestion des documents
+Bibliothèque de CV
+
+Upload de CV (PDF uniquement pour MVP)
+Nommage et versioning (ex: "CV Développeur v2")
+Marquage d'un CV comme "principal"
+Prévisualisation du PDF
+Suppression avec vérification (si utilisé dans candidatures)
+Indication : "Utilisé dans X candidatures"
+
+Bibliothèque de lettres de motivation
+
+Upload de LM (PDF ou DOCX)
+Nommage par secteur/type (ex: "LM Tech", "LM Marketing")
+Marquage d'une LM comme "principale"
+Prévisualisation
+Suppression avec vérification
+Indication : "Utilisée dans X candidatures"
+
+Gestion des uploads
+
+Limite de taille : 5 MB par fichier
+Formats acceptés : PDF, DOCX
+Progress bar pendant l'upload
+Messages d'erreur clairs
+
+4. Système de relances et rappels
+Relances automatiques suggérées
+
+Règle 1 : Si statut "Envoyée" et 7 jours sans réponse → suggérer relance
+Règle 2 : Si statut "Entretien programmé" et J-3 → rappel de préparation
+Règle 3 : Si entretien passé (J+1) → suggérer mail de remerciement
+
+Interface de relances
+
+Page dédiée "Mes rappels" avec liste des actions à faire
+Carte par rappel avec contexte (quelle candidature, pourquoi)
+Bouton "Marquer comme fait" qui archive le rappel
+Bouton "Reporter" avec choix de nouvelle date
+Template d'email de relance (copier/coller rapide)
+
+Notifications
+
+Badge de compteur sur l'icône de rappels
+Notification in-app (toast) lors de nouveaux rappels
+Email quotidien avec résumé des actions du jour (optionnel, activable dans settings)
+
+5. Préparation aux entretiens
+Base de questions fréquentes
+
+Questions pré-remplies par catégorie :
+
+Questions générales ("Parlez-moi de vous", "Vos forces/faiblesses")
+Questions techniques (selon domaine : dev, marketing, finance)
+Questions comportementales ("Conflit en équipe", "Échec géré")
+
+
+Possibilité d'ajouter ses propres questions
+
+Entraînement
+
+Page dédiée par candidature pour préparer l'entretien
+Liste de questions avec espace pour écrire ses réponses
+Timer pour simuler (2 min par réponse)
+Sauvegarde automatique des réponses
+Historique : questions posées en vrai entretien (pour référence future)
+
+Checklist pré-entretien
+
+Liste à cocher : tenue préparée, documents imprimés, trajet vérifié, questions préparées, etc.
+Personnalisable par utilisateur
+
+6. Base de données entreprises
+Informations entreprises
+
+Nom, secteur, taille, site web
+Temps de réponse moyen (calculé depuis candidatures utilisateurs)
+Tags culture (startup, corporate, télétravail, etc.)
+Description du processus de recrutement habituel
+
+Avis et retours d'expérience
+
+Les utilisateurs peuvent laisser un avis après une candidature
+Rating 1-5 étoiles
+Commentaire sur le processus de recrutement
+Indication si embauché ou non
+Fourchette de salaire proposée
+Affichage anonyme des avis
+
+Auto-complétion
+
+Lors de la création d'une candidature, suggérer entreprises existantes
+Création automatique si nouvelle entreprise
+
+7. Dashboard et Analytics
+Page Dashboard (accueil)
+
+Cartes de statistiques :
+
+Total candidatures actives
+Candidatures envoyées ce mois
+Entretiens programmés
+Taux de réponse global
+
+
+Section "Actions du jour" (relances à faire, entretiens proches)
+Timeline des prochains événements (7 prochains jours)
+Graphique simple : candidatures par statut (camembert)
+
+Page Analytics détaillée
+
+Graphique évolution : candidatures par semaine/mois (ligne)
+Répartition par type de poste (stage/alternance/CDI) (barres)
+Taux de conversion :
+
+% de réponses positives
+% d'entretiens obtenus
+% d'offres reçues
+
+
+Temps moyen de réponse des entreprises
+Tableau : entreprises avec le meilleur taux de réponse
+Comparaison anonyme : "Votre taux de réponse : 25% vs moyenne : 18%"
+
+Export de données
+
+Bouton pour exporter toutes ses candidatures en CSV
+Export PDF "Mon parcours de recherche" (résumé visuel)
+
+8. Calendrier intégré
+Vue calendrier
+
+Affichage mensuel avec marqueurs :
+
+Dates de candidature
+Dates d'entretiens (avec heure)
+Dates de relances suggérées
+
+
+Clic sur un événement pour voir détail de la candidature
+Ajout rapide d'entretien depuis le calendrier
+
+9. Paramètres et préférences
+Page Settings
+
+Modification profil (email, nom, école, année)
+Changement de mot de passe
+Préférences de notifications :
+
+Activer/désactiver email quotidien
+Activer/désactiver rappels in-app
+Fréquence de relances suggérées (7 jours, 10 jours, 14 jours)
+
+
+Suppression de compte (avec confirmation)
+Export de toutes les données (RGPD)
+
+Schéma de base de données Prisma
+prisma// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  password        String
+  firstName       String
+  lastName        String
+  school          String?
+  graduationYear  Int?
+  field           String?
+  avatarUrl       String?
+  resetToken      String?
+  resetTokenExpiry DateTime?
+  
+  // Preferences
+  emailNotifications Boolean @default(true)
+  relanceFrequency   Int     @default(7) // days
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  applications    Application[]
+  documents       Document[]
+  reminders       Reminder[]
+  interviewPreps  InterviewPrep[]
+  companyReviews  CompanyReview[]
+  
+  @@map("users")
+}
+
+model Application {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id])
+  companyName     String   // Denormalized for flexibility
+  
+  position        String
+  jobType         JobType
+  location        String
+  status          ApplicationStatus @default(SENT)
+  
+  applicationDate DateTime @default(now())
+  jobUrl          String?
+  salary          String?
+  notes           String?
+  
+  cvUsedId        String?
+  cvUsed          Document? @relation("ApplicationCV", fields: [cvUsedId], references: [id])
+  
+  lmUsedId        String?
+  lmUsed          Document? @relation("ApplicationLM", fields: [lmUsedId], references: [id])
+  
+  lastRelanceDate DateTime?
+  interviewDate   DateTime?
+  decisionDate    DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  events          ApplicationEvent[]
+  reminders       Reminder[]
+  
+  @@map("applications")
+}
+
+enum JobType {
+  STAGE
+  ALTERNANCE
+  CDI
+  JOB_ETUDIANT
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SENT
+  VIEWED
+  INTERVIEW_SCHEDULED
+  AWAITING_RESPONSE
+  REJECTED
+  ACCEPTED
+  GHOSTED
+}
+
+model ApplicationEvent {
+  id              String   @id @default(uuid())
+  applicationId   String
+  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  eventType       EventType
+  eventDate       DateTime @default(now())
+  notes           String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@map("application_events")
+}
+
+enum EventType {
+  CREATED
+  SENT
+  VIEWED
+  RELANCE_SENT
+  INTERVIEW_SCHEDULED
+  INTERVIEW_DONE
+  REJECTED
+  ACCEPTED
+  STATUS_CHANGED
+}
+
+model Document {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type            DocumentType
+  name            String
+  version         String?
+  fileUrl         String
+  fileName        String
+  fileSize        Int
+  mimeType        String
+  
+  isMain          Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  applicationsCV  Application[] @relation("ApplicationCV")
+  applicationsLM  Application[] @relation("ApplicationLM")
+  
+  @@map("documents")
+}
+
+enum DocumentType {
+  CV
+  LETTRE_MOTIVATION
+}
+
+model Company {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  sector          String?
+  size            String?
+  websiteUrl      String?
+  
+  averageResponseTime Int? // in days
+  cultureTags     String[] // JSON array of tags
+  hiringProcess   String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  applications    Application[]
+  reviews         CompanyReview[]
+  
+  @@map("companies")
+}
+
+model CompanyReview {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  rating          Int      // 1-5
+  comment         String?
+  position        String
+  salary          String?
+  wasHired        Boolean
+  interviewExperience String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@map("company_reviews")
+}
+
+model Reminder {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  applicationId   String?
+  application     Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  reminderType    ReminderType
+  reminderDate    DateTime
+  message         String
+  isDone          Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  
+  @@map("reminders")
+}
+
+enum ReminderType {
+  RELANCE
+  INTERVIEW_PREP
+  THANK_YOU_EMAIL
+  FOLLOW_UP
+  CUSTOM
+}
+
+model InterviewPrep {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  question        String
+  answer          String?
+  category        String   // "general", "technical", "behavioral"
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("interview_preps")
+}
+```
+
+## Architecture de l'application
+
+### Structure Frontend
+```
+frontend/
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── Header.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── Layout.tsx
+│   │   ├── auth/
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── RegisterForm.tsx
+│   │   │   ├── ResetPasswordForm.tsx
+│   │   ├── applications/
+│   │   │   ├── ApplicationCard.tsx
+│   │   │   ├── ApplicationForm.tsx
+│   │   │   ├── ApplicationDetail.tsx
+│   │   │   ├── ApplicationList.tsx
+│   │   │   ├── KanbanBoard.tsx
+│   │   │   ├── KanbanColumn.tsx
+│   │   │   ├── StatusBadge.tsx
+│   │   │   ├── ApplicationFilters.tsx
+│   │   ├── documents/
+│   │   │   ├── DocumentLibrary.tsx
+│   │   │   ├── DocumentUpload.tsx
+│   │   │   ├── DocumentCard.tsx
+│   │   ├── reminders/
+│   │   │   ├── RemindersList.tsx
+│   │   │   ├── ReminderCard.tsx
+│   │   ├── analytics/
+│   │   │   ├── StatsCards.tsx
+│   │   │   ├── ChartsSection.tsx
+│   │   │   ├── ConversionFunnel.tsx
+│   │   ├── interviews/
+│   │   │   ├── InterviewPrep.tsx
+│   │   │   ├── QuestionBank.tsx
+│   │   │   ├── Checklist.tsx
+│   │   ├── companies/
+│   │   │   ├── CompanyCard.tsx
+│   │   │   ├── CompanyReviewForm.tsx
+│   │   │   ├── CompanyReviews.tsx
+│   │   ├── calendar/
+│   │   │   ├── Calendar.tsx
+│   │   │   ├── EventCard.tsx
+│   │   ├── ui/ (shadcn components)
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── toast.tsx
+│   │   │   ├── etc.
+│   ├── pages/
+│   │   ├── auth/
+│   │   │   ├── Login.tsx
+│   │   │   ├── Register.tsx
+│   │   │   ├── ResetPassword.tsx
+│   │   ├── Dashboard.tsx
+│   │   ├── Applications.tsx
+│   │   ├── Documents.tsx
+│   │   ├── Reminders.tsx
+│   │   ├── Analytics.tsx
+│   │   ├── Calendar.tsx
+│   │   ├── Companies.tsx
+│   │   ├── InterviewPrep.tsx
+│   │   ├── Settings.tsx
+│   ├── hooks/
+│   │   ├── useAuth.ts
+│   │   ├── useApplications.ts
+│   │   ├── useDocuments.ts
+│   │   ├── useReminders.ts
+│   │   ├── useAnalytics.ts
+│   ├── services/
+│   │   ├── api.ts (axios instance)
+│   │   ├── auth.service.ts
+│   │   ├── applications.service.ts
+│   │   ├── documents.service.ts
+│   │   ├── reminders.service.ts
+│   │   ├── companies.service.ts
+│   │   ├── analytics.service.ts
+│   ├── store/
+│   │   ├── authStore.ts (Zustand)
+│   │   ├── uiStore.ts
+│   ├── lib/
+│   │   ├── utils.ts (cn helper, etc.)
+│   ├── types/
+│   │   ├── index.ts (TypeScript interfaces)
+│   ├── App.tsx
+│   ├── main.tsx
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+├── tailwind.config.js
+```
+
+### Structure Backend
+```
+backend/
+├── src/
+│   ├── controllers/
+│   │   ├── auth.controller.ts
+│   │   ├── users.controller.ts
+│   │   ├── applications.controller.ts
+│   │   ├── documents.controller.ts
+│   │   ├── reminders.controller.ts
+│   │   ├── companies.controller.ts
+│   │   ├── analytics.controller.ts
+│   ├── services/
+│   │   ├── auth.service.ts
+│   │   ├── users.service.ts
+│   │   ├── applications.service.ts
+│   │   ├── documents.service.ts
+│   │   ├── reminders.service.ts
+│   │   ├── companies.service.ts
+│   │   ├── analytics.service.ts
+│   │   ├── email.service.ts
+│   │   ├── upload.service.ts
+│   ├── routes/
+│   │   ├── auth.routes.ts
+│   │   ├── users.routes.ts
+│   │   ├── applications.routes.ts
+│   │   ├── documents.routes.ts
+│   │   ├── reminders.routes.ts
+│   │   ├── companies.routes.ts
+│   │   ├── analytics.routes.ts
+│   ├── middlewares/
+│   │   ├── auth.middleware.ts (verify JWT)
+│   │   ├── validation.middleware.ts
+│   │   ├── upload.middleware.ts (multer)
+│   │   ├── errorHandler.middleware.ts
+│   ├── utils/
+│   │   ├── jwt.util.ts
+│   │   ├── bcrypt.util.ts
+│   │   ├── email.util.ts
+│   ├── jobs/
+│   │   ├── remindersCron.ts (node-cron tasks)
+│   ├── prisma/
+│   │   ├── schema.prisma
+│   │   ├── seed.ts (data de test)
+│   ├── config/
+│   │   ├── database.ts
+│   │   ├── upload.ts
+│   ├── types/
+│   │   ├── index.ts
+│   ├── app.ts (Express app setup)
+│   ├── server.ts (server startup)
+├── uploads/ (local storage for files)
+├── .env
+├── package.json
+├── tsconfig.json
+Flux utilisateur principal
+
+Inscription / Connexion
+
+L'utilisateur s'inscrit avec email/password + infos profil
+Reçoit un token JWT
+Redirection vers Dashboard
+
+
+Onboarding rapide (optionnel mais recommandé)
+
+Modal de bienvenue avec 3 étapes :
+
+Étape 1 : Définir son objectif (stage/alternance/etc.)
+Étape 2 : Uploader son premier CV
+Étape 3 : Créer sa première candidature
+
+
+Peut skip pour découvrir l'app
+
+
+Dashboard
+
+Voir vue d'ensemble : stats, actions du jour
+Accès rapide aux sections clés
+
+
+Ajouter une candidature
+
+Clic sur "Nouvelle candidature"
+Formulaire avec tous les champs
+Sélection CV/LM depuis bibliothèque
+Sauvegarde → apparaît dans le Kanban
+
+
+Suivre les candidatures
+
+Vue Kanban : drag & drop entre colonnes
+Clic sur une carte → détail complet
+Modification du statut, ajout de notes
+Timeline des événements
+
+
+Gérer les relances
+
+Badge de notification sur "Rappels"
+Liste des actions suggérées
+Clic "Marquer comme fait" ou "Reporter"
+
+
+Préparer un entretien
+
+Notification J-3 avant entretien
+Accès à la page de préparation liée à la candidature
+Consulter questions fréquentes, rédiger réponses
+Cocher checklist
+
+
+Analyser les performances
+
+Page Analytics avec graphiques
+Identifier points d'amélioration
+Exporter données si besoin
+
+
+Gérer documents
+
+Upload nouveaux CV/LM dans bibliothèque
+Marquer un document comme principal
+Supprimer anciens documents
+
+
+
+Points techniques importants
+Authentification
+
+JWT stocké dans localStorage (ou httpOnly cookie pour plus de sécurité)
+Middleware backend pour vérifier token sur routes protégées
+Refresh token (optionnel pour MVP, mais prévoir structure)
+Expiration token : 7 jours
+
+Upload de fichiers
+
+Multer côté backend pour gérer les uploads
+Validation : taille max 5 MB, types MIME autorisés (application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document)
+Stockage local dans /uploads pour MVP (prévoir migration S3 future)
+Nommage unique des fichiers : userId_timestamp_originalName
+
+Gestion des dates
+
+Tout stocker en UTC dans la base
+Conversion en temps local côté frontend avec date-fns
+Format d'affichage français : "dd/MM/yyyy" et "dd/MM/yyyy HH:mm"
+
+Cron jobs pour rappels
+
+Job quotidien (ex: tous les jours à 8h00) qui :
+
+Scanne toutes les candidatures statut "Envoyée" sans réponse depuis X jours
+Crée des reminders de type "RELANCE"
+Scanne candidatures avec entretiens dans 3 jours
+Crée reminders de type "INTERVIEW_PREP"
+
+
+Job pour envoyer emails quotidiens de résumé (si activé par user)
+
+Notifications in-app
+
+Utiliser React Query avec polling ou WebSocket (optionnel pour MVP)
+Badge de compteur sur icône "Rappels" dans le header
+Toast notifications pour actions importantes (candidature créée, document uploadé)
+
+Performance et optimisation
+
+Pagination côté backend pour listes longues (20 candidatures par page)
+Lazy loading des documents (ne pas charger tous les PDFs d'un coup)
+React Query avec staleTime et cacheTime optimisés
+Debounce sur les champs de recherche/filtres
+
+Sécurité
+
+Validation stricte côté backend (express-validator)
+Sanitization des inputs
+Rate limiting sur les endpoints sensibles (login, register)
+CORS configuré correctement
+Headers de sécurité (helmet.js)
+Pas de données sensibles dans les logs
+
+Responsive design
+
+Mobile-first avec Tailwind
+Breakpoints : sm (640px), md (768px), lg (1024px), xl (1280px)
+Navigation mobile : burger menu
+Kanban scrollable horizontalement sur mobile
+Formulaires adaptés tactile
+
+Accessibilité
+
+Labels sur tous les inputs
+Focus visible sur éléments interactifs
+Contraste couleurs WCAG AA minimum
+Navigation au clavier possible
+ARIA labels sur composants complexes
+
+Design et UI
+Palette de couleurs
+css/* Primary - Bleu moderne */
+--primary: 219 94% 50%; /* #3B82F6 */
+--primary-foreground: 0 0% 100%;
+
+/* Success - Vert */
+--success: 142 76% 36%; /* #10B981 */
+
+/* Warning - Orange */
+--warning: 38 92% 50%; /* #F59E0B */
+
+/* Destructive - Rouge doux */
+--destructive: 0 84% 60%; /* #EF4444 */
+
+/* Muted - Gris */
+--muted: 220 13% 46%; /* #6B7280 */
+--muted-foreground: 220 9% 46%;
+
+/* Background */
+--background: 0 0% 100%;
+--foreground: 222 47% 11%;
+
+/* Card */
+--card: 0 0% 100%;
+--card-foreground: 222 47% 11%;
+
+/* Border */
+--border: 220 13% 91%;
+--input: 220 13% 91%;
+Typographie
+
+Font : Inter (Google Fonts)
+Titres : font-bold
+Texte courant : font-normal
+Tailles : text-sm, text-base, text-lg, text-xl, text-2xl
+
+Composants clés
+ApplicationCard (Kanban)
+
+Carte blanche avec ombre légère
+Titre du poste en gras
+Nom entreprise en gris
+Badge de type (stage/alternance)
+Date de candidature en petit
+Icônes d'actions (voir détail, modifier)
+Hover : ombre plus prononcée
+
+StatusBadge
+
+Pills colorés selon statut :
+
+Brouillon : gris
+Envoyée : bleu
+Entretien : vert
+Refusée : rouge
+Acceptée : vert foncé
+Ghosted : gris foncé
+
+
+
+Sidebar navigation
+
+Fixe à gauche sur desktop
+Burger menu sur mobile
+Icônes + texte pour chaque section
+Highlight section active
+
+Dashboard cards
+
+4 cartes en haut : Total candidatures, Envoyées ce mois, Entretiens, Taux de réponse
+Icône + chiffre grand + label
+Couleurs différentes par carte
+
+Animations
+
+Transitions douces : transition-all duration-200
+Hover effects sur boutons et cartes
+Drag & drop avec feedback visuel (placeholder)
+Toast entrée/sortie animée
+
+Livrables attendus
+
+Code source complet :
+
+Frontend React TypeScript fonctionnel
+Backend Node.js Express fonctionnel
+Base de données Prisma configurée
+
+
+Docker Compose :
+
+Service frontend
+Service backend
+Service PostgreSQL
+Un seul docker-compose up pour tout lancer
+
+
+README.md détaillé :
+
+Description du projet
+Prérequis (Node, Docker, npm)
+
+Installation locale :
+
+bash     # Clone repo
+     git clone ...
+     
+     # Install dependencies
+     cd frontend && npm install
+     cd ../backend && npm install
+     
+     # Setup database
+     cd backend && npx prisma migrate dev
+     npx prisma db seed
+     
+     # Run app
+     docker-compose up
+```
+   - Variables d'environnement nécessaires
+   - Comptes de test :
+     - Admin : admin@trackmyapps.com / admin123
+     - User : user@trackmyapps.com / user123
+   - Structure du projet
+   - Commandes utiles
+
+4. **Fichier .env.example** :
+```
+   # Backend
+   DATABASE_URL="postgresql://user:password@localhost:5432/trackmyapps"
+   JWT_SECRET="your-super-secret-jwt-key-change-in-production"
+   JWT_EXPIRES_IN="7d"
+   
+   # Email (optionnel pour MVP)
+   SMTP_HOST="smtp.gmail.com"
+   SMTP_PORT=587
+   SMTP_USER="your-email@gmail.com"
+   SMTP_PASS="your-app-password"
+   
+   # Upload
+   UPLOAD_DIR="./uploads"
+   MAX_FILE_SIZE=5242880 # 5MB
+   
+   # Frontend
+   VITE_API_URL="http://localhost:5000/api"
+
+Seed data (prisma/seed.ts) :
+
+2 utilisateurs de test
+10 candidatures exemple par user
+5 entreprises
+Documents de test
+Questions d'entretien pré-remplies
+
+
+Documentation API (optionnel) :
+
+Collection Postman ou fichier Thunder Client
+Documentation des endpoints principaux
+
+
+
+Roadmap de développement suggérée
+Phase 1 : Setup et authentification (Jour 1-2)
+
+Initialiser projet React + Vite + TypeScript
+Configurer Tailwind + Shadcn/ui
+Initialiser projet Node + Express + TypeScript
+Configurer Prisma + PostgreSQL
+Système d'authentification complet (register, login, JWT)
+Middleware d'authentification
+Layout de base avec sidebar
+
+Phase 2 : CRUD Candidatures (Jour 3-5)
+
+Modèle Prisma Application
+Routes et controllers candidatures
+Page liste candidatures
+Formulaire création/modification
+Page détail candidature
+Timeline des événements
+
+Phase 3 : Vue Kanban (Jour 6-7)
+
+Implémenter React DnD Kit
+Colonnes par statut
+Drag & drop fonctionnel
+Mise à jour statut en temps réel
+Animations et feedback visuel
+
+Phase 4 : Gestion documents (Jour 8-9)
+
+Upload de fichiers avec Multer
+Stockage et serving de fichiers
+Bibliothèque de documents
+Association documents ↔ candidatures
+Prévisualisation PDF
+
+Phase 5 : Système de rappels (Jour 10-11)
+
+Modèle Prisma Reminder
+Logique de génération automatique (cron job)
+Page Rappels avec liste
+Actions marquer/reporter
+Notifications badge
+
+Phase 6 : Dashboard et Analytics (Jour 12-13)
+
+Calculs de statistiques côté backend
+Cartes de stats sur Dashboard
+Page Analytics avec graphiques (Recharts)
+Taux de conversion
+Export CSV
+
+Phase 7 : Fonctionnalités bonus (Jour 14-15)
+
+Préparation entretiens (questions/réponses)
+Base de données entreprises
+Avis entreprises
+Vue calendrier
+Page Settings
+
+Phase 8 : Polish et tests (Jour 16-17)
+
+Gestion d'erreurs robuste
+Messages de validation
+Responsive mobile
+Tests manuels complets
+Corrections de bugs
+README et documentation
+
+Phase 9 : Docker et déploiement (Jour 18)
+
+Dockerfile frontend
+Dockerfile backend
+Docker Compose
+Tests de déploiement local
+Seed data
+
+Considérations futures (post-MVP)
+Fonctionnalités avancées
+
+Email sync (Gmail API) pour auto-detect réponses
+Chrome extension pour ajouter candidatures depuis LinkedIn
+Mode collaboratif (partage entre étudiants d'une promo)
+Intégration IA pour génération LM personnalisées
+Interview simulator avec feedback IA
+Alertes job automatiques (scraping offres)
+Mobile app (React Native)
+
+Monétisation
+
+Version gratuite : 20 candidatures max
+Version premium : illimité + fonctionnalités avancées
+Partenariats écoles (licences campus)
+
+Scalabilité
+
+Migration uploads vers S3
+Redis pour cache et sessions
+WebSockets pour temps réel
+Queue system (Bull/BullMQ) pour jobs lourds
+
+Questions pour démarrer
+Avant de commencer le développement, confirme :
+
+Tu veux le code complet d'un coup ou étape par étape (recommandé) ?
+Tu as Docker installé ou tu veux instructions d'installation locale ?
+Tu veux que je commence par le backend ou le frontend ?
+Tu as des préférences sur certains choix techniques ?
+Tu veux que j'initialise les fichiers de configuration (tsconfig, tailwind, etc.) ?
+
+Développe ce projet en suivant les meilleures pratiques :
+
+Code propre et commenté
+Nomenclature cohérente (camelCase JS, kebab-case CSS)
+Gestion d'erreurs robuste avec try-catch
+Validation des données côté client ET serveur
+Messages d'erreur clairs pour l'utilisateur
+Logs serveur pour debug
+Commits git réguliers et descriptifs
+
+Prêt à commencer le développement ? Quelle phase veux-tu attaquer en premier ?
