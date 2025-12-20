@@ -1,8 +1,8 @@
-import { useState, useEffect, useParams } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams as useRouterParams, Link } from 'react-router-dom';
 import { applicationsService } from '@/services/applications.service';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,17 +36,20 @@ import {
   Save,
   Plus,
   FileText,
-  Clock,
 } from 'lucide-react';
 import { formatDate, formatDateTime, statusLabels, statusColors, jobTypeLabels, jobTypeColors, cn } from '@/lib/utils';
 import type { Application, ApplicationStatus, JobType, EventType } from '@/types';
 
 const eventTypeLabels: Record<EventType, string> = {
-  STATUS_CHANGE: 'Changement de statut',
-  NOTE_ADDED: 'Note ajoutée',
-  DOCUMENT_ATTACHED: 'Document attaché',
+  CREATED: 'Créée',
+  SENT: 'Envoyée',
+  VIEWED: 'Consultée',
+  RELANCE_SENT: 'Relance envoyée',
   INTERVIEW_SCHEDULED: 'Entretien planifié',
-  FOLLOW_UP_SENT: 'Relance envoyée',
+  INTERVIEW_DONE: 'Entretien terminé',
+  REJECTED: 'Refusée',
+  ACCEPTED: 'Acceptée',
+  STATUS_CHANGED: 'Changement de statut',
 };
 
 export function ApplicationDetailPage() {
@@ -58,7 +61,7 @@ export function ApplicationDetailPage() {
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [formData, setFormData] = useState<Partial<Application>>({});
   const [newEvent, setNewEvent] = useState({
-    type: 'NOTE_ADDED' as EventType,
+    type: 'RELANCE_SENT' as EventType,
     description: '',
   });
 
@@ -79,8 +82,6 @@ export function ApplicationDetailPage() {
         jobUrl: application.jobUrl,
         salary: application.salary,
         notes: application.notes,
-        contactName: application.contactName,
-        contactEmail: application.contactEmail,
       });
     }
   }, [application]);
@@ -110,23 +111,15 @@ export function ApplicationDetailPage() {
     },
   });
 
-  const addEventMutation = useMutation({
-    mutationFn: (data: { type: EventType; description: string }) =>
-      applicationsService.addEvent(id!, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['application', id] });
-      setShowEventDialog(false);
-      setNewEvent({ type: 'NOTE_ADDED', description: '' });
-    },
-  });
+  const handleAddEvent = () => {
+    if (!newEvent.description) return;
+    // TODO: Implement addEvent in applicationsService if needed
+    setShowEventDialog(false);
+    setNewEvent({ type: 'RELANCE_SENT', description: '' });
+  };
 
   const handleSave = () => {
     updateMutation.mutate(formData);
-  };
-
-  const handleAddEvent = () => {
-    if (!newEvent.description) return;
-    addEventMutation.mutate(newEvent);
   };
 
   if (isLoading) {
@@ -305,28 +298,6 @@ export function ApplicationDetailPage() {
                       />
                     </div>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Nom du contact</Label>
-                      <Input
-                        value={formData.contactName || ''}
-                        onChange={(e) =>
-                          setFormData({ ...formData, contactName: e.target.value })
-                        }
-                        placeholder="Ex: Jean Dupont"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Email du contact</Label>
-                      <Input
-                        value={formData.contactEmail || ''}
-                        onChange={(e) =>
-                          setFormData({ ...formData, contactEmail: e.target.value })
-                        }
-                        placeholder="contact@entreprise.com"
-                      />
-                    </div>
-                  </div>
                   <div className="space-y-2">
                     <Label>Notes</Label>
                     <Textarea
@@ -373,22 +344,6 @@ export function ApplicationDetailPage() {
                       </div>
                     </div>
                   )}
-                  {(application.contactName || application.contactEmail) && (
-                    <div className="pt-4 border-t">
-                      <h4 className="font-medium mb-2">Contact</h4>
-                      {application.contactName && (
-                        <p className="text-sm">{application.contactName}</p>
-                      )}
-                      {application.contactEmail && (
-                        <a
-                          href={`mailto:${application.contactEmail}`}
-                          className="text-sm text-primary hover:underline"
-                        >
-                          {application.contactEmail}
-                        </a>
-                      )}
-                    </div>
-                  )}
                   {application.notes && (
                     <div className="pt-4 border-t">
                       <h4 className="font-medium mb-2">Notes</h4>
@@ -414,17 +369,20 @@ export function ApplicationDetailPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              {application.documents && application.documents.length > 0 ? (
+              {application.cvUsed || application.lmUsed ? (
                 <div className="space-y-2">
-                  {application.documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
-                    >
+                  {application.cvUsed && (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                       <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm flex-1 truncate">{doc.name}</span>
+                      <span className="text-sm flex-1 truncate">{application.cvUsed.name}</span>
                     </div>
-                  ))}
+                  )}
+                  {application.lmUsed && (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm flex-1 truncate">{application.lmUsed.name}</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
@@ -450,9 +408,9 @@ export function ApplicationDetailPage() {
                     <div key={event.id} className="relative pl-6">
                       <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-primary" />
                       <div>
-                        <p className="text-sm font-medium">{eventTypeLabels[event.type]}</p>
-                        {event.description && (
-                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                        <p className="text-sm font-medium">{eventTypeLabels[event.eventType || event.type as EventType] || event.eventType}</p>
+                        {(event.notes || event.description) && (
+                          <p className="text-sm text-muted-foreground">{event.notes || event.description}</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
                           {formatDateTime(event.createdAt)}
@@ -515,9 +473,9 @@ export function ApplicationDetailPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="NOTE_ADDED">Note ajoutée</SelectItem>
-                  <SelectItem value="FOLLOW_UP_SENT">Relance envoyée</SelectItem>
+                  <SelectItem value="RELANCE_SENT">Relance envoyée</SelectItem>
                   <SelectItem value="INTERVIEW_SCHEDULED">Entretien planifié</SelectItem>
+                  <SelectItem value="STATUS_CHANGED">Changement de statut</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -534,7 +492,7 @@ export function ApplicationDetailPage() {
             <Button variant="outline" onClick={() => setShowEventDialog(false)}>
               Annuler
             </Button>
-            <Button onClick={handleAddEvent} disabled={addEventMutation.isPending}>
+            <Button onClick={handleAddEvent}>
               Ajouter
             </Button>
           </DialogFooter>

@@ -4,7 +4,6 @@ import { applicationsService } from '@/services/applications.service';
 import { remindersService } from '@/services/reminders.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -22,7 +21,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDate, statusLabels, statusColors, cn } from '@/lib/utils';
-import type { Application, Reminder } from '@/types';
+import type { Reminder } from '@/types';
 
 const DAYS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 const MONTHS = [
@@ -37,12 +36,12 @@ export function CalendarPage() {
 
   const { data: kanbanData } = useQuery({
     queryKey: ['applications', 'kanban'],
-    queryFn: applicationsService.getByStatus,
+    queryFn: () => applicationsService.getByStatus(),
   });
 
   const { data: reminders } = useQuery({
     queryKey: ['reminders'],
-    queryFn: remindersService.getAll,
+    queryFn: () => remindersService.getAll(),
   });
 
   const applications = useMemo(() => {
@@ -58,10 +57,10 @@ export function CalendarPage() {
       return appDate === dateStr;
     });
 
-    const remindersOnDate = reminders?.filter((reminder) => {
+    const remindersOnDate = (reminders || []).filter((reminder: Reminder) => {
       const reminderDate = new Date(reminder.dueDate).toISOString().split('T')[0];
       return reminderDate === dateStr;
-    }) || [];
+    });
 
     return { applications: appsOnDate, reminders: remindersOnDate };
   };

@@ -12,6 +12,16 @@ export const analyticsService = {
     return response.data;
   },
 
+  async getStats(): Promise<AnalyticsData> {
+    const response = await api.get<AnalyticsData>('/analytics/detailed');
+    return response.data;
+  },
+
+  async getTimeline(period: string): Promise<{ date: string; count: number }[]> {
+    const response = await api.get<{ date: string; count: number }[]>(`/analytics/timeline?period=${period}`);
+    return response.data;
+  },
+
   async exportCSV(): Promise<void> {
     const response = await api.get('/analytics/export', {
       responseType: 'blob',

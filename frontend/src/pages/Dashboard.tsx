@@ -33,8 +33,11 @@ export function DashboardPage() {
     return <DashboardSkeleton />;
   }
 
-  const stats = dashboard?.stats;
-  const byStatus = dashboard?.byStatus || {};
+  const byStatus = dashboard?.statusOverview || dashboard?.byStatus || {};
+  const totalApplications = dashboard?.totalApplications ?? 0;
+  const sentThisMonth = dashboard?.sentThisMonth ?? 0;
+  const scheduledInterviews = dashboard?.scheduledInterviews ?? 0;
+  const responseRate = dashboard?.responseRate ?? 0;
 
   return (
     <div className="space-y-6">
@@ -64,7 +67,7 @@ export function DashboardPage() {
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalApplications || 0}</div>
+            <div className="text-2xl font-bold">{totalApplications}</div>
             <p className="text-xs text-muted-foreground">
               {byStatus['DRAFT'] || 0} brouillons
             </p>
@@ -79,9 +82,9 @@ export function DashboardPage() {
             <Send className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.thisMonthApplications || 0}</div>
+            <div className="text-2xl font-bold">{sentThisMonth}</div>
             <p className="text-xs text-muted-foreground">
-              +{((stats?.thisMonthApplications || 0) / 4).toFixed(0)}/semaine en moyenne
+              +{(sentThisMonth / 4).toFixed(0)}/semaine en moyenne
             </p>
           </CardContent>
         </Card>
@@ -94,7 +97,7 @@ export function DashboardPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.scheduledInterviews || 0}</div>
+            <div className="text-2xl font-bold">{scheduledInterviews}</div>
             <p className="text-xs text-muted-foreground">
               {byStatus['ACCEPTED'] || 0} offre(s) acceptée(s)
             </p>
@@ -109,7 +112,7 @@ export function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.responseRate || 0}%</div>
+            <div className="text-2xl font-bold">{responseRate}%</div>
             <p className="text-xs text-muted-foreground">
               Moyenne nationale ~20%
             </p>

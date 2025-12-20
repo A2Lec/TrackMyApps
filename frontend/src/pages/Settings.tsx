@@ -1,18 +1,10 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -42,7 +34,6 @@ import { cn } from '@/lib/utils';
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout, setUser } = useAuthStore();
-  const queryClient = useQueryClient();
   
   const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'notifications' | 'appearance'>('profile');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -67,7 +58,10 @@ export function SettingsPage() {
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
 
   const updateProfileMutation = useMutation({
-    mutationFn: (data: typeof profileData) => authService.updateProfile(data),
+    mutationFn: (data: typeof profileData) => authService.updateProfile({
+      ...data,
+      graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : undefined,
+    }),
     onSuccess: (updatedUser) => {
       setUser(updatedUser);
     },

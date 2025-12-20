@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { companiesService } from '@/services/companies.service';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,7 +37,6 @@ import {
   Briefcase,
   ExternalLink,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import type { Company } from '@/types';
 
@@ -58,7 +57,7 @@ export function CompaniesPage() {
 
   const { data: companies, isLoading } = useQuery({
     queryKey: ['companies'],
-    queryFn: companiesService.getAll,
+    queryFn: () => companiesService.getAll(),
   });
 
   const createMutation = useMutation({
@@ -123,8 +122,8 @@ export function CompaniesPage() {
     }
   };
 
-  const filteredCompanies = companies?.filter(
-    (company) =>
+  const filteredCompanies = (companies || []).filter(
+    (company: Company) =>
       !search ||
       company.name.toLowerCase().includes(search.toLowerCase()) ||
       company.industry?.toLowerCase().includes(search.toLowerCase()) ||
@@ -255,7 +254,7 @@ export function CompaniesPage() {
                       key={i}
                       className={cn(
                         'h-4 w-4',
-                        i < Math.round(company.reviews.reduce((acc, r) => acc + r.rating, 0) / company.reviews.length)
+                        i < Math.round(company.reviews!.reduce((acc: number, r) => acc + r.rating, 0) / company.reviews!.length)
                           ? 'text-yellow-500 fill-yellow-500'
                           : 'text-muted-foreground'
                       )}

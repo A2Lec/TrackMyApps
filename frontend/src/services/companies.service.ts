@@ -10,6 +10,16 @@ interface CreateReviewData {
   interviewExperience?: string;
 }
 
+interface CreateCompanyData {
+  name: string;
+  website?: string;
+  industry?: string;
+  location?: string;
+  size?: string;
+  description?: string;
+  notes?: string;
+}
+
 export const companiesService = {
   async getAll(search?: string): Promise<Company[]> {
     const params = search ? `?search=${encodeURIComponent(search)}` : '';
@@ -25,6 +35,20 @@ export const companiesService = {
   async getById(id: string): Promise<Company> {
     const response = await api.get<Company>(`/companies/${id}`);
     return response.data;
+  },
+
+  async create(data: CreateCompanyData): Promise<Company> {
+    const response = await api.post<Company>('/companies', data);
+    return response.data;
+  },
+
+  async update(id: string, data: Partial<Company>): Promise<Company> {
+    const response = await api.put<Company>(`/companies/${id}`, data);
+    return response.data;
+  },
+
+  async delete(id: string): Promise<void> {
+    await api.delete(`/companies/${id}`);
   },
 
   async getReviews(id: string): Promise<CompanyReview[]> {

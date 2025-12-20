@@ -44,6 +44,14 @@ export const authService = {
     await api.put('/auth/password', { currentPassword, newPassword });
   },
 
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await api.put('/auth/password', { currentPassword, newPassword });
+  },
+
+  async deleteAccount(): Promise<void> {
+    await api.delete('/auth/account');
+  },
+
   async updatePreferences(emailNotifications: boolean, relanceFrequency: number): Promise<User> {
     const response = await api.put<User>('/auth/preferences', {
       emailNotifications,

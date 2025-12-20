@@ -22,7 +22,6 @@ import {
   Cell,
   LineChart,
   Line,
-  Legend,
 } from 'recharts';
 import {
   TrendingUp,
@@ -35,7 +34,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
-import { statusLabels, jobTypeLabels, cn } from '@/lib/utils';
+import { statusLabels, jobTypeLabels } from '@/lib/utils';
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: '#94a3b8',
@@ -60,12 +59,12 @@ export function AnalyticsPage() {
 
   const { data: dashboard, isLoading: dashboardLoading } = useQuery({
     queryKey: ['dashboard'],
-    queryFn: analyticsService.getDashboard,
+    queryFn: () => analyticsService.getDashboard(),
   });
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['analytics', 'stats'],
-    queryFn: analyticsService.getStats,
+    queryFn: () => analyticsService.getStats(),
   });
 
   const { data: timeline, isLoading: timelineLoading } = useQuery({
@@ -79,24 +78,28 @@ export function AnalyticsPage() {
     return <AnalyticsSkeleton />;
   }
 
-  const statusData = Object.entries(dashboard?.statusOverview || {}).map(([status, count]) => ({
+  const statusData = Object.entries(dashboard?.statusOverview || dashboard?.byStatus || {}).map(([status, count]) => ({
     name: statusLabels[status as keyof typeof statusLabels] || status,
-    value: count,
+    value: count as number,
     status,
   }));
 
   const jobTypeData = Object.entries(stats?.byJobType || {}).map(([type, count]) => ({
     name: jobTypeLabels[type as keyof typeof jobTypeLabels] || type,
-    value: count,
+    value: count as number,
     type,
   }));
 
-  const conversionRate = dashboard?.totalApplications
-    ? Math.round((dashboard.statusOverview.ACCEPTED || 0) / dashboard.totalApplications * 100)
+  const totalApplications = dashboard?.totalApplications || 0;
+  const acceptedCount = (dashboard?.statusOverview?.ACCEPTED || dashboard?.byStatus?.ACCEPTED || 0) as number;
+  const interviewCount = (dashboard?.statusOverview?.INTERVIEW_SCHEDULED || dashboard?.byStatus?.INTERVIEW_SCHEDULED || 0) as number;
+  
+  const conversionRate = totalApplications
+    ? Math.round(acceptedCount / totalApplications * 100)
     : 0;
 
-  const interviewRate = dashboard?.totalApplications
-    ? Math.round((dashboard.statusOverview.INTERVIEW_SCHEDULED || 0) / dashboard.totalApplications * 100)
+  const interviewRate = totalApplications
+    ? Math.round(interviewCount / totalApplications * 100)
     : 0;
 
   return (
@@ -132,7 +135,7 @@ export function AnalyticsPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total candidatures</p>
-                <p className="text-2xl font-bold">{dashboard?.totalApplications || 0}</p>
+                <p className="text-2xl font-bold">{totalApplications}</p>
               </div>
             </div>
           </CardContent>
@@ -147,7 +150,7 @@ export function AnalyticsPage() {
                 <p className="text-sm text-muted-foreground">Entretiens</p>
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold">
-                    {dashboard?.statusOverview.INTERVIEW_SCHEDULED || 0}
+                    {interviewCount}
                   </p>
                   <span className="text-sm text-muted-foreground">({interviewRate}%)</span>
                 </div>
@@ -165,7 +168,7 @@ export function AnalyticsPage() {
                 <p className="text-sm text-muted-foreground">Acceptées</p>
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold">
-                    {dashboard?.statusOverview.ACCEPTED || 0}
+                    {acceptedCount}
                   </p>
                   <span className="text-sm text-muted-foreground">({conversionRate}%)</span>
                 </div>

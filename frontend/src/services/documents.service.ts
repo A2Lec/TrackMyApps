@@ -13,14 +13,7 @@ export const documentsService = {
     return response.data;
   },
 
-  async upload(file: File, name: string, type: DocumentType, version?: string, isMain = false): Promise<Document> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('name', name);
-    formData.append('type', type);
-    if (version) formData.append('version', version);
-    formData.append('isMain', String(isMain));
-
+  async upload(formData: FormData): Promise<Document> {
     const response = await api.post<Document>('/documents', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -29,7 +22,7 @@ export const documentsService = {
     return response.data;
   },
 
-  async update(id: string, data: { name?: string; version?: string; isMain?: boolean }): Promise<Document> {
+  async update(id: string, data: { name?: string; version?: string; isMain?: boolean; isDefault?: boolean }): Promise<Document> {
     const response = await api.put<Document>(`/documents/${id}`, data);
     return response.data;
   },

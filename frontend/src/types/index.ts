@@ -6,6 +6,7 @@ export interface User {
   school?: string;
   graduationYear?: number;
   field?: string;
+  fieldOfStudy?: string;
   avatarUrl?: string;
   emailNotifications: boolean;
   relanceFrequency: number;
@@ -56,8 +57,10 @@ export interface ApplicationEvent {
   id: string;
   applicationId: string;
   eventType: EventType;
+  type?: EventType;
   eventDate: string;
   notes?: string;
+  description?: string;
   createdAt: string;
 }
 
@@ -82,7 +85,7 @@ export interface Document {
   fileName: string;
   fileSize: number;
   mimeType: string;
-  isMain: boolean;
+  isDefault: boolean;
   createdAt: string;
   updatedAt: string;
   usageCount?: number;
@@ -94,8 +97,13 @@ export interface Company {
   id: string;
   name: string;
   sector?: string;
+  industry?: string;
   size?: string;
+  location?: string;
+  website?: string;
   websiteUrl?: string;
+  description?: string;
+  notes?: string;
   averageResponseTime?: number;
   cultureTags: string[];
   hiringProcess?: string;
@@ -104,6 +112,8 @@ export interface Company {
   averageRating?: number;
   applicationCount?: number;
   reviewCount?: number;
+  _count?: { applications: number };
+  reviews?: CompanyReview[];
 }
 
 export interface CompanyReview {
@@ -164,13 +174,12 @@ export interface InterviewPrep {
 }
 
 export interface DashboardStats {
-  stats: {
-    totalApplications: number;
-    thisMonthApplications: number;
-    scheduledInterviews: number;
-    pendingReminders: number;
-    responseRate: number;
-  };
+  totalApplications: number;
+  sentThisMonth: number;
+  scheduledInterviews: number;
+  pendingReminders: number;
+  responseRate: number;
+  statusOverview: Record<string, number>;
   byStatus: Record<string, number>;
   recentApplications: Application[];
   upcomingInterviews: Application[];
@@ -178,9 +187,10 @@ export interface DashboardStats {
 
 export interface AnalyticsData {
   applicationsByMonth: { month: string; count: number }[];
-  byJobType: { jobType: JobType; count: number }[];
+  byJobType: Record<string, number>;
   byStatus: { status: ApplicationStatus; count: number }[];
   topCompanies: { companyName: string; count: number }[];
+  avgResponseTime?: number;
   conversionFunnel: {
     total: number;
     sent: number;

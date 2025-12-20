@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentsService } from '@/services/documents.service';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -43,10 +43,11 @@ import {
   StarOff,
 } from 'lucide-react';
 import { formatDate, cn } from '@/lib/utils';
-import type { Document, DocumentType } from '@/types';
+import type { Document as DocType, DocumentType } from '@/types';
 
 const documentTypeLabels: Record<DocumentType, string> = {
   CV: 'CV',
+  LETTRE_MOTIVATION: 'Lettre de motivation',
   COVER_LETTER: 'Lettre de motivation',
   PORTFOLIO: 'Portfolio',
   OTHER: 'Autre',
@@ -54,6 +55,7 @@ const documentTypeLabels: Record<DocumentType, string> = {
 
 const documentTypeColors: Record<DocumentType, string> = {
   CV: 'bg-blue-500/10 text-blue-700 border-blue-200',
+  LETTRE_MOTIVATION: 'bg-purple-500/10 text-purple-700 border-purple-200',
   COVER_LETTER: 'bg-purple-500/10 text-purple-700 border-purple-200',
   PORTFOLIO: 'bg-green-500/10 text-green-700 border-green-200',
   OTHER: 'bg-gray-500/10 text-gray-700 border-gray-200',
@@ -72,7 +74,7 @@ export function DocumentsPage() {
 
   const { data: documents, isLoading } = useQuery({
     queryKey: ['documents'],
-    queryFn: documentsService.getAll,
+    queryFn: () => documentsService.getAll(),
   });
 
   const uploadMutation = useMutation({
@@ -121,7 +123,7 @@ export function DocumentsPage() {
     }
   };
 
-  const filteredDocuments = documents?.filter((doc) => {
+  const filteredDocuments = (documents || []).filter((doc: DocType) => {
     const matchesSearch =
       !search ||
       doc.name.toLowerCase().includes(search.toLowerCase());
@@ -188,7 +190,7 @@ export function DocumentsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">CV</p>
                 <p className="text-xl font-semibold">
-                  {documents?.filter((d) => d.type === 'CV').length || 0}
+                  {(documents || []).filter((d: DocType) => d.type === 'CV').length}
                 </p>
               </div>
             </div>
@@ -203,7 +205,7 @@ export function DocumentsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Lettres</p>
                 <p className="text-xl font-semibold">
-                  {documents?.filter((d) => d.type === 'COVER_LETTER').length || 0}
+                  {(documents || []).filter((d: DocType) => d.type === 'COVER_LETTER' || d.type === 'LETTRE_MOTIVATION').length}
                 </p>
               </div>
             </div>
@@ -218,7 +220,7 @@ export function DocumentsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Portfolios</p>
                 <p className="text-xl font-semibold">
-                  {documents?.filter((d) => d.type === 'PORTFOLIO').length || 0}
+                  {(documents || []).filter((d: DocType) => d.type === 'PORTFOLIO').length}
                 </p>
               </div>
             </div>
@@ -233,7 +235,7 @@ export function DocumentsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Autres</p>
                 <p className="text-xl font-semibold">
-                  {documents?.filter((d) => d.type === 'OTHER').length || 0}
+                  {(documents || []).filter((d: DocType) => d.type === 'OTHER').length}
                 </p>
               </div>
             </div>

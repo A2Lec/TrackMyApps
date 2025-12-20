@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { remindersService } from '@/services/reminders.service';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -43,13 +43,17 @@ import {
   Filter,
   AlertCircle,
 } from 'lucide-react';
-import { formatDate, formatDateTime, cn } from '@/lib/utils';
+import { formatDateTime, cn } from '@/lib/utils';
 import type { Reminder, ReminderType } from '@/types';
 
 const reminderTypeLabels: Record<ReminderType, string> = {
   FOLLOW_UP: 'Relance',
   INTERVIEW: 'Entretien',
   DEADLINE: 'Date limite',
+  RELANCE: 'Relance',
+  INTERVIEW_PREP: 'Préparation entretien',
+  THANK_YOU_EMAIL: 'Email de remerciement',
+  CUSTOM: 'Personnalisé',
   OTHER: 'Autre',
 };
 
@@ -57,6 +61,10 @@ const reminderTypeColors: Record<ReminderType, string> = {
   FOLLOW_UP: 'bg-blue-500/10 text-blue-700 border-blue-200',
   INTERVIEW: 'bg-purple-500/10 text-purple-700 border-purple-200',
   DEADLINE: 'bg-red-500/10 text-red-700 border-red-200',
+  RELANCE: 'bg-blue-500/10 text-blue-700 border-blue-200',
+  INTERVIEW_PREP: 'bg-indigo-500/10 text-indigo-700 border-indigo-200',
+  THANK_YOU_EMAIL: 'bg-green-500/10 text-green-700 border-green-200',
+  CUSTOM: 'bg-amber-500/10 text-amber-700 border-amber-200',
   OTHER: 'bg-gray-500/10 text-gray-700 border-gray-200',
 };
 
@@ -77,7 +85,7 @@ export function RemindersPage() {
 
   const { data: reminders, isLoading } = useQuery({
     queryKey: ['reminders'],
-    queryFn: remindersService.getAll,
+    queryFn: () => remindersService.getAll(),
   });
 
   const createMutation = useMutation({
@@ -130,7 +138,7 @@ export function RemindersPage() {
     setFormData({
       title: reminder.title,
       description: reminder.description || '',
-      type: reminder.type,
+      type: reminder.type as ReminderType,
       dueDate: date.toISOString().split('T')[0],
       dueTime: date.toTimeString().slice(0, 5),
     });
@@ -171,8 +179,6 @@ export function RemindersPage() {
   const upcomingReminders = filteredReminders?.filter((r) => !r.isCompleted && new Date(r.dueDate) >= new Date());
   const overdueReminders = filteredReminders?.filter((r) => !r.isCompleted && new Date(r.dueDate) < new Date());
   const completedReminders = filteredReminders?.filter((r) => r.isCompleted);
-
-  const isOverdue = (dueDate: string) => new Date(dueDate) < new Date();
 
   if (isLoading) {
     return <RemindersSkeleton />;
@@ -498,8 +504,8 @@ function ReminderCard({ reminder, onEdit, onDelete, onToggleComplete, isOverdue 
               <h3 className={cn('font-medium', reminder.isCompleted && 'line-through')}>
                 {reminder.title}
               </h3>
-              <Badge variant="outline" className={cn('text-xs', reminderTypeColors[reminder.type])}>
-                {reminderTypeLabels[reminder.type]}
+              <Badge variant="outline" className={cn('text-xs', reminderTypeColors[reminder.type as ReminderType])}>
+                {reminderTypeLabels[reminder.type as ReminderType]}
               </Badge>
             </div>
             {reminder.description && (
