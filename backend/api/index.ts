@@ -1,6 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import app from '../src/app.js';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  return app(req, res);
+// Ensure app is initialized once
+const handler = app;
+
+export default async function apiHandler(req: VercelRequest, res: VercelResponse) {
+  // Pass through all requests to Express app
+  return handler(req, res);
 }
