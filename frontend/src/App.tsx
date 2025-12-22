@@ -55,6 +55,9 @@ function App() {
     if (!isAuthenticated) return;
 
     const checkReminders = async () => {
+      // Trigger backend email check (poor man's cron for free tier)
+      remindersService.triggerEmailCheck().catch(console.error);
+
       if (getNotificationPermission() !== 'granted') return;
 
       try {

@@ -98,6 +98,9 @@ export function RemindersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      // Trigger email check immediately after creation
+      remindersService.triggerEmailCheck().catch(console.error);
+      setShowCreateDialog(false);
       queryClient.invalidateQueries({ queryKey: ['upcomingReminders'] });
       closeDialog();
     },

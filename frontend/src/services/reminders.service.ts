@@ -53,4 +53,14 @@ export const remindersService = {
   async delete(id: string): Promise<void> {
     await api.delete(`/reminders/${id}`);
   },
+
+  async triggerEmailCheck(): Promise<{ success: boolean; results?: any }> {
+    try {
+      const response = await api.get('/cron/reminders');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to trigger email check:', error);
+      return { success: false };
+    }
+  },
 };
