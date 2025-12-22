@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { createError } from './errorHandler.middleware.js';
+import prisma from '../config/database.js';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -10,7 +11,7 @@ interface JwtPayload {
   userId: string;
 }
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -26,6 +27,17 @@ export const authMiddleware = (
     const secret = process.env.JWT_SECRET || 'default-secret';
 
     const decoded = jwt.verify(token, secret) as JwtPayload;
+    
+    // Verify that the user still exists in the database
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { id: true } // Only select id for performance
+    });
+
+    if (!user) {
+      throw createError('Utilisateur introuvable', 401);
+    }
+
     req.userId = decoded.userId;
 
     next();
