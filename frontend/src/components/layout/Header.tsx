@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { useUIStore, type Theme } from '@/store/uiStore';
+import { useUIStore } from '@/store/uiStore';
 import { useQuery } from '@tanstack/react-query';
 import { remindersService } from '@/services/reminders.service';
 import { Button } from '@/components/ui/button';

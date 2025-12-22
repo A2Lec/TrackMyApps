@@ -17,7 +17,6 @@ import {
   User,
   Mail,
   GraduationCap,
-  Briefcase,
   Lock,
   Bell,
   Moon,
