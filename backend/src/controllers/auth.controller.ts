@@ -104,4 +104,13 @@ export const authController = {
       data: user,
     });
   }),
+
+  deleteAccount: asyncHandler(async (req: AuthRequest, res: Response) => {
+    const result = await authService.deleteAccount(req.userId!);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  }),
 };

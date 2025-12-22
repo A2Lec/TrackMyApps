@@ -50,16 +50,18 @@ export function CalendarPage() {
   }, [kanbanData]);
 
   const getEventsForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const toLocalDateString = (d: Date) => {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
+    const dateStr = toLocalDateString(date);
     
     const appsOnDate = applications.filter((app) => {
-      const appDate = new Date(app.applicationDate).toISOString().split('T')[0];
-      return appDate === dateStr;
+      return toLocalDateString(new Date(app.applicationDate)) === dateStr;
     });
 
     const remindersOnDate = (reminders || []).filter((reminder: Reminder) => {
-      const reminderDate = new Date(reminder.dueDate).toISOString().split('T')[0];
-      return reminderDate === dateStr;
+      return toLocalDateString(new Date(reminder.dueDate)) === dateStr;
     });
 
     return { applications: appsOnDate, reminders: remindersOnDate };

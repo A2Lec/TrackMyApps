@@ -15,14 +15,14 @@ export const companyController = {
     });
   }),
 
-  search: asyncHandler(async (req: Request, res: Response) => {
+  search: asyncHandler(async (req: AuthRequest, res: Response) => {
     const { q } = req.query;
 
     if (!q) {
       return res.json({ success: true, data: [] });
     }
 
-    const companies = await companyService.search(q as string);
+    const companies = await companyService.search(req.userId!, q as string);
 
     res.json({
       success: true,
@@ -40,7 +40,10 @@ export const companyController = {
   }),
 
   create: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const company = await companyService.create(req.body);
+    const company = await companyService.create({
+      ...req.body,
+      userId: req.userId!,
+    });
 
     res.status(201).json({
       success: true,

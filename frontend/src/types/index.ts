@@ -144,6 +144,7 @@ export interface Reminder {
   type: string;
   dueDate: string;
   isCompleted: boolean;
+  emailSent?: boolean;
   createdAt: string;
   application?: {
     id: string;

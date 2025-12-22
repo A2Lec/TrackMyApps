@@ -24,6 +24,10 @@ interface CreateReviewData {
 
 export const companyService = {
   async getAll(userId: string, search?: string) {
+    if (!userId) {
+      return [];
+    }
+
     const where: any = { userId };
     
     if (search) {
@@ -103,9 +107,10 @@ export const companyService = {
     };
   },
 
-  async search(query: string) {
+  async search(userId: string, query: string) {
     const companies = await prisma.company.findMany({
       where: {
+        userId,
         name: { contains: query },
       },
       select: {

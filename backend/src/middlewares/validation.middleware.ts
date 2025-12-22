@@ -68,7 +68,7 @@ export const reminderValidation = [
     .notEmpty()
     .withMessage('Le titre est requis'),
   body('type')
-    .isIn(['RELANCE', 'INTERVIEW_PREP', 'THANK_YOU_EMAIL', 'FOLLOW_UP', 'CUSTOM'])
+    .isIn(['RELANCE', 'INTERVIEW_PREP', 'THANK_YOU_EMAIL', 'FOLLOW_UP', 'CUSTOM', 'INTERVIEW', 'DEADLINE', 'OTHER'])
     .withMessage('Type de rappel invalide'),
   body('dueDate')
     .isISO8601()

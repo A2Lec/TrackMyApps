@@ -117,9 +117,14 @@ export const reminderService = {
       throw createError('Rappel non trouvé', 404);
     }
 
+    const updateData: any = { ...data };
+    if (data.dueDate) {
+      updateData.emailSent = false;
+    }
+
     const reminder = await prisma.reminder.update({
       where: { id },
-      data,
+      data: updateData,
       include: {
         application: {
           select: {
@@ -162,7 +167,10 @@ export const reminderService = {
 
     const reminder = await prisma.reminder.update({
       where: { id },
-      data: { dueDate: newDate },
+      data: { 
+        dueDate: newDate,
+        emailSent: false
+      },
     });
 
     return reminder;

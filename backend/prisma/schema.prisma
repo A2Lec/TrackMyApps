@@ -76,6 +76,10 @@ model Application {
   reminders Reminder[]
   documents Document[]         @relation("ApplicationDocuments")
 
+  @@index([userId])
+  @@index([status])
+  @@index([applicationDate])
+  @@index([companyId])
   @@map("applications")
 }
 
@@ -111,6 +115,7 @@ model Document {
   applicationsLM  Application[] @relation("ApplicationLM")
   applicationDocs Application[] @relation("ApplicationDocuments")
 
+  @@index([userId, type])
   @@map("documents")
 }
 
@@ -161,9 +166,11 @@ model Reminder {
   type        String
   dueDate     DateTime
   isCompleted Boolean  @default(false)
+  emailSent   Boolean  @default(false)
 
   createdAt DateTime @default(now())
 
+  @@index([userId, dueDate])
   @@map("reminders")
 }
 
@@ -180,5 +187,6 @@ model InterviewPrep {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId, category])
   @@map("interview_preps")
 }

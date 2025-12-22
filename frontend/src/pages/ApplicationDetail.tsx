@@ -92,6 +92,7 @@ export function ApplicationDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['application', id] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setIsEditing(false);
     },
   });
@@ -101,6 +102,7 @@ export function ApplicationDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['application', id] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 
@@ -108,6 +110,7 @@ export function ApplicationDetailPage() {
     mutationFn: () => applicationsService.delete(id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       navigate('/applications');
     },
   });

@@ -5,14 +5,14 @@ import { companyReviewValidation } from '../middlewares/validation.middleware.js
 
 const router = Router();
 
-// Public routes
+// All routes are protected
+router.use(authMiddleware);
+
 router.get('/', companyController.getAll);
 router.get('/search', companyController.search);
 router.get('/:id', companyController.getById);
 router.get('/:id/reviews', companyController.getReviews);
-
-// Protected routes
-router.post('/', authMiddleware, companyController.create);
-router.post('/:id/reviews', authMiddleware, companyReviewValidation, companyController.addReview);
+router.post('/', companyController.create);
+router.post('/:id/reviews', companyReviewValidation, companyController.addReview);
 
 export default router;

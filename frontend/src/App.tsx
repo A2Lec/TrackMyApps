@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { LoginPage } from '@/pages/auth/Login';
 import { RegisterPage } from '@/pages/auth/Register';
@@ -14,6 +15,8 @@ import { CompaniesPage } from '@/pages/Companies';
 import { InterviewPrepPage } from '@/pages/InterviewPrep';
 import { SettingsPage } from '@/pages/Settings';
 import { useAuthStore } from '@/store/authStore';
+import { setupNotificationChecker, showBrowserNotification, getNotificationPermission } from '@/utils/notifications';
+import { remindersService } from '@/services/reminders.service';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +49,61 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  const { isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const checkReminders = async () => {
+      if (getNotificationPermission() !== 'granted') return;
+
+      try {
+        const reminders = await remindersService.getAll();
+        const now = new Date();
+        const notifiedKey = 'notifiedReminders';
+        const notified = JSON.parse(localStorage.getItem(notifiedKey) || '{}');
+
+        reminders.forEach((reminder) => {
+          if (reminder.isCompleted) return;
+          if (notified[reminder.id]) return; // Already notified
+
+          const dueDate = new Date(reminder.dueDate);
+          const timeDiff = dueDate.getTime() - now.getTime();
+
+          // Show notification if due time has passed or is within the next minute
+          if (timeDiff <= 60 * 1000 && timeDiff > -5 * 60 * 1000) {
+            showBrowserNotification(reminder.title, {
+              body: reminder.description || 'Rappel maintenant',
+              tag: `reminder-${reminder.id}`,
+              requireInteraction: true,
+            });
+            
+            // Mark as notified
+            notified[reminder.id] = Date.now();
+            localStorage.setItem(notifiedKey, JSON.stringify(notified));
+            console.log(`[NOTIFICATION] Showed notification for reminder: ${reminder.title}`);
+          }
+        });
+
+        // Clean old entries (older than 24 hours)
+        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+        Object.keys(notified).forEach(key => {
+          if (notified[key] < oneDayAgo) {
+            delete notified[key];
+          }
+        });
+        localStorage.setItem(notifiedKey, JSON.stringify(notified));
+      } catch (error) {
+        console.error('Error checking reminders:', error);
+      }
+    };
+
+    // Setup checker that runs every minute
+    const cleanup = setupNotificationChecker(checkReminders, 1);
+
+    return cleanup;
+  }, [isAuthenticated]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

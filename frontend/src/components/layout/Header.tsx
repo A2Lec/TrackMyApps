@@ -25,7 +25,7 @@ export function Header() {
   const { data: reminderCount = 0 } = useQuery({
     queryKey: ['reminderCount'],
     queryFn: () => remindersService.getCount(),
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   const handleLogout = () => {
@@ -97,9 +97,9 @@ export function Header() {
             className="relative"
             onClick={() => navigate('/reminders')}
           >
-            <Bell className="h-5 w-5" />
+            <Bell className={cn("h-5 w-5", reminderCount > 0 && "text-primary")} />
             {reminderCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center animate-in zoom-in">
                 {reminderCount > 9 ? '9+' : reminderCount}
               </span>
             )}

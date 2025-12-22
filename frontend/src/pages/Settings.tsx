@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,12 @@ import { useUIStore, type Theme } from '@/store/uiStore';
 import { authService } from '@/services/auth.service';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import {
+  isNotificationSupported,
+  getNotificationPermission,
+  requestNotificationPermission,
+  showBrowserNotification,
+} from '@/utils/notifications';
 
 export function SettingsPage() {
   const navigate = useNavigate();
@@ -52,10 +59,12 @@ export function SettingsPage() {
     confirmPassword: '',
   });
   const [notifications, setNotifications] = useState({
-    emailReminders: true,
-    emailWeeklyReport: true,
-    browserNotifications: false,
+    emailNotifications: user?.emailNotifications ?? true,
+    relanceFrequency: user?.relanceFrequency ?? 7,
   });
+  const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(
+    getNotificationPermission() === 'granted'
+  );
   const { theme, setTheme } = useUIStore();
 
   const updateProfileMutation = useMutation({
@@ -84,6 +93,13 @@ export function SettingsPage() {
     },
   });
 
+  const updateNotificationsMutation = useMutation({
+    mutationFn: (data: typeof notifications) => authService.updateProfile(data),
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+    },
+  });
+
   const handleSaveProfile = () => {
     updateProfileMutation.mutate(profileData);
   };
@@ -96,6 +112,26 @@ export function SettingsPage() {
       currentPassword: passwordData.currentPassword,
       newPassword: passwordData.newPassword,
     });
+  };
+
+  const handleToggleBrowserNotifications = async () => {
+    if (!isNotificationSupported()) {
+      alert('Les notifications ne sont pas supportées par votre navigateur');
+      return;
+    }
+
+    if (browserNotificationsEnabled) {
+      // Can't really disable, just update state
+      setBrowserNotificationsEnabled(false);
+    } else {
+      const granted = await requestNotificationPermission();
+      setBrowserNotificationsEnabled(granted);
+      if (granted) {
+        showBrowserNotification('Notifications activées', {
+          body: 'Vous recevrez maintenant des rappels dans votre navigateur',
+        });
+      }
+    }
   };
 
   const handleLogout = () => {
@@ -368,68 +404,88 @@ export function SettingsPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <h4 className="font-medium">Notifications par email</h4>
-                  <div className="space-y-3">
-                    <label className="flex items-center justify-between cursor-pointer">
-                      <div>
-                        <p className="font-medium">Rappels</p>
-                        <p className="text-sm text-muted-foreground">
-                          Recevez un email pour chaque rappel programmé
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <Label htmlFor="emailNotifications" className="font-medium cursor-pointer">
+                          Recevoir les rappels par email
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Recevez un email à l'heure programmée pour chaque rappel
                         </p>
                       </div>
-                      <input
-                        type="checkbox"
-                        checked={notifications.emailReminders}
-                        onChange={(e) =>
-                          setNotifications({ ...notifications, emailReminders: e.target.checked })
-                        }
-                        className="h-4 w-4"
-                        disabled
+                      <Checkbox
+                        id="emailNotifications"
+                        checked={notifications.emailNotifications}
+                        onCheckedChange={(checked) => {
+                          const updated = { ...notifications, emailNotifications: !!checked };
+                          setNotifications(updated);
+                          updateNotificationsMutation.mutate(updated);
+                        }}
                       />
-                    </label>
-                    <label className="flex items-center justify-between cursor-pointer">
-                      <div>
-                        <p className="font-medium">Rapport hebdomadaire</p>
-                        <p className="text-sm text-muted-foreground">
-                          Résumé de vos candidatures chaque semaine
-                        </p>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={notifications.emailWeeklyReport}
-                        onChange={(e) =>
-                          setNotifications({ ...notifications, emailWeeklyReport: e.target.checked })
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium">Fréquence de relance</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="relanceFrequency">
+                      Nombre de jours avant relance automatique
+                    </Label>
+                    <Input
+                      id="relanceFrequency"
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={notifications.relanceFrequency}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value, 10);
+                        if (value > 0) {
+                          setNotifications({ ...notifications, relanceFrequency: value });
                         }
-                        className="h-4 w-4"
-                        disabled
-                      />
-                    </label>
+                      }}
+                      onBlur={() => updateNotificationsMutation.mutate(notifications)}
+                      className="w-32"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Délai recommandé après une candidature sans réponse
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <h4 className="font-medium">Notifications navigateur</h4>
-                  <label className="flex items-center justify-between cursor-pointer">
-                    <div>
-                      <p className="font-medium">Notifications push</p>
-                      <p className="text-sm text-muted-foreground">
-                        Recevez des notifications dans votre navigateur
-                      </p>
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <Label htmlFor="browserNotifications" className="font-medium cursor-pointer">
+                          Notifications push
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Recevez des notifications directement dans votre navigateur
+                        </p>
+                        {!isNotificationSupported() && (
+                          <p className="text-sm text-destructive mt-1">
+                            Non supporté par votre navigateur
+                          </p>
+                        )}
+                      </div>
+                      <Checkbox
+                        id="browserNotifications"
+                        checked={browserNotificationsEnabled}
+                        onCheckedChange={handleToggleBrowserNotifications}
+                        disabled={!isNotificationSupported()}
+                      />
                     </div>
-                    <input
-                      type="checkbox"
-                      checked={notifications.browserNotifications}
-                      onChange={(e) =>
-                        setNotifications({ ...notifications, browserNotifications: e.target.checked })
-                      }
-                      className="h-4 w-4"
-                      disabled
-                    />
-                  </label>
+                  </div>
                 </div>
 
-                <Badge variant="outline" className="text-yellow-700 bg-yellow-50">
-                  Les notifications par email sont désactivées pour le moment
-                </Badge>
+                {updateNotificationsMutation.isSuccess && (
+                  <Badge variant="outline" className="text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950/30">
+                    Préférences enregistrées
+                  </Badge>
+                )}
               </CardContent>
             </Card>
           )}

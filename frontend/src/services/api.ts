@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@/store/authStore';
 
 // En production, on utilise le proxy Vercel défini dans vercel.json
 // En développement, on utilise le proxy Vite
@@ -41,9 +42,7 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      useAuthStore.getState().logout();
     }
     return Promise.reject(error);
   }

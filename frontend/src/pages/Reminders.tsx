@@ -44,6 +44,7 @@ import {
   Filter,
   AlertCircle,
   X,
+  Mail,
 } from 'lucide-react';
 import { formatDateTime, cn } from '@/lib/utils';
 import type { Reminder, ReminderType } from '@/types';
@@ -89,12 +90,15 @@ export function RemindersPage() {
   const { data: reminders, isLoading } = useQuery({
     queryKey: ['reminders'],
     queryFn: () => remindersService.getAll(),
+    refetchInterval: 30000, // Refetch every 30 seconds to update status
   });
 
   const createMutation = useMutation({
     mutationFn: remindersService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['upcomingReminders'] });
       closeDialog();
     },
   });
@@ -104,6 +108,8 @@ export function RemindersPage() {
       remindersService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['upcomingReminders'] });
       closeDialog();
     },
   });
@@ -114,6 +120,8 @@ export function RemindersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['upcomingReminders'] });
       setSelectedIds(new Set());
     },
   });
@@ -124,6 +132,8 @@ export function RemindersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['upcomingReminders'] });
       setSelectedIds(new Set());
     },
   });
@@ -132,6 +142,8 @@ export function RemindersPage() {
     mutationFn: remindersService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['upcomingReminders'] });
     },
   });
 
@@ -140,6 +152,8 @@ export function RemindersPage() {
       remindersService.update(id, { isCompleted }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['upcomingReminders'] });
     },
   });
 
@@ -570,7 +584,7 @@ function ReminderCard({ reminder, onEdit, onDelete, onToggleComplete, isOverdue,
     <Card className={cn(
       'hover:border-primary transition-colors',
       reminder.isCompleted && 'opacity-60',
-      isOverdue && 'border-red-200 bg-red-50/50',
+      isOverdue && 'border-red-500/30 bg-red-500/10',
       isSelected && 'border-primary bg-primary/5'
     )}>
       <CardContent className="p-4">
@@ -581,7 +595,7 @@ function ReminderCard({ reminder, onEdit, onDelete, onToggleComplete, isOverdue,
               onCheckedChange={onSelect} 
               className={cn(
                 "rounded-full w-5 h-5 border-2",
-                isOverdue && !reminder.isCompleted ? "border-red-400 data-[state=checked]:bg-red-400 data-[state=checked]:border-red-400" : "border-muted-foreground",
+                isOverdue && !reminder.isCompleted ? "border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" : "border-muted-foreground",
                 reminder.isCompleted && "border-green-600 text-green-600 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
               )}
             />
@@ -594,6 +608,12 @@ function ReminderCard({ reminder, onEdit, onDelete, onToggleComplete, isOverdue,
               <Badge variant="outline" className={cn('text-xs', reminderTypeColors[reminder.type as ReminderType])}>
                 {reminderTypeLabels[reminder.type as ReminderType]}
               </Badge>
+              {reminder.emailSent && (
+                <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 border-blue-200 flex items-center gap-1">
+                  <Mail className="h-3 w-3" />
+                  Email envoyé
+                </Badge>
+              )}
             </div>
             {reminder.description && (
               <p className="text-sm text-muted-foreground mt-1">{reminder.description}</p>

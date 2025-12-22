@@ -278,7 +278,8 @@ export const applicationService = {
     // Calculate response rate
     const responded = (statusCounts['INTERVIEW_SCHEDULED'] || 0) +
       (statusCounts['REJECTED'] || 0) +
-      (statusCounts['ACCEPTED'] || 0);
+      (statusCounts['ACCEPTED'] || 0) +
+      (statusCounts['VIEWED'] || 0);
     const sent = total - (statusCounts['DRAFT'] || 0);
     const responseRate = sent > 0 ? Math.round((responded / sent) * 100) : 0;
 

@@ -165,6 +165,22 @@ export const authService = {
     return user;
   },
 
+  async deleteAccount(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw createError('Utilisateur non trouvé', 404);
+    }
+
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return { message: 'Compte supprimé avec succès' };
+  },
+
   generateToken(userId: string): string {
     const secret = process.env.JWT_SECRET || 'default-secret';
     const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
