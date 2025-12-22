@@ -28,6 +28,11 @@ api.interceptors.request.use(
 // Response interceptor for handling errors and extracting data
 api.interceptors.response.use(
   (response) => {
+    // Check if response is HTML (likely a 404 or 500 error page from Vercel/Proxy)
+    if (typeof response.data === 'string' && response.data.trim().toLowerCase().startsWith('<!doctype html')) {
+      return Promise.reject(new Error('Invalid API response: Received HTML instead of JSON. Check API URL configuration.'));
+    }
+
     // If the backend returns { success: true, data: ... }, extract the data
     if (response.data && typeof response.data === 'object' && 'success' in response.data && 'data' in response.data) {
       response.data = response.data.data;

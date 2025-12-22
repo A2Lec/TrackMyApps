@@ -265,7 +265,7 @@ export function DashboardPage() {
                   <Skeleton key={i} className="h-16" />
                 ))}
               </div>
-            ) : upcomingReminders && upcomingReminders.length > 0 ? (
+            ) : upcomingReminders && Array.isArray(upcomingReminders) && upcomingReminders.length > 0 ? (
               <div className="space-y-3">
                 {upcomingReminders.slice(0, 5).map((reminder) => (
                   <div
