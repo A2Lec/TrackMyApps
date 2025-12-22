@@ -87,6 +87,7 @@ export function ApplicationsPage() {
     jobUrl: '',
     salary: '',
     notes: '',
+    jobDescription: '',
     status: 'SENT' as ApplicationStatus,
   });
 
@@ -109,6 +110,7 @@ export function ApplicationsPage() {
         jobUrl: '',
         salary: '',
         notes: '',
+        jobDescription: '',
         status: 'SENT',
       });
     },
@@ -195,20 +197,20 @@ export function ApplicationsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Candidatures</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold">Candidatures</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             Gérez toutes vos candidatures en un coup d'œil
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
+        <Button onClick={() => setShowCreateDialog(true)} className="w-full md:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Nouvelle candidature
         </Button>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="relative flex-1 max-w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Rechercher..."
@@ -217,7 +219,7 @@ export function ApplicationsPage() {
             className="pl-10"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-end">
           <Button
             variant={view === 'kanban' ? 'default' : 'outline'}
             size="icon"
@@ -269,50 +271,51 @@ export function ApplicationsPage() {
       {view === 'list' && kanbanData && (
         <Card>
           <CardContent className="p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4 font-medium">Entreprise</th>
-                  <th className="text-left p-4 font-medium">Poste</th>
-                  <th className="text-left p-4 font-medium">Type</th>
-                  <th className="text-left p-4 font-medium">Statut</th>
-                  <th className="text-left p-4 font-medium">Date</th>
-                  <th className="text-right p-4 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.values(kanbanData)
-                  .flat()
-                  .filter(
-                    (app) =>
-                      !search ||
-                      app.companyName.toLowerCase().includes(search.toLowerCase()) ||
-                      app.position.toLowerCase().includes(search.toLowerCase())
-                  )
-                  .map((app) => (
-                    <tr key={app.id} className="border-b hover:bg-muted/50">
-                      <td className="p-4">
-                        <Link
-                          to={`/applications/${app.id}`}
-                          className="font-medium hover:text-primary"
-                        >
-                          {app.companyName}
-                        </Link>
-                      </td>
-                      <td className="p-4 text-muted-foreground">{app.position}</td>
-                      <td className="p-4">
-                        <span className={cn('px-2 py-1 rounded-full text-xs', jobTypeColors[app.jobType])}>
-                          {jobTypeLabels[app.jobType]}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className={cn('px-2 py-1 rounded-full text-xs', statusColors[app.status])}>
-                          {statusLabels[app.status]}
-                        </span>
-                      </td>
-                      <td className="p-4 text-muted-foreground">
-                        {formatDate(app.applicationDate)}
-                      </td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-4 font-medium">Entreprise</th>
+                    <th className="text-left p-4 font-medium">Poste</th>
+                    <th className="text-left p-4 font-medium hidden md:table-cell">Type</th>
+                    <th className="text-left p-4 font-medium">Statut</th>
+                    <th className="text-left p-4 font-medium hidden lg:table-cell">Date</th>
+                    <th className="text-right p-4 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.values(kanbanData)
+                    .flat()
+                    .filter(
+                      (app) =>
+                        !search ||
+                        app.companyName.toLowerCase().includes(search.toLowerCase()) ||
+                        app.position.toLowerCase().includes(search.toLowerCase())
+                    )
+                    .map((app) => (
+                      <tr key={app.id} className="border-b hover:bg-muted/50">
+                        <td className="p-4">
+                          <Link
+                            to={`/applications/${app.id}`}
+                            className="font-medium hover:text-primary"
+                          >
+                            {app.companyName}
+                          </Link>
+                        </td>
+                        <td className="p-4 text-muted-foreground">{app.position}</td>
+                        <td className="p-4 hidden md:table-cell">
+                          <span className={cn('px-2 py-1 rounded-full text-xs', jobTypeColors[app.jobType])}>
+                            {jobTypeLabels[app.jobType]}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span className={cn('px-2 py-1 rounded-full text-xs', statusColors[app.status])}>
+                            {statusLabels[app.status]}
+                          </span>
+                        </td>
+                        <td className="p-4 text-muted-foreground hidden lg:table-cell">
+                          {formatDate(app.applicationDate)}
+                        </td>
                       <td className="p-4 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -349,20 +352,21 @@ export function ApplicationsPage() {
                   ))}
               </tbody>
             </table>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Nouvelle candidature</DialogTitle>
             <DialogDescription>
               Ajoutez une nouvelle candidature à votre suivi
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="space-y-4 py-4">
+          <DialogBody className="space-y-4 py-4 overflow-y-auto overflow-x-hidden flex-1 pr-4">
             <div className="space-y-2">
               <Label htmlFor="companyName">Entreprise *</Label>
               <Input
@@ -385,7 +389,7 @@ export function ApplicationsPage() {
                 }
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Type</Label>
                 <Select
@@ -397,7 +401,7 @@ export function ApplicationsPage() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent side="bottom" className="z-50">
                     <SelectItem value="STAGE">Stage</SelectItem>
                     <SelectItem value="ALTERNANCE">Alternance</SelectItem>
                     <SelectItem value="CDI">CDI</SelectItem>
@@ -416,7 +420,7 @@ export function ApplicationsPage() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent side="bottom" className="z-50">
                     <SelectItem value="DRAFT">Brouillon</SelectItem>
                     <SelectItem value="SENT">Envoyée</SelectItem>
                   </SelectContent>
@@ -465,6 +469,18 @@ export function ApplicationsPage() {
                 onChange={(e) =>
                   setNewApplication({ ...newApplication, notes: e.target.value })
                 }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="jobDescription">Description de l'offre</Label>
+              <Textarea
+                id="jobDescription"
+                placeholder="Collez ici le texte de l'annonce..."
+                value={newApplication.jobDescription}
+                onChange={(e) =>
+                  setNewApplication({ ...newApplication, jobDescription: e.target.value })
+                }
+                className="min-h-32"
               />
             </div>
           </DialogBody>

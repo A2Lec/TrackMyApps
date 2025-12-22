@@ -20,10 +20,11 @@ export function Layout() {
       <main
         className={cn(
           'pt-16 min-h-screen transition-all duration-300',
-          sidebarOpen ? 'pl-64' : 'pl-20'
+          'pl-0 lg:pl-20',
+          sidebarOpen && 'lg:pl-64'
         )}
       >
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           <Outlet />
         </div>
       </main>

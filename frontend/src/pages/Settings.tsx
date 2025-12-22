@@ -22,11 +22,13 @@ import {
   Bell,
   Moon,
   Sun,
+  Monitor,
   Trash2,
   Save,
   LogOut,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useUIStore, type Theme } from '@/store/uiStore';
 import { authService } from '@/services/auth.service';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -55,7 +57,7 @@ export function SettingsPage() {
     emailWeeklyReport: true,
     browserNotifications: false,
   });
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const { theme, setTheme } = useUIStore();
 
   const updateProfileMutation = useMutation({
     mutationFn: (data: typeof profileData) => authService.updateProfile({
@@ -449,11 +451,11 @@ export function SettingsPage() {
                     {[
                       { value: 'light', label: 'Clair', icon: Sun },
                       { value: 'dark', label: 'Sombre', icon: Moon },
-                      { value: 'system', label: 'Système', icon: Briefcase },
+                      { value: 'system', label: 'Système', icon: Monitor },
                     ].map((option) => (
                       <button
                         key={option.value}
-                        onClick={() => setTheme(option.value as typeof theme)}
+                        onClick={() => setTheme(option.value as Theme)}
                         className={cn(
                           'flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors',
                           theme === option.value
@@ -466,11 +468,15 @@ export function SettingsPage() {
                       </button>
                     ))}
                   </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {theme === 'system' 
+                      ? 'Le thème s\'adapte automatiquement aux préférences de votre système'
+                      : theme === 'dark'
+                        ? 'Mode sombre activé'
+                        : 'Mode clair activé'
+                    }
+                  </p>
                 </div>
-
-                <Badge variant="outline" className="text-yellow-700 bg-yellow-50">
-                  Le thème sombre sera disponible prochainement
-                </Badge>
               </CardContent>
             </Card>
           )}

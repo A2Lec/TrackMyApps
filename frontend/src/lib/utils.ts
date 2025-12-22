@@ -57,14 +57,14 @@ export const statusLabels: Record<string, string> = {
 }
 
 export const statusColors: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-700',
-  SENT: 'bg-blue-100 text-blue-700',
-  VIEWED: 'bg-purple-100 text-purple-700',
-  INTERVIEW_SCHEDULED: 'bg-green-100 text-green-700',
-  AWAITING_RESPONSE: 'bg-yellow-100 text-yellow-700',
-  REJECTED: 'bg-red-100 text-red-700',
-  ACCEPTED: 'bg-emerald-100 text-emerald-700',
-  GHOSTED: 'bg-gray-200 text-gray-600',
+  DRAFT: 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-100',
+  SENT: 'bg-blue-200 text-blue-700 dark:bg-blue-600 dark:text-blue-100',
+  VIEWED: 'bg-purple-200 text-purple-700 dark:bg-purple-600 dark:text-purple-100',
+  INTERVIEW_SCHEDULED: 'bg-green-200 text-green-700 dark:bg-green-600 dark:text-green-100',
+  AWAITING_RESPONSE: 'bg-amber-200 text-amber-700 dark:bg-amber-500 dark:text-amber-100',
+  REJECTED: 'bg-red-200 text-red-700 dark:bg-red-500 dark:text-red-100',
+  ACCEPTED: 'bg-emerald-200 text-emerald-700 dark:bg-emerald-500 dark:text-emerald-100',
+  GHOSTED: 'bg-zinc-200 text-zinc-700 dark:bg-zinc-500 dark:text-zinc-100',
 }
 
 export const jobTypeLabels: Record<string, string> = {
@@ -75,8 +75,8 @@ export const jobTypeLabels: Record<string, string> = {
 }
 
 export const jobTypeColors: Record<string, string> = {
-  STAGE: 'bg-indigo-100 text-indigo-700',
-  ALTERNANCE: 'bg-cyan-100 text-cyan-700',
-  CDI: 'bg-orange-100 text-orange-700',
-  JOB_ETUDIANT: 'bg-pink-100 text-pink-700',
+  STAGE: 'bg-indigo-200 text-indigo-700 dark:bg-indigo-600 dark:text-indigo-100',
+  ALTERNANCE: 'bg-cyan-200 text-cyan-700 dark:bg-cyan-600 dark:text-cyan-100',
+  CDI: 'bg-orange-200 text-orange-700 dark:bg-orange-500 dark:text-orange-100',
+  JOB_ETUDIANT: 'bg-pink-200 text-pink-700 dark:bg-pink-600 dark:text-pink-100',
 }

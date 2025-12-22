@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -53,6 +54,8 @@ model Application {
   jobUrl          String?
   salary          String?
   notes           String?
+  jobDescription  String?  // Job offer description text
+  jobDescriptionFileUrl String?  // Job offer document URL
   contactName     String?
   contactEmail    String?
 

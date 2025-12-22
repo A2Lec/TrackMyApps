@@ -23,8 +23,8 @@ interface CreateReviewData {
 }
 
 export const companyService = {
-  async getAll(search?: string) {
-    const where: any = {};
+  async getAll(userId: string, search?: string) {
+    const where: any = { userId };
     
     if (search) {
       where.OR = [

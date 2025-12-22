@@ -54,4 +54,14 @@ export const analyticsController = {
     res.setHeader('Content-Disposition', 'attachment; filename=candidatures.csv');
     res.send(csv);
   }),
+
+  getTimeline: asyncHandler(async (req: AuthRequest, res: Response) => {
+    const { period } = req.query;
+    const data = await analyticsService.getTimeline(req.userId!, period as string);
+
+    res.json({
+      success: true,
+      data,
+    });
+  }),
 };

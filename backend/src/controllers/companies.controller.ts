@@ -5,9 +5,9 @@ import { asyncHandler, createError } from '../middlewares/errorHandler.middlewar
 import { AuthRequest } from '../middlewares/auth.middleware.js';
 
 export const companyController = {
-  getAll: asyncHandler(async (req: Request, res: Response) => {
+  getAll: asyncHandler(async (req: AuthRequest, res: Response) => {
     const { search } = req.query;
-    const companies = await companyService.getAll(search as string);
+    const companies = await companyService.getAll(req.userId!, search as string);
 
     res.json({
       success: true,

@@ -99,13 +99,11 @@ export const analyticsService = {
     const responseRate = sent > 0 ? Math.round((responded / sent) * 100) : 0;
 
     return {
-      stats: {
-        totalApplications,
-        thisMonthApplications,
-        scheduledInterviews,
-        pendingReminders,
-        responseRate,
-      },
+      totalApplications,
+      sentThisMonth: thisMonthApplications,
+      scheduledInterviews,
+      pendingReminders,
+      responseRate,
       byStatus: statusCounts,
       recentApplications,
       upcomingInterviews,
@@ -190,10 +188,10 @@ export const analyticsService = {
 
     return {
       applicationsByMonth,
-      byJobType: byJobType.map(item => ({
-        jobType: item.jobType,
-        count: item._count,
-      })),
+      byJobType: byJobType.reduce((acc, item) => {
+        acc[item.jobType] = item._count;
+        return acc;
+      }, {} as Record<string, number>),
       byStatus: byStatus.map(item => ({
         status: item.status,
         count: item._count,
@@ -217,5 +215,53 @@ export const analyticsService = {
     });
 
     return applications;
+  },
+
+  async getTimeline(userId: string, period: string) {
+    const now = new Date();
+    let startDate = new Date();
+
+    switch (period) {
+      case '7d':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case '30d':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case '90d':
+        startDate.setDate(now.getDate() - 90);
+        break;
+      case 'all':
+        startDate = new Date(0);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 30);
+    }
+
+    const applications = await prisma.application.findMany({
+      where: {
+        userId,
+        applicationDate: {
+          gte: startDate,
+        },
+      },
+      select: {
+        applicationDate: true,
+      },
+      orderBy: {
+        applicationDate: 'asc',
+      },
+    });
+
+    const grouped = applications.reduce((acc, app) => {
+      const date = app.applicationDate.toISOString().split('T')[0];
+      acc[date] = (acc[date] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(grouped).map(([date, count]) => ({
+      date,
+      count,
+    }));
   },
 };

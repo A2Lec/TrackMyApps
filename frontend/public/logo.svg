@@ -1,0 +1,30 @@
+<svg viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blue path (left side) -->
+  <g id="blue-path">
+    <!-- Circle at top left -->
+    <circle cx="110" cy="120" r="25" fill="#2563EB"/>
+    <!-- Connecting lines -->
+    <path d="M 110 145 L 110 180" stroke="#2563EB" stroke-width="30" stroke-linecap="round" fill="none"/>
+    <path d="M 110 180 L 160 180" stroke="#2563EB" stroke-width="30" stroke-linecap="round" fill="none"/>
+    <!-- Dots -->
+    <circle cx="110" cy="220" r="12" fill="#2563EB"/>
+    <circle cx="110" cy="260" r="12" fill="#2563EB"/>
+  </g>
+  
+  <!-- Green path (right side) -->
+  <g id="green-path">
+    <!-- Connecting lines from junction -->
+    <path d="M 160 180 L 200 180" stroke="#14B8A6" stroke-width="30" stroke-linecap="round" fill="none"/>
+    <path d="M 200 180 L 200 240" stroke="#14B8A6" stroke-width="30" stroke-linecap="round" fill="none"/>
+    <path d="M 200 240 L 280 240" stroke="#14B8A6" stroke-width="30" stroke-linecap="round" fill="none"/>
+    <path d="M 280 240 L 280 120" stroke="#14B8A6" stroke-width="30" stroke-linecap="round" fill="none"/>
+    <!-- Dots -->
+    <circle cx="240" cy="180" r="12" fill="#14B8A6"/>
+    <circle cx="240" cy="220" r="12" fill="#14B8A6"/>
+  </g>
+  
+  <!-- Star at top right -->
+  <g id="star">
+    <path d="M 340 80 L 355 120 L 395 120 L 365 145 L 380 185 L 340 160 L 300 185 L 315 145 L 285 120 L 325 120 Z" fill="#14B8A6"/>
+  </g>
+</svg>

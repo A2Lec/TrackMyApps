@@ -10,26 +10,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// CORS configuration - accept multiple localhost ports for development
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'http://localhost:5176',
-  'http://localhost:5177',
-  'https://track-my-apps-frontend1.vercel.app',
-  process.env.FRONTEND_URL,
-].filter(Boolean);
-
+// CORS configuration
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(null, false);
-  },
+  origin: true, // Allow all origins in development
   credentials: true,
 }));
 
@@ -44,7 +27,7 @@ app.use((req, res, next) => {
 });
 
 // Serve uploaded files
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
+const uploadDir = process.env.UPLOAD_DIR || (process.env.NODE_ENV === 'production' ? '/tmp' : './uploads');
 app.use('/uploads', express.static(path.resolve(uploadDir)));
 
 // Health check at root

@@ -30,6 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Plus,
   Search,
@@ -42,6 +43,7 @@ import {
   Edit,
   Filter,
   AlertCircle,
+  X,
 } from 'lucide-react';
 import { formatDateTime, cn } from '@/lib/utils';
 import type { Reminder, ReminderType } from '@/types';
@@ -82,6 +84,7 @@ export function RemindersPage() {
     dueDate: '',
     dueTime: '09:00',
   });
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { data: reminders, isLoading } = useQuery({
     queryKey: ['reminders'],
@@ -102,6 +105,26 @@ export function RemindersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       closeDialog();
+    },
+  });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async ({ ids, data }: { ids: string[]; data: Partial<Reminder> }) => {
+      await Promise.all(ids.map((id) => remindersService.update(id, data)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      setSelectedIds(new Set());
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => remindersService.delete(id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      setSelectedIds(new Set());
     },
   });
 
@@ -180,6 +203,24 @@ export function RemindersPage() {
   const overdueReminders = filteredReminders?.filter((r) => !r.isCompleted && new Date(r.dueDate) < new Date());
   const completedReminders = filteredReminders?.filter((r) => r.isCompleted);
 
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === (filteredReminders?.length ?? 0)) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredReminders?.map((r) => r.id) ?? []));
+    }
+  };
+
   if (isLoading) {
     return <RemindersSkeleton />;
   }
@@ -187,22 +228,63 @@ export function RemindersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Rappels</h1>
-          <p className="text-muted-foreground">
-            Ne manquez plus aucune relance ou entretien
-          </p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">Rappels</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Ne manquez plus aucune relance ou entretien
+            </p>
+          </div>
+          <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            Nouveau rappel
+          </Button>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nouveau rappel
-        </Button>
+        {selectedIds.size > 0 && (
+          <div className="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => bulkUpdateMutation.mutate({ ids: Array.from(selectedIds), data: { isCompleted: true } })}
+              className="flex-1 sm:flex-none"
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Marquer comme lu ({selectedIds.size})</span>
+              <span className="sm:hidden">Lu ({selectedIds.size})</span>
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => bulkDeleteMutation.mutate(Array.from(selectedIds))}
+              className="flex-1 sm:flex-none"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Supprimer ({selectedIds.size})</span>
+              <span className="sm:hidden">Suppr. ({selectedIds.size})</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={(filteredReminders?.length ?? 0) > 0 && selectedIds.size === (filteredReminders?.length ?? 0)}
+            onCheckedChange={toggleAll}
+            className="rounded-full"
+          />
+          <span className="text-sm text-muted-foreground">Tout sélectionner</span>
+        </div>
+        <div className="relative flex-1 max-w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Rechercher..."
@@ -211,10 +293,10 @@ export function RemindersPage() {
             className="pl-10"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as ReminderType | 'all')}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -312,6 +394,8 @@ export function RemindersPage() {
                   toggleCompleteMutation.mutate({ id: reminder.id, isCompleted: !reminder.isCompleted })
                 }
                 isOverdue
+                isSelected={selectedIds.has(reminder.id)}
+                onSelect={() => toggleSelection(reminder.id)}
               />
             ))}
           </div>
@@ -335,6 +419,8 @@ export function RemindersPage() {
                 onToggleComplete={() =>
                   toggleCompleteMutation.mutate({ id: reminder.id, isCompleted: !reminder.isCompleted })
                 }
+                isSelected={selectedIds.has(reminder.id)}
+                onSelect={() => toggleSelection(reminder.id)}
               />
             ))}
           </div>
@@ -358,6 +444,8 @@ export function RemindersPage() {
                 onToggleComplete={() =>
                   toggleCompleteMutation.mutate({ id: reminder.id, isCompleted: !reminder.isCompleted })
                 }
+                isSelected={selectedIds.has(reminder.id)}
+                onSelect={() => toggleSelection(reminder.id)}
               />
             ))}
           </div>
@@ -473,32 +561,31 @@ interface ReminderCardProps {
   onDelete: () => void;
   onToggleComplete: () => void;
   isOverdue?: boolean;
+  isSelected: boolean;
+  onSelect: () => void;
 }
 
-function ReminderCard({ reminder, onEdit, onDelete, onToggleComplete, isOverdue }: ReminderCardProps) {
+function ReminderCard({ reminder, onEdit, onDelete, onToggleComplete, isOverdue, isSelected, onSelect }: ReminderCardProps) {
   return (
     <Card className={cn(
       'hover:border-primary transition-colors',
       reminder.isCompleted && 'opacity-60',
-      isOverdue && 'border-red-200 bg-red-50/50'
+      isOverdue && 'border-red-200 bg-red-50/50',
+      isSelected && 'border-primary bg-primary/5'
     )}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 rounded-full"
-            onClick={onToggleComplete}
-          >
-            {reminder.isCompleted ? (
-              <CheckCircle className="h-5 w-5 text-green-600" />
-            ) : (
-              <div className={cn(
-                'h-5 w-5 rounded-full border-2',
-                isOverdue ? 'border-red-400' : 'border-muted-foreground'
-              )} />
-            )}
-          </Button>
+          <div className="flex items-center justify-center h-6 w-6 mt-0.5">
+            <Checkbox 
+              checked={isSelected} 
+              onCheckedChange={onSelect} 
+              className={cn(
+                "rounded-full w-5 h-5 border-2",
+                isOverdue && !reminder.isCompleted ? "border-red-400 data-[state=checked]:bg-red-400 data-[state=checked]:border-red-400" : "border-muted-foreground",
+                reminder.isCompleted && "border-green-600 text-green-600 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+              )}
+            />
+          </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h3 className={cn('font-medium', reminder.isCompleted && 'line-through')}>
@@ -518,23 +605,38 @@ function ReminderCard({ reminder, onEdit, onDelete, onToggleComplete, isOverdue 
               </span>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>
-                <Edit className="mr-2 h-4 w-4" />
-                Modifier
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive" onClick={onDelete}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Supprimer
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onToggleComplete}>
+                  {reminder.isCompleted ? (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      Marquer comme non lu
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Marquer comme lu
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onEdit}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Modifier
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive" onClick={onDelete}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Supprimer
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </CardContent>
     </Card>

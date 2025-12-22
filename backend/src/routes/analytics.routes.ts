@@ -9,6 +9,7 @@ router.use(authMiddleware);
 
 router.get('/dashboard', analyticsController.getDashboard);
 router.get('/detailed', analyticsController.getDetailed);
+router.get('/timeline', analyticsController.getTimeline);
 router.get('/export', analyticsController.exportData);
 
 export default router;

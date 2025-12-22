@@ -82,6 +82,7 @@ export function ApplicationDetailPage() {
         jobUrl: application.jobUrl,
         salary: application.salary,
         notes: application.notes,
+        jobDescription: application.jobDescription,
       });
     }
   }, [application]);
@@ -307,6 +308,15 @@ export function ApplicationDetailPage() {
                       placeholder="Notes personnelles..."
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Description de l'offre</Label>
+                    <Textarea
+                      value={formData.jobDescription || ''}
+                      onChange={(e) => setFormData({ ...formData, jobDescription: e.target.value })}
+                      rows={6}
+                      placeholder="Collez ici le texte de l'annonce..."
+                    />
+                  </div>
                 </>
               ) : (
                 <div className="grid gap-4">
@@ -349,6 +359,14 @@ export function ApplicationDetailPage() {
                       <h4 className="font-medium mb-2">Notes</h4>
                       <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                         {application.notes}
+                      </p>
+                    </div>
+                  )}
+                  {application.jobDescription && (
+                    <div className="pt-4 border-t">
+                      <h4 className="font-medium mb-2">Description de l'offre</h4>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {application.jobDescription}
                       </p>
                     </div>
                   )}

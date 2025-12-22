@@ -27,6 +27,8 @@ export interface Application {
   jobUrl?: string;
   salary?: string;
   notes?: string;
+  jobDescription?: string;
+  jobDescriptionFileUrl?: string;
   cvUsedId?: string;
   lmUsedId?: string;
   cvUsed?: Document;

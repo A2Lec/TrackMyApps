@@ -1,10 +1,31 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { analyticsService } from '@/services/analytics.service';
 import { remindersService } from '@/services/reminders.service';
+import { applicationsService } from '@/services/applications.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import type { ApplicationStatus, JobType } from '@/types';
 import { 
   Briefcase, 
   Send, 
@@ -19,6 +40,20 @@ import {
 import { formatDate, statusLabels, statusColors, cn } from '@/lib/utils';
 
 export function DashboardPage() {
+  const queryClient = useQueryClient();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newApplication, setNewApplication] = useState({
+    companyName: '',
+    position: '',
+    jobType: 'STAGE' as JobType,
+    location: '',
+    jobUrl: '',
+    salary: '',
+    notes: '',
+    jobDescription: '',
+    status: 'SENT' as ApplicationStatus,
+  });
+
   const { data: dashboard, isLoading: dashboardLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: analyticsService.getDashboard,
@@ -28,6 +63,36 @@ export function DashboardPage() {
     queryKey: ['upcomingReminders'],
     queryFn: () => remindersService.getUpcoming(7),
   });
+
+  const createMutation = useMutation({
+    mutationFn: applicationsService.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      setShowCreateDialog(false);
+      setNewApplication({
+        companyName: '',
+        position: '',
+        jobType: 'STAGE',
+        location: '',
+        jobUrl: '',
+        salary: '',
+        notes: '',
+        jobDescription: '',
+        status: 'SENT',
+      });
+    },
+    onError: (error: any) => {
+      alert('Erreur: ' + (error.response?.data?.message || error.message || 'Erreur inconnue'));
+    },
+  });
+
+  const handleCreate = () => {
+    if (!newApplication.companyName || !newApplication.position || !newApplication.location) {
+      return;
+    }
+    createMutation.mutate(newApplication);
+  };
 
   if (dashboardLoading) {
     return <DashboardSkeleton />;
@@ -42,19 +107,17 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
             Vue d'ensemble de vos candidatures
           </p>
         </div>
-        <Link to="/applications">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nouvelle candidature
-          </Button>
-        </Link>
+        <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
+          <Plus className="mr-2 h-4 w-4" />
+          Nouvelle candidature
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -77,14 +140,14 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Envoyées ce mois
+              Candidatures ce mois
             </CardTitle>
             <Send className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{sentThisMonth}</div>
             <p className="text-xs text-muted-foreground">
-              +{(sentThisMonth / 4).toFixed(0)}/semaine en moyenne
+              {byStatus['SENT'] || 0} envoyées au total
             </p>
           </CardContent>
         </Card>
@@ -122,6 +185,65 @@ export function DashboardPage() {
 
       {/* Main content */}
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Recent applications */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Dernières candidatures
+            </CardTitle>
+            <Link to="/applications">
+              <Button variant="ghost" size="sm">
+                Voir tout
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {dashboard?.recentApplications && dashboard.recentApplications.length > 0 ? (
+              <div className="space-y-3">
+                {dashboard.recentApplications.map((app) => (
+                  <Link
+                    key={app.id}
+                    to={`/applications/${app.id}`}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  >
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {app.position}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {app.companyName}
+                      </p>
+                    </div>
+                    <div className={cn(
+                      'px-2 py-1 rounded-full text-xs font-medium',
+                      statusColors[app.status]
+                    )}>
+                      {statusLabels[app.status]}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Briefcase className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>Aucune candidature</p>
+                <Button 
+                  variant="link" 
+                  className="mt-2" 
+                  onClick={() => setShowCreateDialog(true)}
+                >
+                  Commencer maintenant
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Upcoming reminders */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -166,6 +288,12 @@ export function DashboardPage() {
                         {formatDate(reminder.dueDate)}
                       </p>
                     </div>
+                    <div className={cn(
+                      'px-2 py-1 rounded text-xs font-medium',
+                      reminder.isCompleted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    )}>
+                      {reminder.isCompleted ? 'Fait' : 'À faire'}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -177,100 +305,43 @@ export function DashboardPage() {
             )}
           </CardContent>
         </Card>
+      </div>
 
-        {/* Recent applications */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+      {/* Upcoming interviews */}
+      {dashboard?.upcomingInterviews && dashboard.upcomingInterviews.length > 0 && (
+        <Card className="lg:col-span-2">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Candidatures récentes
+              <Calendar className="h-5 w-5" />
+              Prochains entretiens
             </CardTitle>
-            <Link to="/applications">
-              <Button variant="ghost" size="sm">
-                Voir tout
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
           </CardHeader>
           <CardContent>
-            {dashboard?.recentApplications && dashboard.recentApplications.length > 0 ? (
-              <div className="space-y-3">
-                {dashboard.recentApplications.map((app) => (
-                  <Link
-                    key={app.id}
-                    to={`/applications/${app.id}`}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-5 w-5 text-primary" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {dashboard.upcomingInterviews.map((interview) => (
+                <Link
+                  key={interview.id}
+                  to={`/applications/${interview.id}`}
+                  className="p-4 rounded-lg border hover:border-primary transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-green-600" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {app.position}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {app.companyName}
-                      </p>
+                    <div>
+                      <p className="font-medium">{interview.companyName}</p>
+                      <p className="text-sm text-muted-foreground">{interview.position}</p>
                     </div>
-                    <div className={cn(
-                      'px-2 py-1 rounded-full text-xs font-medium',
-                      statusColors[app.status]
-                    )}>
-                      {statusLabels[app.status]}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Briefcase className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>Aucune candidature</p>
-                <Link to="/applications">
-                  <Button variant="link" className="mt-2">
-                    Créer votre première candidature
-                  </Button>
+                  </div>
+                  <p className="text-sm text-primary font-medium">
+                    {interview.interviewDate && formatDate(interview.interviewDate, 'long')}
+                  </p>
                 </Link>
-              </div>
-            )}
+              ))}
+            </div>
           </CardContent>
         </Card>
-
-        {/* Upcoming interviews */}
-        {dashboard?.upcomingInterviews && dashboard.upcomingInterviews.length > 0 && (
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Prochains entretiens
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {dashboard.upcomingInterviews.map((interview) => (
-                  <Link
-                    key={interview.id}
-                    to={`/applications/${interview.id}`}
-                    className="p-4 rounded-lg border hover:border-primary transition-colors"
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                        <Calendar className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{interview.companyName}</p>
-                        <p className="text-sm text-muted-foreground">{interview.position}</p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-primary font-medium">
-                      {interview.interviewDate && formatDate(interview.interviewDate, 'long')}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      )}
 
       {/* Status overview */}
       <Card>
@@ -293,6 +364,148 @@ export function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-visible flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Nouvelle candidature</DialogTitle>
+            <DialogDescription>
+              Ajoutez une nouvelle candidature à votre suivi
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4 overflow-y-auto overflow-x-hidden flex-1 pr-4 pl-0 px-4">
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Entreprise *</Label>
+              <Input
+                id="companyName"
+                placeholder="Google, Doctolib..."
+                value={newApplication.companyName}
+                onChange={(e) =>
+                  setNewApplication({ ...newApplication, companyName: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="position">Poste *</Label>
+              <Input
+                id="position"
+                placeholder="Développeur Full-Stack..."
+                value={newApplication.position}
+                onChange={(e) =>
+                  setNewApplication({ ...newApplication, position: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Type</Label>
+                <Select
+                  value={newApplication.jobType}
+                  onValueChange={(value) =>
+                    setNewApplication({ ...newApplication, jobType: value as JobType })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent side="bottom" className="z-50">
+                    <SelectItem value="STAGE">Stage</SelectItem>
+                    <SelectItem value="ALTERNANCE">Alternance</SelectItem>
+                    <SelectItem value="CDI">CDI</SelectItem>
+                    <SelectItem value="JOB_ETUDIANT">Job étudiant</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Statut</Label>
+                <Select
+                  value={newApplication.status}
+                  onValueChange={(value) =>
+                    setNewApplication({ ...newApplication, status: value as ApplicationStatus })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent side="bottom" className="z-50">
+                    <SelectItem value="DRAFT">Brouillon</SelectItem>
+                    <SelectItem value="SENT">Envoyée</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Localisation *</Label>
+              <Input
+                id="location"
+                placeholder="Paris, Lyon, Remote..."
+                value={newApplication.location}
+                onChange={(e) =>
+                  setNewApplication({ ...newApplication, location: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="jobUrl">URL de l'annonce</Label>
+              <Input
+                id="jobUrl"
+                placeholder="https://..."
+                value={newApplication.jobUrl}
+                onChange={(e) =>
+                  setNewApplication({ ...newApplication, jobUrl: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="salary">Salaire / Rémunération</Label>
+              <Input
+                id="salary"
+                placeholder="30k-40k, Non spécifié..."
+                value={newApplication.salary}
+                onChange={(e) =>
+                  setNewApplication({ ...newApplication, salary: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                placeholder="Notes personnelles sur cette candidature..."
+                value={newApplication.notes}
+                onChange={(e) =>
+                  setNewApplication({ ...newApplication, notes: e.target.value })
+                }
+                className="min-h-24"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="jobDescription">Description de l'offre</Label>
+              <Textarea
+                id="jobDescription"
+                placeholder="Collez ici le texte de l'annonce..."
+                value={newApplication.jobDescription}
+                onChange={(e) =>
+                  setNewApplication({ ...newApplication, jobDescription: e.target.value })
+                }
+                className="min-h-32"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={handleCreate}
+              disabled={createMutation.isPending}
+            >
+              Créer candidature
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
