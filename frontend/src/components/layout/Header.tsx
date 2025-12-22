@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { remindersService } from '@/services/reminders.service';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 
 export function Header() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, logout } = useAuthStore();
   const { sidebarOpen, toggleSidebar, theme, setTheme } = useUIStore();
 
@@ -29,6 +30,7 @@ export function Header() {
 
   const handleLogout = () => {
     logout();
+    queryClient.clear();
     navigate('/login');
   };
 
