@@ -52,6 +52,7 @@ app.get('/favicon.ico', (req, res) => {
 
 // API routes
 app.use('/api', routes);
+app.use('/', routes); // Fallback for requests without /api prefix
 
 // Error handling
 app.use(errorHandler);
