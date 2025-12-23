@@ -428,6 +428,36 @@ export function SettingsPage() {
                 </div>
 
                 <div className="space-y-4">
+                  <h4 className="font-medium">Notifications navigateur</h4>
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <Label className="font-medium">
+                          Activer les notifications push
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Recevez des notifications sur votre appareil (navigateur ouvert)
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={async () => {
+                          const granted = await requestNotificationPermission();
+                          if (granted) {
+                            showBrowserNotification('Notifications activées !', {
+                              body: 'Vous recevrez désormais vos rappels ici.'
+                            });
+                          }
+                        }}
+                      >
+                        {getNotificationPermission() === 'granted' ? 'Test' : 'Activer'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
                   <h4 className="font-medium">Fréquence de relance</h4>
                   <div className="space-y-2">
                     <Label htmlFor="relanceFrequency">

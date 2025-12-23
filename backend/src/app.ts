@@ -12,7 +12,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: true, // Allow all origins in development
+  origin: process.env.FRONTEND_URL || true, // Use FRONTEND_URL in production, allow all in dev
   credentials: true,
 }));
 
@@ -27,6 +27,8 @@ app.use((req, res, next) => {
 });
 
 // Serve uploaded files
+// WARNING: In Vercel (serverless), /tmp is ephemeral. Files will not persist across restarts.
+// For production, consider using an external storage service like AWS S3 or Vercel Blob.
 const uploadDir = process.env.UPLOAD_DIR || (process.env.NODE_ENV === 'production' ? '/tmp' : './uploads');
 app.use('/uploads', express.static(path.resolve(uploadDir)));
 
