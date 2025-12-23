@@ -8,6 +8,10 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
+  tls: {
+    // Necessary for some local environments (antivirus, etc.)
+    rejectUnauthorized: false
+  }
 });
 
 export const emailService = {

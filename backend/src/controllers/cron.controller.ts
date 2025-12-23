@@ -46,7 +46,7 @@ export const cronController = {
         results.processed++;
         if (reminder.user.email) {
           try {
-            await emailService.sendReminderEmail(
+            const emailResult = await emailService.sendReminderEmail(
               reminder.user.email,
               reminder.user.firstName,
               reminder.title,
@@ -54,14 +54,19 @@ export const cronController = {
               reminder.description
             );
 
-            // Mark as sent
-            await prisma.reminder.update({
-              where: { id: reminder.id },
-              data: { emailSent: true },
-            });
-            
-            results.sent++;
-            console.log(`[CRON] Email sent for reminder ${reminder.id}`);
+            if (emailResult) {
+              // Mark as sent only if email was actually sent
+              await prisma.reminder.update({
+                where: { id: reminder.id },
+                data: { emailSent: true },
+              });
+              
+              results.sent++;
+              console.log(`[CRON] Email sent for reminder ${reminder.id}`);
+            } else {
+              results.errors++;
+              console.error(`[CRON] Failed to send email for reminder ${reminder.id}: Email service returned failure`);
+            }
           } catch (emailError) {
             results.errors++;
             console.error(`[CRON] Failed to send email for reminder ${reminder.id}:`, emailError);
