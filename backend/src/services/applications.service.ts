@@ -103,12 +103,88 @@ export const applicationService = {
     // Try to find existing company if companyName provided
     let companyId = data.companyId;
     if (!companyId && data.companyName) {
+      const normalizedCompanyName = data.companyName.trim();
+      
       const existingCompany = await prisma.company.findFirst({
-        where: { name: data.companyName, userId },
+        where: { 
+          name: { equals: normalizedCompanyName, mode: 'insensitive' },
+          userId 
+        },
       });
       
       if (existingCompany) {
         companyId = existingCompany.id;
+      } else {
+        // Create new company automatically
+        let website: string | undefined;
+        if (data.jobUrl) {
+          try {
+            const url = new URL(data.jobUrl);
+            // Only use origin if it's http/https to avoid weird protocols
+            if (url.protocol === 'http:' || url.protocol === 'https:') {
+              const hostname = url.hostname.toLowerCase().replace(/^www\./, '');
+              
+              // List of common job boards to exclude
+              const jobBoards = [
+                'linkedin.com',
+                'indeed.com', 'indeed.fr',
+                'welcometothejungle.com', 'wttj.co',
+                'glassdoor.com', 'glassdoor.fr',
+                'hellowork.com',
+                'monster.com', 'monster.fr',
+                'apec.fr',
+                'pole-emploi.fr', 'francetravail.fr',
+                'jobteaser.com',
+                'malt.fr', 'malt.com',
+                'freelance.com',
+                'workable.com',
+                'lever.co',
+                'greenhouse.io',
+                'ashbyhq.com'
+              ];
+
+              // Check if hostname ends with any of the job board domains
+              const isJobBoard = jobBoards.some(board => hostname === board || hostname.endsWith('.' + board));
+
+              if (!isJobBoard) {
+                website = url.origin;
+              }
+            }
+          } catch (e) {
+            // Invalid URL, ignore
+          }
+        }
+
+        // If no website found from URL (or it was a job board), try to find it via Clearbit Autocomplete API
+        if (!website) {
+          try {
+            const response = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(normalizedCompanyName)}`);
+            if (response.ok) {
+              const suggestions = await response.json() as any[];
+              // Check if we got results and if the first result name is similar enough to the requested name
+              if (suggestions && suggestions.length > 0) {
+                // Simple check: if the suggestion name contains the search name or vice versa
+                const suggestion = suggestions[0];
+                if (suggestion.domain) {
+                  website = `https://${suggestion.domain}`;
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching company website from Clearbit:', error);
+            // Continue without website if API fails
+          }
+        }
+
+        const newCompany = await prisma.company.create({
+          data: {
+            name: normalizedCompanyName,
+            userId,
+            location: data.location, // Use application location for the company
+            website,
+          }
+        });
+        companyId = newCompany.id;
       }
     }
 
@@ -214,18 +290,33 @@ export const applicationService = {
     return this.update(userId, id, { status });
   },
 
-  async delete(userId: string, id: string) {
-    const existing = await prisma.application.findFirst({
+  async delete(userId: string, id: string, deleteCompany: boolean = false) {
+    const application = await prisma.application.findFirst({
       where: { id, userId },
     });
 
-    if (!existing) {
+    if (!application) {
       throw createError('Candidature non trouvée', 404);
     }
+
+    const companyId = application.companyId;
 
     await prisma.application.delete({
       where: { id },
     });
+
+    // If deleteCompany is requested, check if it's safe to delete
+    if (companyId && deleteCompany) {
+      const otherApplications = await prisma.application.count({
+        where: { companyId },
+      });
+
+      if (otherApplications === 0) {
+        await prisma.company.delete({
+          where: { id: companyId },
+        });
+      }
+    }
 
     return { message: 'Candidature supprimée avec succès' };
   },

@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { formatDate, formatDateTime, statusLabels, statusColors, jobTypeLabels, jobTypeColors, cn } from '@/lib/utils';
 import type { Application, ApplicationStatus, JobType, EventType } from '@/types';
+import { InterviewSimulation } from '@/components/InterviewSimulation';
 
 const eventTypeLabels: Record<EventType, string> = {
   CREATED: 'Créée',
@@ -447,6 +448,9 @@ export function ApplicationDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Interview Simulation */}
+          <InterviewSimulation applicationId={application.id} />
         </div>
       </div>
 

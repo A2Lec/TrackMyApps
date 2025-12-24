@@ -55,6 +55,8 @@ export function CompaniesPage() {
     notes: '',
   });
 
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+
   const { data: companies, isLoading } = useQuery({
     queryKey: ['companies'],
     queryFn: () => companiesService.getAll(),
@@ -78,9 +80,13 @@ export function CompaniesPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: companiesService.delete,
+    mutationFn: ({ id, deleteApplications }: { id: string; deleteApplications: boolean }) =>
+      companiesService.delete(id, deleteApplications),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      setCompanyToDelete(null);
     },
   });
 
@@ -110,6 +116,16 @@ export function CompaniesPage() {
       notes: company.notes || '',
     });
     setShowCreateDialog(true);
+  };
+
+  const handleDeleteClick = (company: Company) => {
+    setCompanyToDelete(company);
+  };
+
+  const confirmDelete = (deleteApplications: boolean) => {
+    if (companyToDelete) {
+      deleteMutation.mutate({ id: companyToDelete.id, deleteApplications });
+    }
   };
 
   const handleSubmit = () => {
@@ -201,7 +217,7 @@ export function CompaniesPage() {
                     )}
                     <DropdownMenuItem
                       className="text-destructive"
-                      onClick={() => deleteMutation.mutate(company.id)}
+                      onClick={() => handleDeleteClick(company)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Supprimer
@@ -379,6 +395,57 @@ export function CompaniesPage() {
               {editingCompany ? 'Modifier' : 'Créer'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!companyToDelete} onOpenChange={() => setCompanyToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer l'entreprise</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer l'entreprise <strong>{companyToDelete?.name}</strong> ?
+              Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {companyToDelete?._count?.applications && companyToDelete._count.applications > 0 ? (
+            <div className="py-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Cette entreprise est liée à <strong>{companyToDelete._count.applications} candidature(s)</strong>.
+                Que souhaitez-vous faire ?
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  variant="destructive" 
+                  onClick={() => confirmDelete(true)}
+                  disabled={deleteMutation.isPending}
+                >
+                  Supprimer l'entreprise et les candidatures
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => confirmDelete(false)}
+                  disabled={deleteMutation.isPending}
+                >
+                  Supprimer l'entreprise mais garder les candidatures
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCompanyToDelete(null)}>
+                Annuler
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => confirmDelete(false)}
+                disabled={deleteMutation.isPending}
+              >
+                Supprimer
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </div>

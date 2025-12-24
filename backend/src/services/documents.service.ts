@@ -44,6 +44,7 @@ export const documentService = {
   },
 
   async getById(userId: string, id: string) {
+    console.log(`DocumentService.getById: Looking for doc ${id} for user ${userId}`);
     const document = await prisma.document.findFirst({
       where: { id, userId },
       include: {
@@ -57,7 +58,18 @@ export const documentService = {
     });
 
     if (!document) {
-      throw createError('Document non trouvé', 404);
+      console.log(`DocumentService.getById: Document not found. ID: ${id}, UserID: ${userId}`);
+      // Check if document exists at all (for debugging)
+      const docExists = await prisma.document.findUnique({ where: { id } });
+      let debugMsg = '';
+      if (docExists) {
+        console.log(`DocumentService.getById: Document exists but belongs to user ${docExists.userId}`);
+        debugMsg = ` (Doc owner: ${docExists.userId}, Request user: ${userId})`;
+      } else {
+        console.log(`DocumentService.getById: Document does not exist in DB`);
+        debugMsg = ' (Document does not exist in DB)';
+      }
+      throw createError(`Document non trouvé${debugMsg}`, 404);
     }
 
     return document;

@@ -47,8 +47,8 @@ export const companiesService = {
     return response.data;
   },
 
-  async delete(id: string): Promise<void> {
-    await api.delete(`/companies/${id}`);
+  async delete(id: string, deleteApplications: boolean = false): Promise<void> {
+    await api.delete(`/companies/${id}?deleteApplications=${deleteApplications}`);
   },
 
   async getReviews(id: string): Promise<CompanyReview[]> {

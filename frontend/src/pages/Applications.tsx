@@ -91,7 +91,9 @@ export function ApplicationsPage() {
     status: 'SENT' as ApplicationStatus,
   });
 
-  const { data: kanbanData, isLoading } = useQuery({
+  const [applicationToDelete, setApplicationToDelete] = useState<Application | null>(null);
+
+  const { data: kanbanData, isLoading, isError, error } = useQuery({
     queryKey: ['applications', 'kanban'],
     queryFn: applicationsService.getByStatus,
   });
@@ -101,6 +103,7 @@ export function ApplicationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['companies'] });
       setShowCreateDialog(false);
       setNewApplication({
         companyName: '',
@@ -130,12 +133,25 @@ export function ApplicationsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: applicationsService.delete,
+    mutationFn: ({ id, deleteCompany }: { id: string; deleteCompany: boolean }) =>
+      applicationsService.delete(id, deleteCompany),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['companies'] });
+      setApplicationToDelete(null);
     },
   });
+
+  const handleDeleteClick = (application: Application) => {
+    setApplicationToDelete(application);
+  };
+
+  const confirmDelete = (deleteCompany: boolean) => {
+    if (applicationToDelete) {
+      deleteMutation.mutate({ id: applicationToDelete.id, deleteCompany });
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -190,6 +206,18 @@ export function ApplicationsPage() {
 
   if (isLoading) {
     return <ApplicationsSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
+        <div className="text-destructive text-xl font-semibold">Une erreur est survenue lors du chargement des candidatures</div>
+        <p className="text-muted-foreground">{(error as Error).message}</p>
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['applications'] })}>
+          Réessayer
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -252,7 +280,7 @@ export function ApplicationsPage() {
                 status={status}
                 applications={kanbanData[status] || []}
                 search={search}
-                onDelete={(id) => deleteMutation.mutate(id)}
+                onDelete={handleDeleteClick}
               />
             ))}
           </div>
@@ -340,7 +368,7 @@ export function ApplicationsPage() {
                             )}
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() => deleteMutation.mutate(app.id)}
+                              onClick={() => handleDeleteClick(app)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Supprimer
@@ -494,6 +522,57 @@ export function ApplicationsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!applicationToDelete} onOpenChange={() => setApplicationToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer la candidature</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer cette candidature pour <strong>{applicationToDelete?.companyName}</strong> ?
+              Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {applicationToDelete?.companyId ? (
+            <div className="py-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Cette candidature est liée à l'entreprise <strong>{applicationToDelete.companyName}</strong>.
+                Souhaitez-vous également supprimer l'entreprise si elle n'a plus d'autres candidatures ?
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  variant="destructive" 
+                  onClick={() => confirmDelete(true)}
+                  disabled={deleteMutation.isPending}
+                >
+                  Supprimer la candidature et l'entreprise
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => confirmDelete(false)}
+                  disabled={deleteMutation.isPending}
+                >
+                  Supprimer uniquement la candidature
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setApplicationToDelete(null)}>
+                Annuler
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => confirmDelete(false)}
+                disabled={deleteMutation.isPending}
+              >
+                Supprimer
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -502,7 +581,7 @@ interface KanbanColumnProps {
   status: ApplicationStatus;
   applications: Application[];
   search: string;
-  onDelete: (id: string) => void;
+  onDelete: (application: Application) => void;
 }
 
 function KanbanColumn({ status, applications, search, onDelete }: KanbanColumnProps) {
@@ -539,7 +618,7 @@ function KanbanColumn({ status, applications, search, onDelete }: KanbanColumnPr
               <SortableApplicationCard
                 key={app.id}
                 application={app}
-                onDelete={() => onDelete(app.id)}
+                onDelete={() => onDelete(app)}
               />
             ))}
           </div>

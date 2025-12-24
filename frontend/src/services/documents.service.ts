@@ -1,5 +1,6 @@
 import api from './api';
 import type { Document, DocumentType } from '@/types';
+import { useAuthStore } from '@/store/authStore';
 
 export const documentsService = {
   async getAll(type?: DocumentType): Promise<Document[]> {
@@ -30,6 +31,27 @@ export const documentsService = {
   async setAsMain(id: string): Promise<Document> {
     const response = await api.patch<Document>(`/documents/${id}/main`);
     return response.data;
+  },
+
+  getViewUrl(id: string): string {
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const token = useAuthStore.getState().token;
+    return `${baseUrl}/documents/view/${id}?token=${token}`;
+  },
+
+  async download(id: string, fileName: string): Promise<void> {
+    const response = await api.get(`/documents/download/${id}`, {
+      responseType: 'blob',
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   },
 
   async delete(id: string): Promise<void> {

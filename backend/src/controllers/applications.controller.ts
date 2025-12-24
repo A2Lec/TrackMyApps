@@ -86,7 +86,8 @@ export const applicationController = {
   }),
 
   delete: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const result = await applicationService.delete(req.userId!, req.params.id);
+    const deleteCompany = req.query.deleteCompany === 'true';
+    const result = await applicationService.delete(req.userId!, req.params.id, deleteCompany);
 
     res.json({
       success: true,

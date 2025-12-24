@@ -76,4 +76,14 @@ export const companyController = {
       data: reviews,
     });
   }),
+
+  delete: asyncHandler(async (req: Request, res: Response) => {
+    const deleteApplications = req.query.deleteApplications === 'true';
+    await companyService.delete(req.params.id, deleteApplications);
+
+    res.json({
+      success: true,
+      message: 'Entreprise supprimée avec succès',
+    });
+  }),
 };

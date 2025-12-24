@@ -10,6 +10,8 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get('/', documentController.getAll);
+router.get('/view/:id', documentController.view);
+router.get('/download/:id', documentController.download);
 router.get('/:id', documentController.getById);
 router.post('/', upload.single('file'), documentValidation, documentController.upload);
 router.put('/:id', documentController.update);

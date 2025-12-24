@@ -6,6 +6,7 @@ import reminderRoutes from './reminders.routes.js';
 import companyRoutes from './companies.routes.js';
 import analyticsRoutes from './analytics.routes.js';
 import interviewPrepRoutes from './interviewPrep.routes.js';
+import interviewSimulationRoutes from './interviewSimulation.routes.js';
 import cronRoutes from './cron.routes.js';
 
 const router = Router();
@@ -17,6 +18,7 @@ router.use('/reminders', reminderRoutes);
 router.use('/companies', companyRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/interview-prep', interviewPrepRoutes);
+router.use('/interview-simulation', interviewSimulationRoutes);
 router.use('/cron', cronRoutes);
 
 // Health check

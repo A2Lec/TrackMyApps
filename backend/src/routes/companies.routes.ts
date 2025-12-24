@@ -14,5 +14,6 @@ router.get('/:id', companyController.getById);
 router.get('/:id/reviews', companyController.getReviews);
 router.post('/', companyController.create);
 router.post('/:id/reviews', companyReviewValidation, companyController.addReview);
+router.delete('/:id', companyController.delete);
 
 export default router;

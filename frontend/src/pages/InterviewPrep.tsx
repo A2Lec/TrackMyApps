@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -48,9 +49,12 @@ import {
   Filter,
   BookOpen,
   Copy,
+  Bot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import api from '@/services/api';
+import { applicationsService } from '@/services/applications.service';
+import { InterviewSimulation } from '@/components/InterviewSimulation';
 import type { InterviewPrep } from '@/types';
 
 type QuestionCategory = 'BEHAVIORAL' | 'TECHNICAL' | 'SITUATIONAL' | 'COMPANY_SPECIFIC' | 'OTHER';
@@ -95,6 +99,7 @@ export function InterviewPrepPage() {
   const [categoryFilter, setCategoryFilter] = useState<QuestionCategory | 'all'>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<InterviewPrep | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string>('');
   const [formData, setFormData] = useState({
     question: '',
     answer: '',
@@ -103,9 +108,14 @@ export function InterviewPrepPage() {
     isFavorite: false,
   });
 
-  const { data: questions, isLoading } = useQuery({
+  const { data: questions, isLoading: isLoadingQuestions } = useQuery({
     queryKey: ['interview-prep'],
     queryFn: interviewPrepService.getAll,
+  });
+
+  const { data: applications, isLoading: isLoadingApplications } = useQuery({
+    queryKey: ['applications'],
+    queryFn: () => applicationsService.getAll(),
   });
 
   const createMutation = useMutation({
@@ -190,7 +200,7 @@ export function InterviewPrepPage() {
   const favoriteQuestions = filteredQuestions?.filter((q) => q.isFavorite);
   const otherQuestions = filteredQuestions?.filter((q) => !q.isFavorite);
 
-  if (isLoading) {
+  if (isLoadingQuestions || isLoadingApplications) {
     return <InterviewPrepSkeleton />;
   }
 
@@ -201,147 +211,205 @@ export function InterviewPrepPage() {
         <div>
           <h1 className="text-3xl font-bold">Préparation entretiens</h1>
           <p className="text-muted-foreground">
-            Préparez vos réponses aux questions d'entretien courantes
+            Préparez vos réponses et entraînez-vous avec l'IA
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nouvelle question
-        </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select
-            value={categoryFilter}
-            onValueChange={(v) => setCategoryFilter(v as QuestionCategory | 'all')}
-          >
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Catégorie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes catégories</SelectItem>
-              <SelectItem value="BEHAVIORAL">Comportemental</SelectItem>
-              <SelectItem value="TECHNICAL">Technique</SelectItem>
-              <SelectItem value="SITUATIONAL">Situationnel</SelectItem>
-              <SelectItem value="COMPANY_SPECIFIC">Spécifique entreprise</SelectItem>
-              <SelectItem value="OTHER">Autre</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <Tabs defaultValue="questions" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="questions" className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            Banque de questions
+          </TabsTrigger>
+          <TabsTrigger value="simulation" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            Simulation IA
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <MessageSquare className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-xl font-semibold">{questions?.length || 0}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        {(['BEHAVIORAL', 'TECHNICAL', 'SITUATIONAL', 'COMPANY_SPECIFIC'] as QuestionCategory[]).map(
-          (category) => (
-            <Card key={category}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn('p-2 rounded-lg', categoryColors[category].split(' ')[0])}>
-                    <BookOpen className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">{categoryLabels[category]}</p>
-                    <p className="text-xl font-semibold">
-                      {questions?.filter((q) => q.category === category).length || 0}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        )}
-      </div>
-
-      {/* Favorite Questions */}
-      {favoriteQuestions && favoriteQuestions.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-            Questions favorites ({favoriteQuestions.length})
-          </h2>
-          <Accordion type="multiple" className="space-y-2">
-            {favoriteQuestions.map((question) => (
-              <QuestionCard
-                key={question.id}
-                question={question}
-                onEdit={() => openEditDialog(question)}
-                onDelete={() => deleteMutation.mutate(question.id)}
-                onToggleFavorite={() =>
-                  toggleFavoriteMutation.mutate({ id: question.id, isFavorite: !question.isFavorite })
-                }
-                onCopy={copyToClipboard}
-              />
-            ))}
-          </Accordion>
-        </div>
-      )}
-
-      {/* Other Questions */}
-      {otherQuestions && otherQuestions.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold">
-            Toutes les questions ({otherQuestions.length})
-          </h2>
-          <Accordion type="multiple" className="space-y-2">
-            {otherQuestions.map((question) => (
-              <QuestionCard
-                key={question.id}
-                question={question}
-                onEdit={() => openEditDialog(question)}
-                onDelete={() => deleteMutation.mutate(question.id)}
-                onToggleFavorite={() =>
-                  toggleFavoriteMutation.mutate({ id: question.id, isFavorite: !question.isFavorite })
-                }
-                onCopy={copyToClipboard}
-              />
-            ))}
-          </Accordion>
-        </div>
-      )}
-
-      {filteredQuestions?.length === 0 && (
-        <div className="text-center py-12">
-          <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">Aucune question</h3>
-          <p className="text-muted-foreground mb-4">
-            {search || categoryFilter !== 'all'
-              ? 'Aucune question ne correspond à votre recherche'
-              : 'Ajoutez votre première question pour commencer à vous préparer'}
-          </p>
-          {!search && categoryFilter === 'all' && (
+        <TabsContent value="questions" className="space-y-6">
+          <div className="flex justify-end">
             <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Nouvelle question
             </Button>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select
+                value={categoryFilter}
+                onValueChange={(v) => setCategoryFilter(v as QuestionCategory | 'all')}
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes catégories</SelectItem>
+                  <SelectItem value="BEHAVIORAL">Comportemental</SelectItem>
+                  <SelectItem value="TECHNICAL">Technique</SelectItem>
+                  <SelectItem value="SITUATIONAL">Situationnel</SelectItem>
+                  <SelectItem value="COMPANY_SPECIFIC">Spécifique entreprise</SelectItem>
+                  <SelectItem value="OTHER">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <MessageSquare className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total</p>
+                    <p className="text-xl font-semibold">{questions?.length || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            {(['BEHAVIORAL', 'TECHNICAL', 'SITUATIONAL', 'COMPANY_SPECIFIC'] as QuestionCategory[]).map(
+              (category) => (
+                <Card key={category}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={cn('p-2 rounded-lg', categoryColors[category].split(' ')[0])}>
+                        <BookOpen className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">{categoryLabels[category]}</p>
+                        <p className="text-xl font-semibold">
+                          {questions?.filter((q) => q.category === category).length || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            )}
+          </div>
+
+          {/* Favorite Questions */}
+          {favoriteQuestions && favoriteQuestions.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                Questions favorites ({favoriteQuestions.length})
+              </h2>
+              <Accordion type="multiple" className="space-y-2">
+                {favoriteQuestions.map((question) => (
+                  <QuestionCard
+                    key={question.id}
+                    question={question}
+                    onEdit={() => openEditDialog(question)}
+                    onDelete={() => deleteMutation.mutate(question.id)}
+                    onToggleFavorite={() =>
+                      toggleFavoriteMutation.mutate({ id: question.id, isFavorite: !question.isFavorite })
+                    }
+                    onCopy={copyToClipboard}
+                  />
+                ))}
+              </Accordion>
+            </div>
           )}
-        </div>
-      )}
+
+          {/* Other Questions */}
+          {otherQuestions && otherQuestions.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold">
+                Toutes les questions ({otherQuestions.length})
+              </h2>
+              <Accordion type="multiple" className="space-y-2">
+                {otherQuestions.map((question) => (
+                  <QuestionCard
+                    key={question.id}
+                    question={question}
+                    onEdit={() => openEditDialog(question)}
+                    onDelete={() => deleteMutation.mutate(question.id)}
+                    onToggleFavorite={() =>
+                      toggleFavoriteMutation.mutate({ id: question.id, isFavorite: !question.isFavorite })
+                    }
+                    onCopy={copyToClipboard}
+                  />
+                ))}
+              </Accordion>
+            </div>
+          )}
+
+          {filteredQuestions?.length === 0 && (
+            <div className="text-center py-12">
+              <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Aucune question</h3>
+              <p className="text-muted-foreground mb-4">
+                {search || categoryFilter !== 'all'
+                  ? 'Aucune question ne correspond à votre recherche'
+                  : 'Ajoutez votre première question pour commencer à vous préparer'}
+              </p>
+              {!search && categoryFilter === 'all' && (
+                <Button onClick={() => setShowCreateDialog(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nouvelle question
+                </Button>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="simulation">
+          <Card>
+            <CardHeader>
+              <CardTitle>Simulation d'entretien</CardTitle>
+              <CardDescription>
+                Sélectionnez une candidature pour démarrer une simulation d'entretien personnalisée avec l'IA.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="max-w-md space-y-2">
+                <Label>Candidature à préparer</Label>
+                <Select value={selectedApplicationId} onValueChange={setSelectedApplicationId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir une candidature..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {applications?.map((app) => (
+                      <SelectItem key={app.id} value={app.id}>
+                        {app.companyName} - {app.position}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedApplicationId ? (
+                <div className="mt-6 border rounded-lg overflow-hidden">
+                  <InterviewSimulation applicationId={selectedApplicationId} />
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
+                  <Bot className="h-12 w-12 mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium">Prêt à vous entraîner ?</h3>
+                  <p>Sélectionnez une candidature ci-dessus pour commencer la simulation.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Create/Edit Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={closeDialog}>

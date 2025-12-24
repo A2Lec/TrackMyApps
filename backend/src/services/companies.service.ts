@@ -193,4 +193,31 @@ export const companyService = {
 
     return reviews;
   },
+
+  async delete(id: string, deleteApplications: boolean = false) {
+    const company = await prisma.company.findUnique({
+      where: { id },
+    });
+
+    if (!company) {
+      throw createError('Entreprise non trouvée', 404);
+    }
+
+    if (deleteApplications) {
+      // Delete associated applications
+      await prisma.application.deleteMany({
+        where: { companyId: id },
+      });
+    } else {
+      // Unlink applications
+      await prisma.application.updateMany({
+        where: { companyId: id },
+        data: { companyId: null },
+      });
+    }
+
+    await prisma.company.delete({
+      where: { id },
+    });
+  },
 };

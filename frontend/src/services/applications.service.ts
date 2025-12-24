@@ -72,7 +72,7 @@ export const applicationsService = {
     return response.data;
   },
 
-  async delete(id: string): Promise<void> {
-    await api.delete(`/applications/${id}`);
+  async delete(id: string, deleteCompany: boolean = false): Promise<void> {
+    await api.delete(`/applications/${id}?deleteCompany=${deleteCompany}`);
   },
 };

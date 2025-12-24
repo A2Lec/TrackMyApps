@@ -255,7 +255,15 @@ export function DocumentsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-medium truncate">{doc.name}</h3>
+                      <h3 
+                        className="font-medium truncate cursor-pointer"
+                        onClick={() => {
+                          const viewUrl = documentsService.getViewUrl(doc.id);
+                          window.open(viewUrl, '_blank');
+                        }}
+                      >
+                        {doc.name}
+                      </h3>
                       {doc.isDefault && (
                         <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                       )}
@@ -277,14 +285,27 @@ export function DocumentsPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <a
-                        href={`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}${doc.fileUrl}`}
-                        download
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        Télécharger
-                      </a>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const viewUrl = documentsService.getViewUrl(doc.id);
+                        window.open(viewUrl, '_blank');
+                      }}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Afficher
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        try {
+                          await documentsService.download(doc.id, doc.fileName);
+                        } catch (error) {
+                          console.error('Download error:', error);
+                          alert('Erreur lors du téléchargement. Le fichier est peut-être introuvable sur le serveur.');
+                        }
+                      }}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Télécharger
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() =>
