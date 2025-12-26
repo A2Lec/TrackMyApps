@@ -11,6 +11,8 @@ import cronRoutes from './cron.routes.js';
 
 const router = Router();
 
+console.log('Registering main routes...');
+
 router.use('/auth', authRoutes);
 router.use('/applications', applicationRoutes);
 router.use('/documents', documentRoutes);

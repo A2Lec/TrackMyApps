@@ -20,7 +20,8 @@ export const interviewSimulationService = {
     if (!genAI) {
       throw createError('Clé API Gemini manquante. Veuillez configurer GEMINI_API_KEY dans le fichier .env du backend.', 500);
     }
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // Use gemini-1.5-flash for better performance and availability
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // 1. Get Application details (Company, Position, Job Description)
     const application = await prisma.application.findUnique({
@@ -219,6 +220,9 @@ export const interviewSimulationService = {
             parts: [{ text: msg.content }]
         });
     }
+
+    // Re-initialize model to ensure consistency
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const chat = model.startChat({
         history: chatHistory
