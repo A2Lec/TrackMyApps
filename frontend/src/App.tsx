@@ -84,7 +84,6 @@ function App() {
             // Mark as notified
             notified[reminder.id] = Date.now();
             localStorage.setItem(notifiedKey, JSON.stringify(notified));
-            console.log(`[NOTIFICATION] Showed notification for reminder: ${reminder.title}`);
           }
         });
 

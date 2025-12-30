@@ -25,7 +25,7 @@ const navigation = [
   { name: 'Statistiques', href: '/analytics', icon: BarChart3 },
   { name: 'Calendrier', href: '/calendar', icon: Calendar },
   { name: 'Entreprises', href: '/companies', icon: Building2 },
-  { name: 'Préparation', href: '/interview-prep', icon: MessageSquare },
+  { name: 'Entretiens', href: '/interview-prep', icon: MessageSquare },
   { name: 'Paramètres', href: '/settings', icon: Settings },
 ];
 

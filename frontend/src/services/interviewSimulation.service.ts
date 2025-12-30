@@ -7,6 +7,11 @@ export interface InterviewSession {
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   status: 'IN_PROGRESS' | 'COMPLETED';
   messages: InterviewMessage[];
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    messages: number;
+  };
 }
 
 export interface InterviewMessage {
@@ -20,6 +25,8 @@ interface StartSessionData {
   applicationId: string;
   interviewerType: string;
   difficulty: string;
+  cvId?: string;
+  lmId?: string;
 }
 
 export const interviewSimulationService = {
@@ -36,5 +43,14 @@ export const interviewSimulationService = {
   async getSession(sessionId: string): Promise<InterviewSession> {
       const response = await api.get(`/interview-simulation/${sessionId}`);
       return response.data;
+  },
+
+  async getSessionsByApplication(applicationId: string): Promise<InterviewSession[]> {
+      const response = await api.get(`/interview-simulation/application/${applicationId}`);
+      return response.data;
+  },
+
+  async deleteSession(sessionId: string): Promise<void> {
+      await api.delete(`/interview-simulation/${sessionId}`);
   }
 };

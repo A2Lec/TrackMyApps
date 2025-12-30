@@ -15,8 +15,10 @@ router.use((req, res, next) => {
 router.use(authMiddleware);
 
 router.post('/start', interviewSimulationController.startSession);
+router.get('/application/:applicationId', interviewSimulationController.getSessionsByApplication);
 router.post('/:sessionId/message', interviewSimulationController.sendMessage);
 router.get('/:sessionId', interviewSimulationController.getSession);
+router.delete('/:sessionId', interviewSimulationController.deleteSession);
 
 // Fallback for debugging
 router.use((req, res) => {

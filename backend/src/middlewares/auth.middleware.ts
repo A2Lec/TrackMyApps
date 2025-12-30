@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { createError } from './errorHandler.middleware.js';
 import prisma from '../config/database.js';
+import { logDebug, logWarn } from '../utils/logger.js';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -27,18 +28,18 @@ export const authMiddleware = async (
     // Fallback to query parameter (for file viewing in browser)
     else if (req.query.token && typeof req.query.token === 'string') {
       token = req.query.token;
-      console.log('AuthMiddleware: Token found in query params');
+      logDebug('Token found in query params', { context: 'AuthMiddleware' });
     }
 
     if (!token) {
-      console.log('AuthMiddleware: No token found');
+      logWarn('No token found in request', { context: 'AuthMiddleware' });
       throw createError('Token d\'authentification requis', 401);
     }
 
     const secret = process.env.JWT_SECRET || 'default-secret';
 
     const decoded = jwt.verify(token, secret) as JwtPayload;
-    console.log('AuthMiddleware: Token decoded, userId:', decoded.userId);
+    logDebug(`Token decoded for user ${decoded.userId}`, { context: 'AuthMiddleware' });
     
     // Verify that the user still exists in the database
     const user = await prisma.user.findUnique({

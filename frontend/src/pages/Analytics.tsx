@@ -128,63 +128,63 @@ export function AnalyticsPage() {
       {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Send className="h-5 w-5 text-blue-600" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg flex-shrink-0">
+                <Send className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total candidatures</p>
-                <p className="text-2xl font-bold">{totalApplications}</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Total candidatures</p>
+                <p className="text-xl sm:text-2xl font-bold">{totalApplications}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <MessageSquare className="h-5 w-5 text-purple-600" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-purple-500/10 rounded-lg flex-shrink-0">
+                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Entretiens</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Entretiens</p>
+                <div className="flex items-baseline gap-1 sm:gap-2">
+                  <p className="text-xl sm:text-2xl font-bold">
                     {interviewCount}
                   </p>
-                  <span className="text-sm text-muted-foreground">({interviewRate}%)</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">({interviewRate}%)</span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg flex-shrink-0">
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Acceptées</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Acceptées</p>
+                <div className="flex items-baseline gap-1 sm:gap-2">
+                  <p className="text-xl sm:text-2xl font-bold">
                     {acceptedCount}
                   </p>
-                  <span className="text-sm text-muted-foreground">({conversionRate}%)</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">({conversionRate}%)</span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-500/10 rounded-lg">
-                <Target className="h-5 w-5 text-yellow-600" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-yellow-500/10 rounded-lg flex-shrink-0">
+                <Target className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Taux de réponse</p>
-                <p className="text-2xl font-bold">{dashboard?.responseRate || 0}%</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Taux de réponse</p>
+                <p className="text-xl sm:text-2xl font-bold">{dashboard?.responseRate || 0}%</p>
               </div>
             </div>
           </CardContent>
@@ -202,7 +202,7 @@ export function AnalyticsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-72">
+            <div className="h-64 sm:h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={timeline || []}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -244,7 +244,7 @@ export function AnalyticsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-72">
+            <div className="h-64 sm:h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -286,7 +286,7 @@ export function AnalyticsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-72">
+            <div className="h-64 sm:h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobTypeData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

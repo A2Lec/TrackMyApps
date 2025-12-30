@@ -1,10 +1,6 @@
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
-
-// Define types locally since we're using SQLite (no Prisma enums)
-type ApplicationStatus = 'DRAFT' | 'SENT' | 'VIEWED' | 'INTERVIEW_SCHEDULED' | 'AWAITING_RESPONSE' | 'REJECTED' | 'ACCEPTED' | 'GHOSTED';
-type JobType = 'STAGE' | 'ALTERNANCE' | 'CDI' | 'JOB_ETUDIANT';
-type EventType = 'STATUS_CHANGE' | 'NOTE' | 'RELANCE' | 'INTERVIEW' | 'DOCUMENT_ADDED';
+import type { ApplicationStatus, JobType, EventType } from '../types/index.js';
 
 interface CreateApplicationData {
   companyName: string;
@@ -101,7 +97,9 @@ export const applicationService = {
 
   async create(userId: string, data: CreateApplicationData) {
     // Try to find existing company if companyName provided
-    let companyId = data.companyId;
+    // Ensure companyId is treated as undefined if it's null or empty string
+    let companyId = data.companyId || undefined;
+    
     if (!companyId && data.companyName) {
       const normalizedCompanyName = data.companyName.trim();
       
@@ -158,14 +156,33 @@ export const applicationService = {
         // If no website found from URL (or it was a job board), try to find it via Clearbit Autocomplete API
         if (!website) {
           try {
-            const response = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(normalizedCompanyName)}`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout to avoid hanging
+
+            const response = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(normalizedCompanyName)}`, {
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
             if (response.ok) {
               const suggestions = await response.json() as any[];
               // Check if we got results and if the first result name is similar enough to the requested name
               if (suggestions && suggestions.length > 0) {
-                // Simple check: if the suggestion name contains the search name or vice versa
                 const suggestion = suggestions[0];
-                if (suggestion.domain) {
+                
+                // Strict validation to ensure reliability
+                // Remove special chars and lowercase for comparison
+                const sName = suggestion.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const qName = normalizedCompanyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                
+                // Check if names are similar enough:
+                // 1. One must contain the other
+                // 2. Length ratio must be significant (to avoid matching short acronyms with long names incorrectly)
+                const isSubstring = sName.includes(qName) || qName.includes(sName);
+                const lengthRatio = Math.min(sName.length, qName.length) / Math.max(sName.length, qName.length);
+                
+                // Require > 60% similarity in length (e.g. "Google" vs "Google Inc" is ~66%)
+                if (suggestion.domain && isSubstring && lengthRatio > 0.6) {
                   website = `https://${suggestion.domain}`;
                 }
               }

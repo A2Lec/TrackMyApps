@@ -6,23 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogBody,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   DndContext,
   DragOverlay,
@@ -59,8 +49,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { formatDate, statusLabels, statusColors, jobTypeLabels, jobTypeColors, cn } from '@/lib/utils';
-import type { Application, ApplicationStatus, JobType } from '@/types';
+import type { Application, ApplicationStatus } from '@/types';
 import { Link } from 'react-router-dom';
+import { ApplicationForm, initialApplicationFormData } from '@/components/ApplicationForm';
 
 const statusOrder: ApplicationStatus[] = [
   'DRAFT',
@@ -79,17 +70,7 @@ export function ApplicationsPage() {
   const [search, setSearch] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [newApplication, setNewApplication] = useState({
-    companyName: '',
-    position: '',
-    jobType: 'STAGE' as JobType,
-    location: '',
-    jobUrl: '',
-    salary: '',
-    notes: '',
-    jobDescription: '',
-    status: 'SENT' as ApplicationStatus,
-  });
+  const [newApplication, setNewApplication] = useState(initialApplicationFormData);
 
   const [applicationToDelete, setApplicationToDelete] = useState<Application | null>(null);
 
@@ -105,17 +86,7 @@ export function ApplicationsPage() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       setShowCreateDialog(false);
-      setNewApplication({
-        companyName: '',
-        position: '',
-        jobType: 'STAGE',
-        location: '',
-        jobUrl: '',
-        salary: '',
-        notes: '',
-        jobDescription: '',
-        status: 'SENT',
-      });
+      setNewApplication(initialApplicationFormData);
     },
     onError: (error: any) => {
       console.error('Create error:', error);
@@ -300,15 +271,15 @@ export function ApplicationsPage() {
         <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4 font-medium">Entreprise</th>
-                    <th className="text-left p-4 font-medium">Poste</th>
-                    <th className="text-left p-4 font-medium hidden md:table-cell">Type</th>
-                    <th className="text-left p-4 font-medium">Statut</th>
-                    <th className="text-left p-4 font-medium hidden lg:table-cell">Date</th>
-                    <th className="text-right p-4 font-medium">Actions</th>
+                    <th className="text-left p-3 sm:p-4 font-medium">Entreprise</th>
+                    <th className="text-left p-3 sm:p-4 font-medium">Poste</th>
+                    <th className="text-left p-3 sm:p-4 font-medium hidden md:table-cell">Type</th>
+                    <th className="text-left p-3 sm:p-4 font-medium">Statut</th>
+                    <th className="text-left p-3 sm:p-4 font-medium hidden lg:table-cell">Date</th>
+                    <th className="text-right p-3 sm:p-4 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -322,7 +293,7 @@ export function ApplicationsPage() {
                     )
                     .map((app) => (
                       <tr key={app.id} className="border-b hover:bg-muted/50">
-                        <td className="p-4">
+                        <td className="p-3 sm:p-4">
                           <Link
                             to={`/applications/${app.id}`}
                             className="font-medium hover:text-primary"
@@ -330,21 +301,21 @@ export function ApplicationsPage() {
                             {app.companyName}
                           </Link>
                         </td>
-                        <td className="p-4 text-muted-foreground">{app.position}</td>
-                        <td className="p-4 hidden md:table-cell">
+                        <td className="p-3 sm:p-4 text-muted-foreground">{app.position}</td>
+                        <td className="p-3 sm:p-4 hidden md:table-cell">
                           <span className={cn('px-2 py-1 rounded-full text-xs', jobTypeColors[app.jobType])}>
                             {jobTypeLabels[app.jobType]}
                           </span>
                         </td>
-                        <td className="p-4">
-                          <span className={cn('px-2 py-1 rounded-full text-xs', statusColors[app.status])}>
+                        <td className="p-3 sm:p-4">
+                          <span className={cn('px-2 py-1 rounded-full text-xs whitespace-nowrap', statusColors[app.status])}>
                             {statusLabels[app.status]}
                           </span>
                         </td>
-                        <td className="p-4 text-muted-foreground hidden lg:table-cell">
+                        <td className="p-3 sm:p-4 text-muted-foreground hidden lg:table-cell">
                           {formatDate(app.applicationDate)}
                         </td>
-                      <td className="p-4 text-right">
+                      <td className="p-3 sm:p-4 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -387,131 +358,19 @@ export function ApplicationsPage() {
 
       {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nouvelle candidature</DialogTitle>
             <DialogDescription>
               Ajoutez une nouvelle candidature à votre suivi
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="space-y-4 py-4 overflow-y-auto overflow-x-hidden flex-1 pr-4">
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Entreprise *</Label>
-              <Input
-                id="companyName"
-                placeholder="Google, Doctolib..."
-                value={newApplication.companyName}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, companyName: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="position">Poste *</Label>
-              <Input
-                id="position"
-                placeholder="Développeur Full-Stack..."
-                value={newApplication.position}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, position: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select
-                  value={newApplication.jobType}
-                  onValueChange={(value) =>
-                    setNewApplication({ ...newApplication, jobType: value as JobType })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent side="bottom" className="z-50">
-                    <SelectItem value="STAGE">Stage</SelectItem>
-                    <SelectItem value="ALTERNANCE">Alternance</SelectItem>
-                    <SelectItem value="CDI">CDI</SelectItem>
-                    <SelectItem value="JOB_ETUDIANT">Job étudiant</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Statut</Label>
-                <Select
-                  value={newApplication.status}
-                  onValueChange={(value) =>
-                    setNewApplication({ ...newApplication, status: value as ApplicationStatus })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent side="bottom" className="z-50">
-                    <SelectItem value="DRAFT">Brouillon</SelectItem>
-                    <SelectItem value="SENT">Envoyée</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Localisation *</Label>
-              <Input
-                id="location"
-                placeholder="Paris, Lyon, Remote..."
-                value={newApplication.location}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, location: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="jobUrl">URL de l'annonce</Label>
-              <Input
-                id="jobUrl"
-                placeholder="https://..."
-                value={newApplication.jobUrl}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, jobUrl: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="salary">Salaire / Rémunération</Label>
-              <Input
-                id="salary"
-                placeholder="1200€/mois, 38k€/an..."
-                value={newApplication.salary}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, salary: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="Notes personnelles..."
-                value={newApplication.notes}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, notes: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="jobDescription">Description de l'offre</Label>
-              <Textarea
-                id="jobDescription"
-                placeholder="Collez ici le texte de l'annonce..."
-                value={newApplication.jobDescription}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, jobDescription: e.target.value })
-                }
-                className="min-h-32"
-              />
-            </div>
-          </DialogBody>
+          <div className="py-4">
+            <ApplicationForm 
+              formData={newApplication} 
+              onChange={setNewApplication} 
+            />
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
               Annuler
@@ -599,7 +458,7 @@ function KanbanColumn({ status, applications, search, onDelete }: KanbanColumnPr
   return (
     <div
       ref={setNodeRef}
-      className="flex-shrink-0 w-72"
+      className="flex-shrink-0 w-64 sm:w-72"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -673,7 +532,7 @@ function ApplicationCard({ application, isDragging, onDelete }: ApplicationCardP
     >
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 overflow-hidden">
             <Link
               to={`/applications/${application.id}`}
               className="font-medium text-sm hover:text-primary block truncate"
@@ -682,7 +541,7 @@ function ApplicationCard({ application, isDragging, onDelete }: ApplicationCardP
               {application.position}
             </Link>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-              <Building2 className="h-3 w-3" />
+              <Building2 className="h-3 w-3 flex-shrink-0" />
               <span className="truncate">{application.companyName}</span>
             </div>
           </div>
@@ -718,9 +577,9 @@ function ApplicationCard({ application, isDragging, onDelete }: ApplicationCardP
           <span className={cn('px-2 py-0.5 rounded-full text-xs', jobTypeColors[application.jobType])}>
             {jobTypeLabels[application.jobType]}
           </span>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3" />
-            <span>{application.location}</span>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground overflow-hidden">
+            <MapPin className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">{application.location}</span>
           </div>
         </div>
         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">

@@ -1,97 +1,59 @@
 import { Response } from 'express';
-import { validationResult } from 'express-validator';
 import { applicationService } from '../services/applications.service.js';
-import { asyncHandler, createError } from '../middlewares/errorHandler.middleware.js';
+import { asyncHandler } from '../middlewares/errorHandler.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
+import { validateRequest, sendSuccess, parseBoolean } from '../utils/response.utils.js';
+import type { ApplicationStatus, JobType } from '../types/index.js';
 
 export const applicationController = {
   getAll: asyncHandler(async (req: AuthRequest, res: Response) => {
     const { status, jobType, search } = req.query;
 
     const applications = await applicationService.getAll(req.userId!, {
-      status: status as any,
-      jobType: jobType as any,
+      status: status as ApplicationStatus,
+      jobType: jobType as JobType,
       search: search as string,
     });
 
-    res.json({
-      success: true,
-      data: applications,
-    });
+    return sendSuccess(res, applications);
   }),
 
   getByStatus: asyncHandler(async (req: AuthRequest, res: Response) => {
     const grouped = await applicationService.getByStatus(req.userId!);
-
-    res.json({
-      success: true,
-      data: grouped,
-    });
+    return sendSuccess(res, grouped);
   }),
 
   getById: asyncHandler(async (req: AuthRequest, res: Response) => {
     const application = await applicationService.getById(req.userId!, req.params.id);
-
-    res.json({
-      success: true,
-      data: application,
-    });
+    return sendSuccess(res, application);
   }),
 
   getStats: asyncHandler(async (req: AuthRequest, res: Response) => {
     const stats = await applicationService.getStats(req.userId!);
-
-    res.json({
-      success: true,
-      data: stats,
-    });
+    return sendSuccess(res, stats);
   }),
 
   create: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw createError(errors.array()[0].msg, 400);
-    }
-
+    validateRequest(req);
     const application = await applicationService.create(req.userId!, req.body);
-
-    res.status(201).json({
-      success: true,
-      data: application,
-    });
+    return sendSuccess(res, application, 201);
   }),
 
   update: asyncHandler(async (req: AuthRequest, res: Response) => {
     const application = await applicationService.update(req.userId!, req.params.id, req.body);
-
-    res.json({
-      success: true,
-      data: application,
-    });
+    return sendSuccess(res, application);
   }),
 
   updateStatus: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw createError(errors.array()[0].msg, 400);
-    }
-
+    validateRequest(req);
     const { status } = req.body;
     const application = await applicationService.updateStatus(req.userId!, req.params.id, status);
-
-    res.json({
-      success: true,
-      data: application,
-    });
+    return sendSuccess(res, application);
   }),
 
   delete: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const deleteCompany = req.query.deleteCompany === 'true';
+    const deleteCompany = parseBoolean(req.query.deleteCompany as string);
     const result = await applicationService.delete(req.userId!, req.params.id, deleteCompany);
-
-    res.json({
-      success: true,
-      data: result,
-    });
+    return sendSuccess(res, result);
   }),
 };

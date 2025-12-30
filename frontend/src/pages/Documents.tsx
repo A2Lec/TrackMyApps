@@ -20,7 +20,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogBody,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
@@ -182,14 +181,14 @@ export function DocumentsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <FileText className="h-5 w-5 text-blue-600" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg flex-shrink-0">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">CV</p>
-                <p className="text-xl font-semibold">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">CV</p>
+                <p className="text-lg sm:text-xl font-semibold">
                   {(documents || []).filter((d: DocType) => d.type === 'CV').length}
                 </p>
               </div>
@@ -197,14 +196,14 @@ export function DocumentsPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <File className="h-5 w-5 text-purple-600" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-purple-500/10 rounded-lg flex-shrink-0">
+                <File className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Lettres</p>
-                <p className="text-xl font-semibold">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">Lettres</p>
+                <p className="text-lg sm:text-xl font-semibold">
                   {(documents || []).filter((d: DocType) => d.type === 'COVER_LETTER' || d.type === 'LETTRE_MOTIVATION').length}
                 </p>
               </div>
@@ -212,14 +211,14 @@ export function DocumentsPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <FileText className="h-5 w-5 text-green-600" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg flex-shrink-0">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Portfolios</p>
-                <p className="text-xl font-semibold">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">Portfolios</p>
+                <p className="text-lg sm:text-xl font-semibold">
                   {(documents || []).filter((d: DocType) => d.type === 'PORTFOLIO').length}
                 </p>
               </div>
@@ -227,14 +226,14 @@ export function DocumentsPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-500/10 rounded-lg">
-                <File className="h-5 w-5 text-gray-600" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-gray-500/10 rounded-lg flex-shrink-0">
+                <File className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Autres</p>
-                <p className="text-xl font-semibold">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">Autres</p>
+                <p className="text-lg sm:text-xl font-semibold">
                   {(documents || []).filter((d: DocType) => d.type === 'OTHER').length}
                 </p>
               </div>
@@ -359,14 +358,14 @@ export function DocumentsPage() {
 
       {/* Upload Dialog */}
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Importer un document</DialogTitle>
             <DialogDescription>
               Formats acceptés : PDF, DOCX (max 5 Mo)
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
             <div className="space-y-2">
               <Label htmlFor="file">Fichier</Label>
               <Input
@@ -402,7 +401,7 @@ export function DocumentsPage() {
                 </SelectContent>
               </Select>
             </div>
-          </DialogBody>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
               Annuler

@@ -15,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogBody,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -229,19 +228,19 @@ export function CompaniesPage() {
               <div className="mt-3 space-y-2">
                 {company.location && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{company.location}</span>
+                    <MapPin className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{company.location}</span>
                   </div>
                 )}
                 {company.size && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    <span>{company.size} employés</span>
+                    <Users className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{company.size} employés</span>
                   </div>
                 )}
                 {company.website && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Globe className="h-4 w-4" />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+                    <Globe className="h-4 w-4 flex-shrink-0" />
                     <a
                       href={company.website}
                       target="_blank"
@@ -306,7 +305,7 @@ export function CompaniesPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={closeDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
               {editingCompany ? 'Modifier l\'entreprise' : 'Nouvelle entreprise'}
@@ -317,7 +316,7 @@ export function CompaniesPage() {
                 : 'Ajoutez une entreprise à votre répertoire'}
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
             <div className="space-y-2">
               <Label htmlFor="name">Nom *</Label>
               <Input
@@ -327,7 +326,7 @@ export function CompaniesPage() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="industry">Secteur</Label>
                 <Input
@@ -383,7 +382,7 @@ export function CompaniesPage() {
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               />
             </div>
-          </DialogBody>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>
               Annuler

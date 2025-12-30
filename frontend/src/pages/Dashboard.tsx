@@ -7,14 +7,6 @@ import { applicationsService } from '@/services/applications.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -23,9 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import type { ApplicationStatus, JobType } from '@/types';
 import { 
   Briefcase, 
   Send, 
@@ -38,21 +27,12 @@ import {
   Clock
 } from 'lucide-react';
 import { formatDate, statusLabels, statusColors, cn } from '@/lib/utils';
+import { ApplicationForm, initialApplicationFormData } from '@/components/ApplicationForm';
 
 export function DashboardPage() {
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newApplication, setNewApplication] = useState({
-    companyName: '',
-    position: '',
-    jobType: 'STAGE' as JobType,
-    location: '',
-    jobUrl: '',
-    salary: '',
-    notes: '',
-    jobDescription: '',
-    status: 'SENT' as ApplicationStatus,
-  });
+  const [newApplication, setNewApplication] = useState(initialApplicationFormData);
 
   const { data: dashboard, isLoading: dashboardLoading } = useQuery({
     queryKey: ['dashboard'],
@@ -70,17 +50,7 @@ export function DashboardPage() {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setShowCreateDialog(false);
-      setNewApplication({
-        companyName: '',
-        position: '',
-        jobType: 'STAGE',
-        location: '',
-        jobUrl: '',
-        salary: '',
-        notes: '',
-        jobDescription: '',
-        status: 'SENT',
-      });
+      setNewApplication(initialApplicationFormData);
     },
     onError: (error: any) => {
       alert('Erreur: ' + (error.response?.data?.message || error.message || 'Erreur inconnue'));
@@ -122,65 +92,73 @@ export function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total candidatures
-            </CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalApplications}</div>
-            <p className="text-xs text-muted-foreground">
-              {byStatus['DRAFT'] || 0} brouillons
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/applications">
+          <Card className="cursor-pointer transition-all hover:bg-accent/50">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total candidatures
+              </CardTitle>
+              <Briefcase className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalApplications}</div>
+              <p className="text-xs text-muted-foreground">
+                {byStatus['DRAFT'] || 0} brouillons
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Candidatures ce mois
-            </CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{sentThisMonth}</div>
-            <p className="text-xs text-muted-foreground">
-              {byStatus['SENT'] || 0} envoyées au total
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/applications">
+          <Card className="cursor-pointer transition-all hover:bg-accent/50">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Candidatures ce mois
+              </CardTitle>
+              <Send className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{sentThisMonth}</div>
+              <p className="text-xs text-muted-foreground">
+                {byStatus['SENT'] || 0} envoyées au total
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Entretiens prévus
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{scheduledInterviews}</div>
-            <p className="text-xs text-muted-foreground">
-              {byStatus['ACCEPTED'] || 0} offre(s) acceptée(s)
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/calendar">
+          <Card className="cursor-pointer transition-all hover:bg-accent/50">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Entretiens prévus
+              </CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{scheduledInterviews}</div>
+              <p className="text-xs text-muted-foreground">
+                {byStatus['ACCEPTED'] || 0} offre(s) acceptée(s)
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Taux de réponse
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{responseRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              Moyenne nationale ~20%
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/analytics">
+          <Card className="cursor-pointer transition-all hover:bg-accent/50">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Taux de réponse
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{responseRate}%</div>
+              <p className="text-xs text-muted-foreground">
+                Moyenne nationale ~20%
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Main content */}
@@ -353,12 +331,12 @@ export function DashboardPage() {
             {Object.entries(statusLabels).map(([status, label]) => (
               <div key={status} className="text-center">
                 <div className={cn(
-                  'inline-flex items-center justify-center w-12 h-12 rounded-full mb-2',
+                  'inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-2',
                   statusColors[status]
                 )}>
-                  <span className="text-lg font-bold">{byStatus[status] || 0}</span>
+                  <span className="text-base sm:text-lg font-bold">{byStatus[status] || 0}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="text-xs text-muted-foreground break-words">{label}</p>
               </div>
             ))}
           </div>
@@ -367,131 +345,18 @@ export function DashboardPage() {
 
       {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-visible flex flex-col">
+        <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nouvelle candidature</DialogTitle>
             <DialogDescription>
               Ajoutez une nouvelle candidature à votre suivi
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4 overflow-y-auto overflow-x-hidden flex-1 pr-4 pl-0 px-4">
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Entreprise *</Label>
-              <Input
-                id="companyName"
-                placeholder="Google, Doctolib..."
-                value={newApplication.companyName}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, companyName: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="position">Poste *</Label>
-              <Input
-                id="position"
-                placeholder="Développeur Full-Stack..."
-                value={newApplication.position}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, position: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select
-                  value={newApplication.jobType}
-                  onValueChange={(value) =>
-                    setNewApplication({ ...newApplication, jobType: value as JobType })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent side="bottom" className="z-50">
-                    <SelectItem value="STAGE">Stage</SelectItem>
-                    <SelectItem value="ALTERNANCE">Alternance</SelectItem>
-                    <SelectItem value="CDI">CDI</SelectItem>
-                    <SelectItem value="JOB_ETUDIANT">Job étudiant</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Statut</Label>
-                <Select
-                  value={newApplication.status}
-                  onValueChange={(value) =>
-                    setNewApplication({ ...newApplication, status: value as ApplicationStatus })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent side="bottom" className="z-50">
-                    <SelectItem value="DRAFT">Brouillon</SelectItem>
-                    <SelectItem value="SENT">Envoyée</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Localisation *</Label>
-              <Input
-                id="location"
-                placeholder="Paris, Lyon, Remote..."
-                value={newApplication.location}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, location: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="jobUrl">URL de l'annonce</Label>
-              <Input
-                id="jobUrl"
-                placeholder="https://..."
-                value={newApplication.jobUrl}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, jobUrl: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="salary">Salaire / Rémunération</Label>
-              <Input
-                id="salary"
-                placeholder="30k-40k, Non spécifié..."
-                value={newApplication.salary}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, salary: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="Notes personnelles sur cette candidature..."
-                value={newApplication.notes}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, notes: e.target.value })
-                }
-                className="min-h-24"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="jobDescription">Description de l'offre</Label>
-              <Textarea
-                id="jobDescription"
-                placeholder="Collez ici le texte de l'annonce..."
-                value={newApplication.jobDescription}
-                onChange={(e) =>
-                  setNewApplication({ ...newApplication, jobDescription: e.target.value })
-                }
-                className="min-h-32"
-              />
-            </div>
+          <div className="py-4">
+            <ApplicationForm 
+              formData={newApplication} 
+              onChange={setNewApplication} 
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>

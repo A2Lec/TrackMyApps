@@ -27,12 +27,9 @@ export const documentController = {
   }),
 
   view: asyncHandler(async (req: AuthRequest, res: Response) => {
-    console.log('View request for ID:', req.params.id);
     const document = await documentService.getById(req.userId!, req.params.id);
-    console.log('Document found:', document.fileName, document.fileUrl);
 
     const filePath = path.join(process.cwd(), document.fileUrl.startsWith('/') ? document.fileUrl.slice(1) : document.fileUrl);
-    console.log('Looking for file at:', filePath);
 
     if (!fs.existsSync(filePath)) {
       console.error('File not found at:', filePath);
@@ -46,12 +43,9 @@ export const documentController = {
   }),
 
   download: asyncHandler(async (req: AuthRequest, res: Response) => {
-    console.log('Download request for ID:', req.params.id);
     const document = await documentService.getById(req.userId!, req.params.id);
-    console.log('Document found:', document.fileName, document.fileUrl);
 
     const filePath = path.join(process.cwd(), document.fileUrl.startsWith('/') ? document.fileUrl.slice(1) : document.fileUrl);
-    console.log('Looking for file at:', filePath);
 
     if (!fs.existsSync(filePath)) {
       console.error('File not found at:', filePath);
@@ -65,9 +59,6 @@ export const documentController = {
     if (!req.file) {
       throw createError('Aucun fichier uploadé', 400);
     }
-    console.log('File uploaded:', req.file);
-    console.log('Upload destination:', req.file.destination);
-    console.log('Upload filename:', req.file.filename);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

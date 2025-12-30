@@ -1,23 +1,23 @@
 import 'dotenv/config';
 import app from './app.js';
+import { logInfo } from './utils/logger.js';
 
 const PORT = process.env.PORT || 5000;
 
-console.log('[SERVER] Starting...');
-console.log('[SERVER] NODE_ENV:', process.env.NODE_ENV);
-console.log('[SERVER] DATABASE_URL:', process.env.DATABASE_URL ? '✓ Set' : '✗ Missing');
+logInfo('Starting server...', { context: 'SERVER' });
+logInfo(`NODE_ENV: ${process.env.NODE_ENV}`, { context: 'SERVER' });
+logInfo(`DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Missing'}`, { context: 'SERVER' });
 
 // For local development
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📚 API available at http://localhost:${PORT}/api`);
-    console.log(`🏥 Health check at http://localhost:${PORT}/api/health`);
+    logInfo(`Server running on http://localhost:${PORT}`, { context: 'SERVER' });
+    logInfo(`API available at http://localhost:${PORT}/api`, { context: 'SERVER' });
+    logInfo(`Health check at http://localhost:${PORT}/api/health`, { context: 'SERVER' });
   });
 } else {
-  console.log('[SERVER] Running in production mode (Vercel serverless)');
+  logInfo('Running in production mode (Vercel serverless)', { context: 'SERVER' });
 }
 
 // Export for Vercel Serverless
-// Force restart
 export default app;

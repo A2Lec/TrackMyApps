@@ -22,7 +22,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogBody,
 } from '@/components/ui/dialog';
 import {
   Accordion,
@@ -424,7 +423,7 @@ export function InterviewPrepPage() {
                 : 'Ajoutez une question d\'entretien et préparez votre réponse'}
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-2">
               <Label htmlFor="question">Question *</Label>
               <Textarea
@@ -473,7 +472,7 @@ export function InterviewPrepPage() {
                 rows={2}
               />
             </div>
-          </DialogBody>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>
               Annuler

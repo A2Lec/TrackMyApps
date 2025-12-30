@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams as useRouterParams, Link } from 'react-router-dom';
 import { applicationsService } from '@/services/applications.service';
+import { documentsService } from '@/services/documents.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +37,7 @@ import {
   Save,
   Plus,
   FileText,
+  X,
 } from 'lucide-react';
 import { formatDate, formatDateTime, statusLabels, statusColors, jobTypeLabels, jobTypeColors, cn } from '@/lib/utils';
 import type { Application, ApplicationStatus, JobType, EventType } from '@/types';
@@ -59,17 +61,25 @@ export function ApplicationDetailPage() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showEventDialog, setShowEventDialog] = useState(false);
+  const [showDocumentsDialog, setShowDocumentsDialog] = useState(false);
   const [formData, setFormData] = useState<Partial<Application>>({});
-  const [newEvent, setNewEvent] = useState({
-    type: 'RELANCE_SENT' as EventType,
-    description: '',
-  });
+  const [selectedCvId, setSelectedCvId] = useState<string | undefined>();
+  const [selectedLmId, setSelectedLmId] = useState<string | undefined>();
 
   const { data: application, isLoading } = useQuery({
     queryKey: ['application', id],
     queryFn: () => applicationsService.getById(id!),
     enabled: !!id,
+  });
+
+  const { data: allCvs = [] } = useQuery({
+    queryKey: ['documents', 'CV'],
+    queryFn: () => documentsService.getAll('CV'),
+  });
+
+  const { data: allLms = [] } = useQuery({
+    queryKey: ['documents', 'LETTRE_MOTIVATION'],
+    queryFn: () => documentsService.getAll('LETTRE_MOTIVATION'),
   });
 
   useEffect(() => {
@@ -85,6 +95,8 @@ export function ApplicationDetailPage() {
         notes: application.notes,
         jobDescription: application.jobDescription,
       });
+      setSelectedCvId(application.cvUsedId);
+      setSelectedLmId(application.lmUsedId);
     }
   }, [application]);
 
@@ -116,15 +128,33 @@ export function ApplicationDetailPage() {
     },
   });
 
-  const handleAddEvent = () => {
-    if (!newEvent.description) return;
-    // TODO: Implement addEvent in applicationsService if needed
-    setShowEventDialog(false);
-    setNewEvent({ type: 'RELANCE_SENT', description: '' });
-  };
+  const linkDocumentsMutation = useMutation({
+    mutationFn: (data: { cvUsedId?: string; lmUsedId?: string }) => 
+      applicationsService.update(id!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['application', id] });
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      setShowDocumentsDialog(false);
+    },
+  });
 
   const handleSave = () => {
     updateMutation.mutate(formData);
+  };
+
+  const handleLinkDocuments = () => {
+    linkDocumentsMutation.mutate({
+      cvUsedId: selectedCvId,
+      lmUsedId: selectedLmId,
+    });
+  };
+
+  const handleUnlinkDocument = (type: 'cv' | 'lm') => {
+    if (type === 'cv') {
+      linkDocumentsMutation.mutate({ cvUsedId: null as any });
+    } else {
+      linkDocumentsMutation.mutate({ lmUsedId: null as any });
+    }
   };
 
   if (isLoading) {
@@ -166,26 +196,27 @@ export function ApplicationDetailPage() {
             <span>{application.location}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {isEditing ? (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
-                Annuler
+              <Button variant="outline" onClick={() => setIsEditing(false)} size="sm" className="text-xs sm:text-sm">
+                <span className="hidden sm:inline">Annuler</span>
+                <span className="sm:hidden">✕</span>
               </Button>
-              <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                <Save className="mr-2 h-4 w-4" />
-                Enregistrer
+              <Button onClick={handleSave} disabled={updateMutation.isPending} size="sm" className="text-xs sm:text-sm">
+                <Save className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Enregistrer</span>
               </Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Modifier
+              <Button variant="outline" onClick={() => setIsEditing(true)} size="sm" className="text-xs sm:text-sm">
+                <Edit className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Modifier</span>
               </Button>
-              <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Supprimer
+              <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} size="sm" className="text-xs sm:text-sm">
+                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Supprimer</span>
               </Button>
             </>
           )}
@@ -193,41 +224,40 @@ export function ApplicationDetailPage() {
       </div>
 
       {/* Content Grid */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Status Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Statut actuel</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {(['DRAFT', 'SENT', 'VIEWED', 'INTERVIEW_SCHEDULED', 'AWAITING_RESPONSE', 'REJECTED', 'ACCEPTED', 'GHOSTED'] as ApplicationStatus[]).map(
-                  (status) => (
-                    <Button
-                      key={status}
-                      variant={application.status === status ? 'default' : 'outline'}
-                      size="sm"
-                      className={cn(
-                        application.status === status && statusColors[status]
-                      )}
-                      onClick={() => updateStatusMutation.mutate(status)}
-                      disabled={updateStatusMutation.isPending}
-                    >
-                      {statusLabels[status]}
-                    </Button>
-                  )
-                )}
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Status Card */}
+        <Card className="col-span-1 lg:col-span-2 order-1">
+          <CardHeader>
+            <CardTitle>Statut actuel</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {(['DRAFT', 'SENT', 'VIEWED', 'INTERVIEW_SCHEDULED', 'AWAITING_RESPONSE', 'REJECTED', 'ACCEPTED', 'GHOSTED'] as ApplicationStatus[]).map(
+                (status) => (
+                  <Button
+                    key={status}
+                    variant={application.status === status ? 'default' : 'outline'}
+                    size="sm"
+                    className={cn(
+                      'text-xs sm:text-sm',
+                      application.status === status && statusColors[status]
+                    )}
+                    onClick={() => updateStatusMutation.mutate(status)}
+                    disabled={updateStatusMutation.isPending}
+                  >
+                    {statusLabels[status]}
+                  </Button>
+                )
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Details Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Détails</CardTitle>
-            </CardHeader>
+        {/* Details Card */}
+        <Card className="col-span-1 lg:col-span-2 order-2">
+          <CardHeader>
+            <CardTitle>Détails</CardTitle>
+          </CardHeader>
             <CardContent className="space-y-4">
               {isEditing ? (
                 <>
@@ -378,50 +408,12 @@ export function ApplicationDetailPage() {
               )}
             </CardContent>
           </Card>
-        </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Documents */}
-          <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base">Documents liés</CardTitle>
-              <Button variant="ghost" size="sm">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {application.cvUsed || application.lmUsed ? (
-                <div className="space-y-2">
-                  {application.cvUsed && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm flex-1 truncate">{application.cvUsed.name}</span>
-                    </div>
-                  )}
-                  {application.lmUsed && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm flex-1 truncate">{application.lmUsed.name}</span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Aucun document lié
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Timeline */}
-          <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base">Historique</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowEventDialog(true)}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </CardHeader>
+        {/* Timeline */}
+        <Card className="col-span-1 order-3">
+          <CardHeader className="flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-base">Historique</CardTitle>
+          </CardHeader>
             <CardContent>
               {application.events && application.events.length > 0 ? (
                 <div className="relative space-y-4">
@@ -449,7 +441,70 @@ export function ApplicationDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Interview Simulation */}
+        {/* Documents */}
+        <Card className="col-span-1 order-4">
+          <CardHeader className="flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-base">Documents liés</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowDocumentsDialog(true)}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {application.cvUsed || application.lmUsed ? (
+                <div className="space-y-2">
+                  {application.cvUsed && (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={documentsService.getViewUrl(application.cvUsed.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm flex-1 truncate hover:underline cursor-pointer"
+                      >
+                        {application.cvUsed.name}
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => handleUnlinkDocument('cv')}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                  {application.lmUsed && (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={documentsService.getViewUrl(application.lmUsed.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm flex-1 truncate hover:underline cursor-pointer"
+                      >
+                        {application.lmUsed.name}
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => handleUnlinkDocument('lm')}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Aucun document lié
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+        {/* Interview Simulation - Last on mobile */}
+        <div className="col-span-1 lg:col-span-2 order-5">
           <InterviewSimulation applicationId={application.id} />
         </div>
       </div>
@@ -478,47 +533,58 @@ export function ApplicationDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Event Dialog */}
-      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-        <DialogContent>
+      {/* Link Documents Dialog */}
+      <Dialog open={showDocumentsDialog} onOpenChange={setShowDocumentsDialog}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Ajouter un événement</DialogTitle>
+            <DialogTitle>Lier des documents</DialogTitle>
             <DialogDescription>
-              Ajoutez une note ou un événement à l'historique de cette candidature
+              Sélectionnez les documents à lier à cette candidature.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Type d'événement</Label>
-              <Select
-                value={newEvent.type}
-                onValueChange={(v) => setNewEvent({ ...newEvent, type: v as EventType })}
-              >
+              <Label>CV</Label>
+              <Select value={selectedCvId} onValueChange={setSelectedCvId}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Sélectionnez un CV" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="RELANCE_SENT">Relance envoyée</SelectItem>
-                  <SelectItem value="INTERVIEW_SCHEDULED">Entretien planifié</SelectItem>
-                  <SelectItem value="STATUS_CHANGED">Changement de statut</SelectItem>
+                  <SelectItem value="none">Aucun</SelectItem>
+                  {allCvs.map((cv) => (
+                    <SelectItem key={cv.id} value={cv.id}>
+                      {cv.name} {cv.version && `(${cv.version})`}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea
-                value={newEvent.description}
-                onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                placeholder="Détails de l'événement..."
-              />
+              <Label>Lettre de motivation</Label>
+              <Select value={selectedLmId} onValueChange={setSelectedLmId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionnez une lettre de motivation" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Aucune</SelectItem>
+                  {allLms.map((lm) => (
+                    <SelectItem key={lm.id} value={lm.id}>
+                      {lm.name} {lm.version && `(${lm.version})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEventDialog(false)}>
+            <Button variant="outline" onClick={() => setShowDocumentsDialog(false)}>
               Annuler
             </Button>
-            <Button onClick={handleAddEvent}>
-              Ajouter
+            <Button
+              onClick={handleLinkDocuments}
+              disabled={linkDocumentsMutation.isPending}
+            >
+              Enregistrer
             </Button>
           </DialogFooter>
         </DialogContent>

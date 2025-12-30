@@ -20,7 +20,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogBody,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -489,7 +488,7 @@ export function RemindersPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={closeDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{editingReminder ? 'Modifier le rappel' : 'Nouveau rappel'}</DialogTitle>
             <DialogDescription>
@@ -498,7 +497,7 @@ export function RemindersPage() {
                 : 'Créez un rappel pour ne rien oublier'}
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
             <div className="space-y-2">
               <Label htmlFor="title">Titre *</Label>
               <Input
@@ -525,7 +524,7 @@ export function RemindersPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="dueDate">Date *</Label>
                 <Input
@@ -554,7 +553,7 @@ export function RemindersPage() {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
-          </DialogBody>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>
               Annuler

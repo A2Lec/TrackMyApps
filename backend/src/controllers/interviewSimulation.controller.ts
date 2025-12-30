@@ -5,13 +5,15 @@ import { AuthRequest } from '../middlewares/auth.middleware.js';
 
 export const interviewSimulationController = {
   startSession: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const { applicationId, interviewerType, difficulty } = req.body;
+    const { applicationId, interviewerType, difficulty, cvId, lmId } = req.body;
     
     const result = await interviewSimulationService.startSession({
       userId: req.userId!,
       applicationId,
       interviewerType,
       difficulty,
+      cvId,
+      lmId,
     });
 
     res.status(201).json({
@@ -43,6 +45,26 @@ export const interviewSimulationController = {
       res.json({
           success: true,
           data: session
+      });
+  }),
+
+  getSessionsByApplication: asyncHandler(async (req: AuthRequest, res: Response) => {
+      const { applicationId } = req.params;
+      const sessions = await interviewSimulationService.getSessionsByApplication(req.userId!, applicationId);
+
+      res.json({
+          success: true,
+          data: sessions
+      });
+  }),
+
+  deleteSession: asyncHandler(async (req: AuthRequest, res: Response) => {
+      const { sessionId } = req.params;
+      const result = await interviewSimulationService.deleteSession(req.userId!, sessionId);
+
+      res.json({
+          success: true,
+          data: result
       });
   })
 };

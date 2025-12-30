@@ -13,6 +13,8 @@ interface StartSessionData {
   applicationId: string;
   interviewerType: 'HR' | 'MANAGER' | 'TECHNICAL' | 'CTO';
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  cvId?: string;
+  lmId?: string;
 }
 
 export const interviewSimulationService = {
@@ -20,8 +22,8 @@ export const interviewSimulationService = {
     if (!genAI) {
       throw createError('Clé API Gemini manquante. Veuillez configurer GEMINI_API_KEY dans le fichier .env du backend.', 500);
     }
-    // Use gemini-1.5-flash for better performance and availability
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    // Use gemini-2.5-flash which is available in late 2025
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // 1. Get Application details (Company, Position, Job Description)
     const application = await prisma.application.findUnique({
@@ -41,26 +43,37 @@ export const interviewSimulationService = {
       throw createError('Accès non autorisé', 403);
     }
 
-    // 2. Extract text from CV and LM if available
+    // 2. Extract text from CV and LM if provided
     let contextText = `
       Poste: ${application.position}
       Entreprise: ${application.companyName}
       Description du poste: ${application.jobDescription || 'Non fournie'}
     `;
 
-    if (application.cvUsed) {
-      // Assuming uploads are stored in 'uploads' folder at root
-      const cvPath = path.join(process.cwd(), application.cvUsed.fileUrl); 
-      // Note: fileUrl might be relative or absolute depending on your upload logic. 
-      // Adjust path resolution as needed.
-      const cvText = await documentExtractionService.extractText(cvPath, application.cvUsed.mimeType);
-      contextText += `\n\nCV du candidat:\n${cvText}`;
+    // Use explicitly selected documents or fall back to application's default documents
+    const cvId = data.cvId || application.cvUsedId;
+    const lmId = data.lmId || application.lmUsedId;
+
+    if (cvId) {
+      const cvDoc = await prisma.document.findUnique({
+        where: { id: cvId }
+      });
+      if (cvDoc && cvDoc.userId === data.userId) {
+        const cvPath = path.join(process.cwd(), cvDoc.fileUrl);
+        const cvText = await documentExtractionService.extractText(cvPath, cvDoc.mimeType);
+        contextText += `\n\nCV du candidat:\n${cvText}`;
+      }
     }
 
-    if (application.lmUsed) {
-      const lmPath = path.join(process.cwd(), application.lmUsed.fileUrl);
-      const lmText = await documentExtractionService.extractText(lmPath, application.lmUsed.mimeType);
-      contextText += `\n\nLettre de motivation:\n${lmText}`;
+    if (lmId) {
+      const lmDoc = await prisma.document.findUnique({
+        where: { id: lmId }
+      });
+      if (lmDoc && lmDoc.userId === data.userId) {
+        const lmPath = path.join(process.cwd(), lmDoc.fileUrl);
+        const lmText = await documentExtractionService.extractText(lmPath, lmDoc.mimeType);
+        contextText += `\n\nLettre de motivation:\n${lmText}`;
+      }
     }
 
     // 3. Create Session in DB
@@ -222,7 +235,10 @@ export const interviewSimulationService = {
     }
 
     // Re-initialize model to ensure consistency
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    if (!genAI) {
+      throw createError('Clé API Gemini manquante', 500);
+    }
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const chat = model.startChat({
         history: chatHistory
@@ -264,6 +280,49 @@ export const interviewSimulationService = {
       if (session.userId !== userId) throw createError('Accès non autorisé', 403);
 
       return session;
+  },
+
+  async getSessionsByApplication(userId: string, applicationId: string) {
+      const sessions = await prisma.interviewSession.findMany({
+          where: {
+              userId,
+              applicationId
+          },
+          include: {
+              messages: {
+                  orderBy: { createdAt: 'asc' }
+              },
+              _count: {
+                  select: { messages: true }
+              }
+          },
+          orderBy: {
+              createdAt: 'desc'
+          }
+      });
+
+      return sessions;
+  },
+
+  async deleteSession(userId: string, sessionId: string) {
+      const session = await prisma.interviewSession.findUnique({
+          where: { id: sessionId }
+      });
+
+      if (!session) throw createError('Session non trouvée', 404);
+      if (session.userId !== userId) throw createError('Accès non autorisé', 403);
+
+      // Delete all messages first (due to foreign key constraint)
+      await prisma.interviewMessage.deleteMany({
+          where: { sessionId }
+      });
+
+      // Delete the session
+      await prisma.interviewSession.delete({
+          where: { id: sessionId }
+      });
+
+      return { success: true };
   },
 
   generateSystemPrompt(type: string, difficulty: string, context: string): string {

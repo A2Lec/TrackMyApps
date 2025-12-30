@@ -159,11 +159,11 @@ export function CalendarPage() {
           </CardHeader>
           <CardContent>
             {/* Day headers */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
               {DAYS.map((day) => (
                 <div
                   key={day}
-                  className="text-center text-sm font-medium text-muted-foreground py-2"
+                  className="text-center text-xs sm:text-sm font-medium text-muted-foreground py-1 sm:py-2"
                 >
                   {day}
                 </div>
@@ -171,7 +171,7 @@ export function CalendarPage() {
             </div>
 
             {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
               {calendarDays.map((day, index) => {
                 if (day === null) {
                   return <div key={`empty-${index}`} className="aspect-square" />;
@@ -191,27 +191,27 @@ export function CalendarPage() {
                     key={day}
                     onClick={() => setSelectedDate(date)}
                     className={cn(
-                      'aspect-square p-1 rounded-lg border transition-colors hover:border-primary relative',
+                      'aspect-square p-0.5 sm:p-1 rounded-lg border transition-colors hover:border-primary relative',
                       isToday(day) && 'bg-primary/10 border-primary',
-                      isSelected && 'border-primary ring-2 ring-primary ring-offset-2',
+                      isSelected && 'border-primary ring-1 sm:ring-2 ring-primary ring-offset-1 sm:ring-offset-2',
                       !isToday(day) && !isSelected && 'border-transparent hover:bg-muted/50'
                     )}
                   >
                     <span
                       className={cn(
-                        'text-sm',
+                        'text-xs sm:text-sm',
                         isToday(day) && 'font-bold text-primary'
                       )}
                     >
                       {day}
                     </span>
                     {hasEvents && (
-                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+                      <div className="absolute bottom-0.5 sm:bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
                         {events.applications.length > 0 && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                          <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-blue-500" />
                         )}
                         {events.reminders.length > 0 && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+                          <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-yellow-500" />
                         )}
                       </div>
                     )}
@@ -221,13 +221,13 @@ export function CalendarPage() {
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-4 mt-4 pt-4 border-t">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <div className="flex items-center gap-3 sm:gap-4 mt-4 pt-4 border-t">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-blue-500" />
                 <span>Candidatures</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
+              <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500" />
                 <span>Rappels</span>
               </div>
             </div>
