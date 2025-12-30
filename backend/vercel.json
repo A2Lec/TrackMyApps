@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "trackmyapps-backend",
   "crons": [
     {
       "path": "/api/cron/reminders",
