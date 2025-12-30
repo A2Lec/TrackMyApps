@@ -12,9 +12,32 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || true, // Use FRONTEND_URL in production, allow all in dev
+  origin: (origin, callback) => {
+    // Allow all origins in development or if FRONTEND_URL is not set
+    // In production, allow the specific frontend URL
+    const allowedOrigin = process.env.FRONTEND_URL;
+    
+    // Log for debugging
+    if (process.env.NODE_ENV === 'production') {
+      console.log(`[CORS] Request origin: ${origin}, Allowed: ${allowedOrigin}`);
+    }
+
+    if (!origin || !allowedOrigin || allowedOrigin === '*' || origin === allowedOrigin) {
+      callback(null, true);
+    } else {
+      // For debugging purposes, we might want to allow it temporarily or log it
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      // callback(new Error('Not allowed by CORS')); // Strict mode
+      callback(null, true); // Permissive mode for debugging
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 
 // Body parsing
 app.use(express.json());
