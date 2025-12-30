@@ -226,7 +226,7 @@ export function ApplicationDetailPage() {
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Status Card */}
-        <Card className="col-span-1 lg:col-span-2 order-1">
+        <Card className="col-span-1 lg:col-span-2 order-1 lg:order-1">
           <CardHeader>
             <CardTitle>Statut actuel</CardTitle>
           </CardHeader>
@@ -253,8 +253,70 @@ export function ApplicationDetailPage() {
           </CardContent>
         </Card>
 
+        {/* Documents - Top right on desktop */}
+        <Card className="col-span-1 order-4 lg:order-2">
+          <CardHeader className="flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-base">Documents liés</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowDocumentsDialog(true)}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {application.cvUsed || application.lmUsed ? (
+                <div className="space-y-2">
+                  {application.cvUsed && (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={documentsService.getViewUrl(application.cvUsed.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm flex-1 truncate hover:underline cursor-pointer"
+                      >
+                        {application.cvUsed.name}
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => handleUnlinkDocument('cv')}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                  {application.lmUsed && (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={documentsService.getViewUrl(application.lmUsed.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm flex-1 truncate hover:underline cursor-pointer"
+                      >
+                        {application.lmUsed.name}
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => handleUnlinkDocument('lm')}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Aucun document lié
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
         {/* Details Card */}
-        <Card className="col-span-1 lg:col-span-2 order-2">
+        <Card className="col-span-1 lg:col-span-2 order-2 lg:order-3">
           <CardHeader>
             <CardTitle>Détails</CardTitle>
           </CardHeader>
@@ -410,7 +472,7 @@ export function ApplicationDetailPage() {
           </Card>
 
         {/* Timeline */}
-        <Card className="col-span-1 order-3">
+        <Card className="col-span-1 order-3 lg:order-4">
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base">Historique</CardTitle>
           </CardHeader>
@@ -441,70 +503,8 @@ export function ApplicationDetailPage() {
             </CardContent>
           </Card>
 
-        {/* Documents */}
-        <Card className="col-span-1 order-4">
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base">Documents liés</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowDocumentsDialog(true)}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {application.cvUsed || application.lmUsed ? (
-                <div className="space-y-2">
-                  {application.cvUsed && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <a
-                        href={documentsService.getViewUrl(application.cvUsed.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm flex-1 truncate hover:underline cursor-pointer"
-                      >
-                        {application.cvUsed.name}
-                      </a>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleUnlinkDocument('cv')}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )}
-                  {application.lmUsed && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <a
-                        href={documentsService.getViewUrl(application.lmUsed.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm flex-1 truncate hover:underline cursor-pointer"
-                      >
-                        {application.lmUsed.name}
-                      </a>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleUnlinkDocument('lm')}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Aucun document lié
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-        {/* Interview Simulation - Last on mobile */}
-        <div className="col-span-1 lg:col-span-2 order-5">
+        {/* Interview Simulation - Aligned with status and details on desktop */}
+        <div className="col-span-1 lg:col-span-3 order-5 lg:order-5">
           <InterviewSimulation applicationId={application.id} />
         </div>
       </div>
