@@ -11,10 +11,16 @@ export const storageService = {
    */
   async uploadFile(file: Express.Multer.File): Promise<string> {
     if (isProduction) {
+      // Sanitize filename for URL safety
+      const sanitizedFilename = file.originalname
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .replace(/[^a-zA-Z0-9_.-]/g, ''); // Remove unsafe characters
+
       // Upload to Vercel Blob (file is in memory)
-      const blob = await put(file.originalname, file.buffer, {
+      const blob = await put(sanitizedFilename, file.buffer, {
         access: 'public',
         contentType: file.mimetype,
+        addRandomSuffix: true,
       });
       
       return blob.url;
