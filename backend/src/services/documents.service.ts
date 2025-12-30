@@ -1,7 +1,6 @@
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
-import fs from 'fs';
-import path from 'path';
+import { storageService } from './storage.service.js';
 
 // Define type locally since we're using SQLite (no Prisma enums)
 type DocumentType = 'CV' | 'LETTRE_MOTIVATION' | 'COVER_LETTER' | 'PORTFOLIO' | 'OTHER';
@@ -132,13 +131,8 @@ export const documentService = {
       );
     }
 
-    // Delete file from disk
-    const uploadDir = process.env.UPLOAD_DIR || './uploads';
-    const filePath = path.join(uploadDir, path.basename(existing.fileUrl));
-    
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    // Delete file from storage
+    await storageService.deleteFile(existing.fileUrl);
 
     await prisma.document.delete({
       where: { id },

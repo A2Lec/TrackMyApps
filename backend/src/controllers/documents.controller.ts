@@ -3,8 +3,11 @@ import { validationResult } from 'express-validator';
 import path from 'path';
 import fs from 'fs';
 import { documentService } from '../services/documents.service.js';
+import { storageService } from '../services/storage.service.js';
 import { asyncHandler, createError } from '../middlewares/errorHandler.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const documentController = {
   getAll: asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -29,30 +32,42 @@ export const documentController = {
   view: asyncHandler(async (req: AuthRequest, res: Response) => {
     const document = await documentService.getById(req.userId!, req.params.id);
 
-    const filePath = path.join(process.cwd(), document.fileUrl.startsWith('/') ? document.fileUrl.slice(1) : document.fileUrl);
+    if (isProduction) {
+      // In production, redirect to Vercel Blob URL
+      res.redirect(document.fileUrl);
+    } else {
+      // In development, serve from local storage
+      const filePath = storageService.getLocalFilePath(document.fileUrl);
 
-    if (!fs.existsSync(filePath)) {
-      console.error('File not found at:', filePath);
-      throw createError('Fichier non trouvé sur le serveur', 404);
+      if (!fs.existsSync(filePath)) {
+        console.error('File not found at:', filePath);
+        throw createError('Fichier non trouvé sur le serveur', 404);
+      }
+
+      // Set headers to display inline in browser
+      res.setHeader('Content-Type', document.mimeType);
+      res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
+      res.sendFile(filePath);
     }
-
-    // Set headers to display inline in browser
-    res.setHeader('Content-Type', document.mimeType);
-    res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
-    res.sendFile(filePath);
   }),
 
   download: asyncHandler(async (req: AuthRequest, res: Response) => {
     const document = await documentService.getById(req.userId!, req.params.id);
 
-    const filePath = path.join(process.cwd(), document.fileUrl.startsWith('/') ? document.fileUrl.slice(1) : document.fileUrl);
+    if (isProduction) {
+      // In production, redirect to Vercel Blob URL with download disposition
+      res.redirect(document.fileUrl);
+    } else {
+      // In development, serve from local storage
+      const filePath = storageService.getLocalFilePath(document.fileUrl);
 
-    if (!fs.existsSync(filePath)) {
-      console.error('File not found at:', filePath);
-      throw createError('Fichier non trouvé sur le serveur', 404);
+      if (!fs.existsSync(filePath)) {
+        console.error('File not found at:', filePath);
+        throw createError('Fichier non trouvé sur le serveur', 404);
+      }
+
+      res.download(filePath, document.fileName);
     }
-
-    res.download(filePath, document.fileName);
   }),
 
   upload: asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -67,12 +82,15 @@ export const documentController = {
 
     const { name, type, version, isDefault } = req.body;
 
+    // Upload file to storage (Vercel Blob in production, local in dev)
+    const fileUrl = await storageService.uploadFile(req.file);
+
     const document = await documentService.create(req.userId!, {
       name,
       type,
       version,
       isDefault: isDefault === 'true',
-      fileUrl: `/uploads/${req.file.filename}`,
+      fileUrl,
       fileName: req.file.originalname,
       fileSize: req.file.size,
       mimeType: req.file.mimetype,

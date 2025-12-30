@@ -1,0 +1,69 @@
+import { put, del, head } from '@vercel/blob';
+import fs from 'fs';
+import path from 'path';
+
+const isProduction = process.env.NODE_ENV === 'production';
+const uploadDir = process.env.UPLOAD_DIR || './uploads';
+
+export const storageService = {
+  /**
+   * Upload a file to Vercel Blob (production) or local storage (development)
+   */
+  async uploadFile(file: Express.Multer.File): Promise<string> {
+    if (isProduction) {
+      // Upload to Vercel Blob (file is in memory)
+      const blob = await put(file.originalname, file.buffer, {
+        access: 'public',
+        contentType: file.mimetype,
+      });
+      
+      return blob.url;
+    } else {
+      // Local storage (file is already on disk)
+      return `/uploads/${file.filename}`;
+    }
+  },
+
+  /**
+   * Delete a file from Vercel Blob (production) or local storage (development)
+   */
+  async deleteFile(fileUrl: string): Promise<void> {
+    if (isProduction) {
+      // Delete from Vercel Blob
+      await del(fileUrl);
+    } else {
+      // Delete from local storage
+      const filePath = path.join(process.cwd(), fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+  },
+
+  /**
+   * Check if a file exists
+   */
+  async fileExists(fileUrl: string): Promise<boolean> {
+    if (isProduction) {
+      try {
+        await head(fileUrl);
+        return true;
+      } catch {
+        return false;
+      }
+    } else {
+      const filePath = path.join(process.cwd(), fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl);
+      return fs.existsSync(filePath);
+    }
+  },
+
+  /**
+   * Get the file path for local reading (development only)
+   */
+  getLocalFilePath(fileUrl: string): string {
+    if (isProduction) {
+      throw new Error('getLocalFilePath should not be called in production');
+    }
+    return path.join(process.cwd(), fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl);
+  },
+};
