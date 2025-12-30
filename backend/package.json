@@ -12,8 +12,10 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio",
-    "vercel-build": "prisma generate"
+    "db:studio": "prisma studio"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -41,7 +43,6 @@
     "@types/node": "^20.10.5",
     "@types/node-cron": "^3.0.11",
     "@types/uuid": "^9.0.7",
-    "@vercel/node": "^5.5.16",
     "prisma": "^5.7.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
