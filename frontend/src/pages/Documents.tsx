@@ -252,7 +252,7 @@ export function DocumentsPage() {
                   <div className={cn('p-2 rounded-lg', documentTypeColors[doc.type].split(' ')[0])}>
                     <FileText className="h-5 w-5" />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 overflow-hidden">
                     <div className="flex items-center gap-2">
                       <h3 
                         className="font-medium truncate cursor-pointer"
@@ -272,7 +272,7 @@ export function DocumentsPage() {
                         {documentTypeLabels[doc.type]}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
+                    <p className="text-xs text-muted-foreground mt-2 truncate">
                       Ajouté le {formatDate(doc.createdAt)}
                     </p>
                   </div>
