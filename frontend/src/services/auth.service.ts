@@ -48,6 +48,10 @@ export const authService = {
     await api.put('/auth/password', { currentPassword, newPassword });
   },
 
+  async logout(): Promise<void> {
+    await api.post('/auth/logout');
+  },
+
   async deleteAccount(): Promise<void> {
     await api.delete('/auth/account');
   },

@@ -25,6 +25,10 @@ export const authMiddleware = async (
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.split(' ')[1];
     }
+    // Check for token in cookies
+    else if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
     // Fallback to query parameter (for file viewing in browser)
     else if (req.query.token && typeof req.query.token === 'string') {
       token = req.query.token;
@@ -36,9 +40,12 @@ export const authMiddleware = async (
       throw createError('Token d\'authentification requis', 401);
     }
 
-    const secret = process.env.JWT_SECRET || 'default-secret';
+    if (!process.env.JWT_SECRET) {
+      logWarn('JWT_SECRET is not defined', { context: 'AuthMiddleware' });
+      throw createError('Erreur de configuration serveur', 500);
+    }
 
-    const decoded = jwt.verify(token, secret) as JwtPayload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
     logDebug(`Token decoded for user ${decoded.userId}`, { context: 'AuthMiddleware' });
     
     // Verify that the user still exists in the database

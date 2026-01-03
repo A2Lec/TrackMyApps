@@ -19,6 +19,14 @@ export const authController = {
       field,
     });
 
+    // Set HTTP-only cookie
+    res.cookie('token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     return sendSuccess(res, result, 201);
   }),
 
@@ -26,7 +34,25 @@ export const authController = {
     validateRequest(req);
     const { email, password } = req.body;
     const result = await authService.login({ email, password });
+
+    // Set HTTP-only cookie
+    res.cookie('token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     return sendSuccess(res, result);
+  }),
+
+  logout: asyncHandler(async (req: Request, res: Response) => {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+    return sendSuccess(res, { message: 'Déconnexion réussie' });
   }),
 
   getProfile: asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -55,8 +81,12 @@ export const authController = {
       throw createError('Mot de passe actuel et nouveau mot de passe requis', 400);
     }
 
-    if (newPassword.length < 6) {
-      throw createError('Le nouveau mot de passe doit contenir au moins 6 caractères', 400);
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      throw createError(
+        'Le nouveau mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial',
+        400
+      );
     }
 
     const result = await authService.updatePassword(req.userId!, currentPassword, newPassword);

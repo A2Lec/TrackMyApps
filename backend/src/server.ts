@@ -8,6 +8,11 @@ logInfo('Starting server...', { context: 'SERVER' });
 logInfo(`NODE_ENV: ${process.env.NODE_ENV}`, { context: 'SERVER' });
 logInfo(`DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Missing'}`, { context: 'SERVER' });
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+  process.exit(1);
+}
+
 // For local development
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {

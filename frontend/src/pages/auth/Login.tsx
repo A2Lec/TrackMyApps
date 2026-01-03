@@ -35,7 +35,7 @@ export function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: authService.login,
     onSuccess: (data) => {
-      setAuth(data.user, data.token);
+      setAuth(data.user);
       navigate('/');
     },
     onError: (error: any) => {

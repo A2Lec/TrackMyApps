@@ -6,8 +6,16 @@ export const registerValidation = [
     .withMessage('Email invalide')
     .normalizeEmail(),
   body('password')
-    .isLength({ min: 6 })
-    .withMessage('Le mot de passe doit contenir au moins 6 caractères'),
+    .isLength({ min: 8 })
+    .withMessage('Le mot de passe doit contenir au moins 8 caractères')
+    .matches(/[A-Z]/)
+    .withMessage('Le mot de passe doit contenir au moins une majuscule')
+    .matches(/[a-z]/)
+    .withMessage('Le mot de passe doit contenir au moins une minuscule')
+    .matches(/[0-9]/)
+    .withMessage('Le mot de passe doit contenir au moins un chiffre')
+    .matches(/[^A-Za-z0-9]/)
+    .withMessage('Le mot de passe doit contenir au moins un caractère spécial'),
   body('firstName')
     .trim()
     .notEmpty()

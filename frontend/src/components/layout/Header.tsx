@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { remindersService } from '@/services/reminders.service';
+import { authService } from '@/services/auth.service';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -28,7 +29,12 @@ export function Header() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
     logout();
     queryClient.clear();
     navigate('/login');

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { useAuthStore } from '@/store/authStore';
 
 // En production, on utilise le proxy Vercel défini dans vercel.json
 // En développement, on utilise le proxy Vite
@@ -9,18 +8,15 @@ console.log('[API] Configured URL:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor for adding auth token
+// Request interceptor for logging
 api.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().token;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     console.log(`[API] Request: ${config.method?.toUpperCase()} ${config.url}`, config);
     return config;
   },

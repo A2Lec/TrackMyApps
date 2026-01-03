@@ -1,14 +1,26 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import routes from './routes/index.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
+import { globalLimiter } from './middlewares/rateLimit.middleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Security headers
+app.use(helmet());
+
+// Cookie parser
+app.use(cookieParser());
+
+// Apply global rate limiter
+app.use(globalLimiter);
 
 // CORS configuration
 app.use(cors({
