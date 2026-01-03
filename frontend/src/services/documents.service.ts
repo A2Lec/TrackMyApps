@@ -1,6 +1,5 @@
 import api from './api';
 import type { Document, DocumentType } from '@/types';
-import { useAuthStore } from '@/store/authStore';
 
 export const documentsService = {
   async getAll(type?: DocumentType): Promise<Document[]> {
