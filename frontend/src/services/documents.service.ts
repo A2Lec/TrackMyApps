@@ -35,8 +35,7 @@ export const documentsService = {
 
   getViewUrl(id: string): string {
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    const token = useAuthStore.getState().token;
-    return `${baseUrl}/documents/view/${id}?token=${token}`;
+    return `${baseUrl}/documents/view/${id}`;
   },
 
   async download(id: string, fileName: string): Promise<void> {

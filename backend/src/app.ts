@@ -14,6 +14,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Security headers
+// @ts-ignore
 app.use(helmet());
 
 // Cookie parser

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@/store/authStore';
 
 // En production, on utilise le proxy Vercel défini dans vercel.json
 // En développement, on utilise le proxy Vite
