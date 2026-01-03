@@ -16,16 +16,6 @@ const app = express();
 // Trust proxy for Vercel
 app.set('trust proxy', 1);
 
-// Security headers
-// @ts-ignore
-app.use(helmet());
-
-// Cookie parser
-app.use(cookieParser());
-
-// Apply global rate limiter
-app.use(globalLimiter);
-
 // CORS configuration
 app.use(cors({
   origin: (origin, callback) => {
@@ -51,6 +41,13 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Security headers
+// @ts-ignore
+app.use(helmet());
+
+// Cookie parser
+app.use(cookieParser());
 
 // Handle preflight requests explicitly
 app.options('*', cors());

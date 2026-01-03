@@ -36,6 +36,10 @@ export const authMiddleware = async (
     }
 
     if (!token) {
+      console.log('[AuthMiddleware Debug] Headers:', JSON.stringify(req.headers, null, 2));
+      console.log('[AuthMiddleware Debug] Cookies:', req.cookies);
+      console.log('[AuthMiddleware Debug] Signed Cookies:', req.signedCookies);
+      
       logWarn('No token found in request', { context: 'AuthMiddleware' });
       throw createError('Token d\'authentification requis', 401);
     }
