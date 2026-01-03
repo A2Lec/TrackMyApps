@@ -129,7 +129,7 @@ export function InterviewSimulation({ applicationId }: InterviewSimulationProps)
     return (
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-6 w-6 text-primary" />
               Simulation d'entretien IA
@@ -139,7 +139,7 @@ export function InterviewSimulation({ applicationId }: InterviewSimulationProps)
                 variant={showSessions ? "default" : "outline"}
                 size="sm" 
                 onClick={() => setShowSessions(!showSessions)}
-                className={showSessions ? "" : "border-2"}
+                className={showSessions ? "" : "border-2 whitespace-nowrap"}
               >
                 <History className="h-4 w-4 mr-2" />
                 {showSessions ? 'Nouvelle session' : 'Sessions précédentes'}

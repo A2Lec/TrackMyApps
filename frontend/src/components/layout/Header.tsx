@@ -66,7 +66,7 @@ export function Header() {
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-0.5 md:gap-4">
           {/* Theme switcher */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
