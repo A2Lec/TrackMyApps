@@ -21,11 +21,17 @@ export const authController = {
 
     // Set HTTP-only cookie
     const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Configuration des cookies :
+    // En production (Vercel) : Secure + SameSite=None (car cross-domain)
+    // En développement (Localhost) : Secure + SameSite=None (pour supporter le cross-port 5173->5000)
+    // Note : Chrome accepte les cookies Secure sur localhost même en HTTP.
     res.cookie('token', result.token, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      secure: true, // Toujours secure (requis pour SameSite=None)
+      sameSite: 'none', // Toujours None pour supporter cross-origin/cross-port
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/'
     });
 
     return sendSuccess(res, result, 201);
@@ -40,9 +46,10 @@ export const authController = {
     const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', result.token, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      secure: true, // Toujours secure (requis pour SameSite=None)
+      sameSite: 'none', // Toujours None pour supporter cross-origin/cross-port
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/'
     });
 
     return sendSuccess(res, result);
@@ -52,8 +59,9 @@ export const authController = {
     const isProduction = process.env.NODE_ENV === 'production';
     res.clearCookie('token', {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      secure: true,
+      sameSite: 'none',
+      path: '/'
     });
     return sendSuccess(res, { message: 'Déconnexion réussie' });
   }),
