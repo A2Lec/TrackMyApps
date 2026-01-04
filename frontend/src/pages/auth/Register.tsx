@@ -71,8 +71,8 @@ export function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
-              <Briefcase className="h-6 w-6 text-primary-foreground" />
+            <div className="h-12 w-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center">
+              <Briefcase className="h-6 w-6 text-slate-300" />
             </div>
           </div>
           <CardTitle className="text-2xl">Inscription</CardTitle>
