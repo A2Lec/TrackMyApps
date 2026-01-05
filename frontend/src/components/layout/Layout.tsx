@@ -1,8 +1,10 @@
 import { Outlet, Navigate } from 'react-router-dom';
+import { Suspense } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { cn } from '@/lib/utils';
 
 export function Layout() {
@@ -25,7 +27,9 @@ export function Layout() {
         )}
       >
         <div className="p-4 md:p-6">
-          <Outlet />
+          <Suspense fallback={<LoadingSkeleton type="grid" count={6} />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>
