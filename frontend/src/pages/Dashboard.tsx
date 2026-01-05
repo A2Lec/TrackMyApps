@@ -27,6 +27,7 @@ import {
   Clock
 } from 'lucide-react';
 import { formatDate, statusLabels, statusColors, cn } from '@/lib/utils';
+import type { ApplicationStatus } from '@/types';
 import { ApplicationForm, initialApplicationFormData } from '@/components/ApplicationForm';
 
 export function DashboardPage() {
