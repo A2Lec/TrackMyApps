@@ -2,8 +2,6 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
 import fs from 'fs/promises';
-import archiver from 'archiver';
-import { Readable } from 'stream';
 
 const prisma = new PrismaClient();
 
@@ -27,7 +25,8 @@ export async function exportUserData(req: AuthenticatedRequest, res: Response) {
         select: {
           id: true,
           email: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           createdAt: true,
           updatedAt: true,
           emailVerified: true,
@@ -53,12 +52,8 @@ export async function exportUserData(req: AuthenticatedRequest, res: Response) {
         include: {
           application: {
             select: {
-              jobTitle: true,
-              company: {
-                select: {
-                  name: true,
-                },
-              },
+              position: true,
+              companyName: true,
             },
           },
         },
@@ -82,8 +77,8 @@ export async function exportUserData(req: AuthenticatedRequest, res: Response) {
       documents,
       reminders: reminders.map(rem => ({
         ...rem,
-        applicationTitle: rem.application?.jobTitle,
-        companyName: rem.application?.company?.name,
+        applicationTitle: rem.application?.position,
+        companyName: rem.application?.companyName,
         application: undefined,
       })),
       companies,
@@ -101,23 +96,23 @@ export async function exportUserData(req: AuthenticatedRequest, res: Response) {
       
       // User CSV
       csvData.push('=== USER ===');
-      csvData.push('id,email,name,emailVerified,createdAt');
-      csvData.push(`${user.id},${user.email},${user.name || ''},${user.emailVerified},${user.createdAt}`);
+      csvData.push('id,email,firstName,lastName,emailVerified,createdAt');
+      csvData.push(`${user.id},${user.email},${user.firstName || ''},${user.lastName || ''},${user.emailVerified},${user.createdAt}`);
       csvData.push('');
       
       // Applications CSV
       csvData.push('=== APPLICATIONS ===');
-      csvData.push('id,jobTitle,company,status,location,salary,appliedDate,notes');
+      csvData.push('id,position,company,status,location,salary,createdAt,notes');
       applications.forEach(app => {
-        csvData.push(`${app.id},"${app.jobTitle}","${app.company?.name || ''}",${app.status},"${app.location || ''}","${app.salary || ''}",${app.appliedDate},"${(app.notes || '').replace(/"/g, '""')}"`);
+        csvData.push(`${app.id},"${app.position}","${app.company?.name || app.companyName}",${app.status},"${app.location || ''}","${app.salary || ''}",${app.createdAt},"${(app.notes || '').replace(/"/g, '""')}"`);
       });
       csvData.push('');
       
       // Documents CSV
       csvData.push('=== DOCUMENTS ===');
-      csvData.push('id,title,type,filename,uploadedAt');
+      csvData.push('id,name,type,fileName,createdAt');
       documents.forEach(doc => {
-        csvData.push(`${doc.id},"${doc.title}",${doc.type},"${doc.filename}",${doc.uploadedAt}`);
+        csvData.push(`${doc.id},"${doc.name}",${doc.type},"${doc.fileName}",${doc.createdAt}`);
       });
       csvData.push('');
       
@@ -158,7 +153,7 @@ export async function deleteUserAccount(req: AuthenticatedRequest, res: Response
     // Get all documents to delete files
     const documents = await prisma.document.findMany({
       where: { userId },
-      select: { filePath: true },
+      select: { fileUrl: true },
     });
 
     // Delete all user data in transaction
@@ -175,10 +170,10 @@ export async function deleteUserAccount(req: AuthenticatedRequest, res: Response
     // Delete uploaded files
     for (const doc of documents) {
       try {
-        const filePath = path.join(process.cwd(), doc.filePath);
+        const filePath = path.join(process.cwd(), doc.fileUrl);
         await fs.unlink(filePath);
       } catch (error) {
-        console.error(`Failed to delete file ${doc.filePath}:`, error);
+        console.error(`Failed to delete file ${doc.fileUrl}:`, error);
         // Continue even if file deletion fails
       }
     }
