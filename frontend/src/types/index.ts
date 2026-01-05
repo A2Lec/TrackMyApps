@@ -10,6 +10,7 @@ export interface User {
   avatarUrl?: string;
   emailNotifications: boolean;
   relanceFrequency: number;
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }

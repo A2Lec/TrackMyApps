@@ -5,6 +5,7 @@ import { useUIStore } from '@/store/uiStore';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import { cn } from '@/lib/utils';
 
 export function Layout() {
@@ -19,6 +20,7 @@ export function Layout() {
     <div className="min-h-screen bg-background">
       <Sidebar />
       <Header />
+      <EmailVerificationBanner />
       <main
         className={cn(
           'pt-16 min-h-screen transition-all duration-300',

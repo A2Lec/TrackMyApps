@@ -11,6 +11,7 @@ import { remindersService } from '@/services/reminders.service';
 // Lazy load pages
 const LoginPage = lazy(() => import('@/pages/auth/Login').then(module => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import('@/pages/auth/Register').then(module => ({ default: module.RegisterPage })));
+const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmail').then(module => ({ default: module.VerifyEmailPage })));
 const DashboardPage = lazy(() => import('@/pages/Dashboard').then(module => ({ default: module.DashboardPage })));
 const ApplicationsPage = lazy(() => import('@/pages/Applications').then(module => ({ default: module.ApplicationsPage })));
 const ApplicationDetailPage = lazy(() => import('@/pages/ApplicationDetail').then(module => ({ default: module.ApplicationDetailPage })));
@@ -132,6 +133,7 @@ function App() {
                 </PublicRoute>
               }
             />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
             
             {/* Protected routes */}
             <Route
