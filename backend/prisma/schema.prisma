@@ -20,6 +20,10 @@ model User {
   avatarUrl        String?
   resetToken       String?
   resetTokenExpiry DateTime?
+  
+  emailVerified          Boolean   @default(false)
+  verificationToken      String?   @unique
+  verificationTokenExpiry DateTime?
 
   emailNotifications Boolean @default(true)
   relanceFrequency   Int     @default(7)

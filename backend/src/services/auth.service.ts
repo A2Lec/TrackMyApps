@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
+import { emailService } from './email.service.js';
 
 interface RegisterData {
   email: string;
@@ -31,12 +33,19 @@ export const authService = {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const { field, ...rest } = data;
+    
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date();
+    verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + 24); // 24h expiry
 
     const user = await prisma.user.create({
       data: {
         ...rest,
         password: hashedPassword,
         fieldOfStudy: field,
+        verificationToken,
+        verificationTokenExpiry,
       },
       select: {
         id: true,
@@ -46,9 +55,13 @@ export const authService = {
         school: true,
         graduationYear: true,
         fieldOfStudy: true,
+        emailVerified: true,
         createdAt: true,
       },
     });
+    
+    // Send verification email
+    await emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
 
     const token = this.generateToken(user.id);
 
@@ -72,7 +85,7 @@ export const authService = {
 
     const token = this.generateToken(user.id);
 
-    const { password, resetToken, resetTokenExpiry, ...userWithoutPassword } = user;
+    const { password, resetToken, resetTokenExpiry, verificationToken, verificationTokenExpiry, ...userWithoutPassword } = user;
 
     return { user: userWithoutPassword, token };
   },
@@ -91,6 +104,7 @@ export const authService = {
         avatarUrl: true,
         emailNotifications: true,
         relanceFrequency: true,
+        emailVerified: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -179,6 +193,64 @@ export const authService = {
     });
 
     return { message: 'Compte supprimé avec succès' };
+  },
+
+  async verifyEmail(token: string) {
+    const user = await prisma.user.findFirst({
+      where: {
+        verificationToken: token,
+        verificationTokenExpiry: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      throw createError('Token de vérification invalide ou expiré', 400);
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        verificationToken: null,
+        verificationTokenExpiry: null,
+      },
+    });
+
+    return { message: 'Email vérifié avec succès' };
+  },
+
+  async resendVerificationEmail(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw createError('Utilisateur non trouvé', 404);
+    }
+
+    if (user.emailVerified) {
+      throw createError('Email déjà vérifié', 400);
+    }
+
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date();
+    verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + 24);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        verificationToken,
+        verificationTokenExpiry,
+      },
+    });
+
+    // Send verification email
+    await emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
+
+    return { message: 'Email de vérification renvoyé' };
   },
 
   generateToken(userId: string): string {

@@ -124,4 +124,20 @@ export const authController = {
       data: result,
     });
   }),
+
+  verifyEmail: asyncHandler(async (req: Request, res: Response) => {
+    const { token } = req.body;
+
+    if (!token) {
+      throw createError('Token requis', 400);
+    }
+
+    const result = await authService.verifyEmail(token);
+    return sendSuccess(res, result);
+  }),
+
+  resendVerification: asyncHandler(async (req: AuthRequest, res: Response) => {
+    const result = await authService.resendVerificationEmail(req.userId!);
+    return sendSuccess(res, result);
+  }),
 };
