@@ -20,7 +20,6 @@ export function Layout() {
     <div className="min-h-screen bg-background">
       <Sidebar />
       <Header />
-      <EmailVerificationBanner />
       <main
         className={cn(
           'pt-16 min-h-screen transition-all duration-300',
@@ -28,6 +27,7 @@ export function Layout() {
           sidebarOpen && 'lg:pl-64'
         )}
       >
+        <EmailVerificationBanner />
         <div className="p-4 md:p-6">
           <Suspense fallback={<LoadingSkeleton type="grid" count={6} />}>
             <Outlet />
