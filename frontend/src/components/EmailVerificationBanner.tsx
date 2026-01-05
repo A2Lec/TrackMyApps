@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Mail, X, AlertCircle, CheckCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/authStore';
@@ -38,46 +37,63 @@ export function EmailVerificationBanner() {
 
   return (
     <div className="bg-yellow-50 border-b border-yellow-200">
-      <Alert className="rounded-none border-0 bg-transparent">
-        <AlertCircle className="h-4 w-4 text-yellow-600" />
-        <div className="flex items-center justify-between flex-1">
-          <AlertDescription className="text-yellow-800 flex items-center gap-4">
-            <Mail className="h-4 w-4" />
-            <span>
-              Veuillez vérifier votre adresse email pour accéder à toutes les fonctionnalités.
-            </span>
-            <Button
-              variant="link"
-              size="sm"
-              onClick={handleResend}
-              disabled={isResending}
-              className="text-yellow-700 hover:text-yellow-900 p-0 h-auto font-semibold"
-            >
-              {isResending ? 'Envoi...' : 'Renvoyer l\'email'}
-            </Button>
-          </AlertDescription>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="flex-shrink-0 mt-1">
+              <Mail className="h-6 w-6 text-yellow-600" />
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                <h3 className="text-base font-semibold text-yellow-900">
+                  Vérification de votre adresse email requise
+                </h3>
+              </div>
+              <p className="text-sm text-yellow-800 leading-relaxed">
+                Un email de vérification a été envoyé à <strong>{user?.email}</strong>. 
+                Veuillez consulter votre boîte de réception et cliquer sur le lien de confirmation pour activer toutes les fonctionnalités de votre compte.
+                Si vous ne trouvez pas l'email, pensez à vérifier vos spams.
+              </p>
+              <div className="flex items-center gap-3 pt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResend}
+                  disabled={isResending}
+                  className="bg-yellow-100 border-yellow-300 text-yellow-900 hover:bg-yellow-200 hover:border-yellow-400"
+                >
+                  {isResending ? 'Envoi en cours...' : 'Renvoyer l\'email de vérification'}
+                </Button>
+              </div>
+            </div>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setDismissed(true)}
-            className="text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100"
+            className="text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 flex-shrink-0"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
-      </Alert>
+      </div>
 
       {message && (
-        <Alert className={`rounded-none border-0 border-t ${message.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-          {message.type === 'success' ? (
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 text-red-600" />
-          )}
-          <AlertDescription className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-            {message.text}
-          </AlertDescription>
-        </Alert>
+        <div className={`border-t ${message.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center gap-3">
+              {message.type === 'success' ? (
+                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+              )}
+              <p className={`text-sm ${message.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>
+                {message.text}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
