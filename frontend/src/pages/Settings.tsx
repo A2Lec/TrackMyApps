@@ -372,6 +372,39 @@ export function SettingsPage() {
                 </CardContent>
               </Card>
 
+              <Card>
+                <CardHeader>
+                  <CardTitle>Exporter mes données</CardTitle>
+                  <CardDescription>
+                    Téléchargez toutes vos données personnelles (RGPD Article 15)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Vous pouvez exporter l'ensemble de vos données (candidatures, documents, rappels, entreprises) 
+                    aux formats JSON ou CSV.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        window.location.href = `${import.meta.env.VITE_API_URL}/user/export?format=json`;
+                      }}
+                    >
+                      Exporter en JSON
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        window.location.href = `${import.meta.env.VITE_API_URL}/user/export?format=csv`;
+                      }}
+                    >
+                      Exporter en CSV
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card className="border-destructive">
                 <CardHeader>
                   <CardTitle className="text-destructive">Zone de danger</CardTitle>

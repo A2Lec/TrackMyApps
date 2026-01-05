@@ -50,26 +50,26 @@
 - [x] Expiration du token après 24h
 
 #### RGPD Compliance
-- [ ] **Bannière de consentement cookies**
-  - [ ] Composant Cookie Consent (frontend)
-  - [ ] Stockage du consentement dans localStorage
-  - [ ] Bloquer analytics avant consentement
+- [x] **Bannière de consentement cookies**
+  - [x] Composant Cookie Consent (frontend)
+  - [x] Stockage du consentement dans localStorage
+  - [x] Bloquer analytics avant consentement
   
-- [ ] **Export de données utilisateur** (Article 15 RGPD)
-  - [ ] Endpoint `GET /api/user/export` (JSON ou CSV)
-  - [ ] Inclure : candidatures, documents, rappels, entreprises
-  - [ ] Bouton "Exporter mes données" dans Settings
+- [x] **Export de données utilisateur** (Article 15 RGPD)
+  - [x] Endpoint `GET /api/user/export` (JSON ou CSV)
+  - [x] Inclure : candidatures, documents, rappels, entreprises
+  - [x] Bouton "Exporter mes données" dans Settings
   
-- [ ] **Droit à l'oubli** (Article 17 RGPD)
-  - [ ] Confirmation de suppression de compte (déjà en place)
-  - [ ] Anonymisation ou suppression définitive des données
-  - [ ] Suppression des fichiers uploadés (S3 ou serveur)
+- [x] **Droit à l'oubli** (Article 17 RGPD)
+  - [x] Confirmation de suppression de compte (déjà en place)
+  - [x] Anonymisation ou suppression définitive des données
+  - [x] Suppression des fichiers uploadés (S3 ou serveur)
   
-- [ ] **Pages légales**
-  - [ ] Privacy Policy (Politique de confidentialité)
-  - [ ] Terms of Service (CGU)
-  - [ ] Mentions légales
-  - [ ] Footer avec liens vers ces pages
+- [x] **Pages légales**
+  - [x] Privacy Policy (Politique de confidentialité)
+  - [x] Terms of Service (CGU)
+  - [x] Mentions légales
+  - [x] Footer avec liens vers ces pages
 
 ### 1.2 Service d'Emailing Professionnel
 

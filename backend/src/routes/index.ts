@@ -8,6 +8,7 @@ import analyticsRoutes from './analytics.routes.js';
 import interviewPrepRoutes from './interviewPrep.routes.js';
 import interviewSimulationRoutes from './interviewSimulation.routes.js';
 import cronRoutes from './cron.routes.js';
+import userRoutes from './user.routes.js';
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.use('/analytics', analyticsRoutes);
 router.use('/interview-prep', interviewPrepRoutes);
 router.use('/interview-simulation', interviewSimulationRoutes);
 router.use('/cron', cronRoutes);
+router.use('/user', userRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

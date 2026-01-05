@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { Footer } from './Footer';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import { cn } from '@/lib/utils';
@@ -17,12 +18,12 @@ export function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Sidebar />
       <Header />
       <main
         className={cn(
-          'pt-16 min-h-screen transition-all duration-300',
+          'pt-16 min-h-screen transition-all duration-300 flex-1',
           'pl-0 lg:pl-20',
           sidebarOpen && 'lg:pl-64'
         )}
@@ -34,6 +35,15 @@ export function Layout() {
           </Suspense>
         </div>
       </main>
+      <div
+        className={cn(
+          'transition-all duration-300',
+          'pl-0 lg:pl-20',
+          sidebarOpen && 'lg:pl-64'
+        )}
+      >
+        <Footer />
+      </div>
     </div>
   );
 }

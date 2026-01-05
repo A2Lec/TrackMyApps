@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Layout } from '@/components/layout/Layout';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { CookieConsent } from '@/components/CookieConsent';
 import { useAuthStore } from '@/store/authStore';
 import { setupNotificationChecker, showBrowserNotification, getNotificationPermission } from '@/utils/notifications';
 import { remindersService } from '@/services/reminders.service';
@@ -22,6 +23,11 @@ const CalendarPage = lazy(() => import('@/pages/Calendar').then(module => ({ def
 const CompaniesPage = lazy(() => import('@/pages/Companies').then(module => ({ default: module.CompaniesPage })));
 const InterviewPrepPage = lazy(() => import('@/pages/InterviewPrep').then(module => ({ default: module.InterviewPrepPage })));
 const SettingsPage = lazy(() => import('@/pages/Settings').then(module => ({ default: module.SettingsPage })));
+
+// Legal pages
+const PrivacyPolicyPage = lazy(() => import('@/pages/legal/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicyPage })));
+const TermsOfServicePage = lazy(() => import('@/pages/legal/TermsOfService').then(module => ({ default: module.TermsOfServicePage })));
+const LegalNoticePage = lazy(() => import('@/pages/legal/LegalNotice').then(module => ({ default: module.LegalNoticePage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +61,21 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const { isAuthenticated } = useAuthStore();
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+
+  useEffect(() => {
+    // Check cookie consent for analytics
+    const consent = localStorage.getItem('cookie-consent');
+    setAnalyticsEnabled(consent === 'accepted');
+  }, []);
+
+  const handleCookieAccept = () => {
+    setAnalyticsEnabled(true);
+  };
+
+  const handleCookieDecline = () => {
+    setAnalyticsEnabled(false);
+  };
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -135,6 +156,11 @@ function App() {
             />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             
+            {/* Legal pages */}
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+            <Route path="/legal-notice" element={<LegalNoticePage />} />
+            
             {/* Protected routes */}
             <Route
               path="/"
@@ -161,7 +187,8 @@ function App() {
           </Routes>
         </Suspense>
       </BrowserRouter>
-      <Analytics />
+      {analyticsEnabled && <Analytics />}
+      <CookieConsent onAccept={handleCookieAccept} onDecline={handleCookieDecline} />
     </QueryClientProvider>
   );
 }
