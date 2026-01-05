@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Layout } from '@/components/layout/Layout';
 import { LoginPage } from '@/pages/auth/Login';
 import { RegisterPage } from '@/pages/auth/Register';
@@ -153,6 +154,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      <Analytics />
     </QueryClientProvider>
   );
 }
