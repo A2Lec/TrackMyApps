@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import { applicationController } from '../controllers/applications.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { requireEmailVerification } from '../middlewares/emailVerification.middleware.js';
 import { applicationValidation, updateStatusValidation } from '../middlewares/validation.middleware.js';
 
 const router = Router();
 
 // All routes are protected
 router.use(authMiddleware);
+router.use(requireEmailVerification);
 
 router.get('/', applicationController.getAll);
 router.get('/kanban', applicationController.getByStatus);

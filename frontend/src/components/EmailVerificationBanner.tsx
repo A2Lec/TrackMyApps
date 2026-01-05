@@ -10,8 +10,8 @@ export function EmailVerificationBanner() {
   const [isResending, setIsResending] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  // Don't show if email is verified or banner is dismissed
-  if (user?.emailVerified || dismissed) {
+  // Don't show if no user, email is verified, or banner is dismissed
+  if (!user || user?.emailVerified || dismissed) {
     return null;
   }
 

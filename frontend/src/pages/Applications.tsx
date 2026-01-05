@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmailVerifiedGuard, useEmailVerified } from '@/components/EmailVerifiedGuard';
 import {
   Dialog,
   DialogContent,
@@ -66,6 +67,7 @@ const statusOrder: ApplicationStatus[] = [
 
 export function ApplicationsPage() {
   const queryClient = useQueryClient();
+  const isEmailVerified = useEmailVerified();
   const [view, setView] = useState<'kanban' | 'list'>('kanban');
   const [search, setSearch] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -201,10 +203,12 @@ export function ApplicationsPage() {
             Gérez toutes vos candidatures en un coup d'œil
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="w-full md:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
-          Nouvelle candidature
-        </Button>
+        <EmailVerifiedGuard>
+          <Button onClick={() => setShowCreateDialog(true)} className="w-full md:w-auto" disabled={!isEmailVerified}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvelle candidature
+          </Button>
+        </EmailVerifiedGuard>
       </div>
 
       {/* Filters */}

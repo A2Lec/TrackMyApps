@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { interviewPrepController } from '../controllers/interviewPrep.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { requireEmailVerification } from '../middlewares/emailVerification.middleware.js';
 
 const router = Router();
 
 // All routes are protected
 router.use(authMiddleware);
+router.use(requireEmailVerification);
 
 router.get('/', interviewPrepController.getAll);
 router.get('/categories', interviewPrepController.getCategories);

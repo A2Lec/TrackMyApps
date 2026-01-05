@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import { reminderController } from '../controllers/reminders.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { requireEmailVerification } from '../middlewares/emailVerification.middleware.js';
 import { reminderValidation } from '../middlewares/validation.middleware.js';
 
 const router = Router();
 
 // All routes are protected
 router.use(authMiddleware);
+router.use(requireEmailVerification);
 
 router.get('/', reminderController.getAll);
 router.get('/upcoming', reminderController.getUpcoming);

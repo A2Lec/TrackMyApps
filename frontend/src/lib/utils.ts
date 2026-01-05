@@ -1,82 +1,92 @@
-import { type ClassValue, clsx } from "clsx"
+import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { ApplicationStatus, JobType } from "@/types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Format date to French format
+ */
 export function formatDate(date: string | Date, format: 'short' | 'long' = 'short'): string {
-  const d = new Date(date)
-  if (format === 'short') {
-    return d.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
+  const d = new Date(date);
+  if (format === 'long') {
+    return d.toLocaleDateString('fr-FR', { 
+      day: '2-digit', 
+      month: 'long', 
+      year: 'numeric' 
+    });
   }
-  return d.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  return d.toLocaleDateString('fr-FR', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
 }
 
+/**
+ * Format date and time to French format
+ */
 export function formatDateTime(date: string | Date): string {
-  const d = new Date(date)
-  return d.toLocaleDateString('fr-FR', {
+  const d = new Date(date);
+  return d.toLocaleString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  });
 }
 
-export function formatRelativeDate(date: string | Date): string {
-  const d = new Date(date)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
-  if (days === 0) return "Aujourd'hui"
-  if (days === 1) return "Hier"
-  if (days < 7) return `Il y a ${days} jours`
-  if (days < 30) return `Il y a ${Math.floor(days / 7)} semaines`
-  return formatDate(date)
-}
-
-export const statusLabels: Record<string, string> = {
+/**
+ * Status labels for applications
+ */
+export const statusLabels: Record<ApplicationStatus, string> = {
   DRAFT: 'Brouillon',
   SENT: 'Envoyée',
   VIEWED: 'Vue',
-  INTERVIEW_SCHEDULED: 'Entretien',
+  INTERVIEW_SCHEDULED: 'Entretien prévu',
   AWAITING_RESPONSE: 'En attente',
-  REJECTED: 'Refusée',
+  REJECTED: 'Rejetée',
   ACCEPTED: 'Acceptée',
-  GHOSTED: 'Ghosted',
-}
+  GHOSTED: 'Ghostée',
+};
 
-export const statusColors: Record<string, string> = {
-  DRAFT: 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-100',
-  SENT: 'bg-blue-200 text-blue-700 dark:bg-blue-600 dark:text-blue-100',
-  VIEWED: 'bg-purple-200 text-purple-700 dark:bg-purple-600 dark:text-purple-100',
-  INTERVIEW_SCHEDULED: 'bg-green-200 text-green-700 dark:bg-green-600 dark:text-green-100',
-  AWAITING_RESPONSE: 'bg-amber-200 text-amber-700 dark:bg-amber-500 dark:text-amber-100',
-  REJECTED: 'bg-red-200 text-red-700 dark:bg-red-500 dark:text-red-100',
-  ACCEPTED: 'bg-emerald-200 text-emerald-700 dark:bg-emerald-500 dark:text-emerald-100',
-  GHOSTED: 'bg-zinc-200 text-zinc-700 dark:bg-zinc-500 dark:text-zinc-100',
-}
+/**
+ * Status colors for applications
+ */
+export const statusColors: Record<ApplicationStatus, string> = {
+  DRAFT: 'bg-gray-500/10 text-gray-700 border-gray-200',
+  SENT: 'bg-blue-500/10 text-blue-700 border-blue-200',
+  VIEWED: 'bg-cyan-500/10 text-cyan-700 border-cyan-200',
+  INTERVIEW_SCHEDULED: 'bg-purple-500/10 text-purple-700 border-purple-200',
+  AWAITING_RESPONSE: 'bg-yellow-500/10 text-yellow-700 border-yellow-200',
+  REJECTED: 'bg-red-500/10 text-red-700 border-red-200',
+  ACCEPTED: 'bg-green-500/10 text-green-700 border-green-200',
+  GHOSTED: 'bg-orange-500/10 text-orange-700 border-orange-200',
+};
 
-export const jobTypeLabels: Record<string, string> = {
+/**
+ * Job type labels
+ */
+export const jobTypeLabels: Record<JobType, string> = {
+  CDI: 'CDI',
+  CDD: 'CDD',
+  FREELANCE: 'Freelance',
   STAGE: 'Stage',
   ALTERNANCE: 'Alternance',
-  CDI: 'CDI',
-  JOB_ETUDIANT: 'Job étudiant',
-}
+  INTERIM: 'Intérim',
+};
 
-export const jobTypeColors: Record<string, string> = {
-  STAGE: 'bg-indigo-200 text-indigo-700 dark:bg-indigo-600 dark:text-indigo-100',
-  ALTERNANCE: 'bg-cyan-200 text-cyan-700 dark:bg-cyan-600 dark:text-cyan-100',
-  CDI: 'bg-orange-200 text-orange-700 dark:bg-orange-500 dark:text-orange-100',
-  JOB_ETUDIANT: 'bg-pink-200 text-pink-700 dark:bg-pink-600 dark:text-pink-100',
-}
+/**
+ * Job type colors
+ */
+export const jobTypeColors: Record<JobType, string> = {
+  CDI: 'bg-green-500/10 text-green-700 border-green-200',
+  CDD: 'bg-blue-500/10 text-blue-700 border-blue-200',
+  FREELANCE: 'bg-purple-500/10 text-purple-700 border-purple-200',
+  STAGE: 'bg-orange-500/10 text-orange-700 border-orange-200',
+  ALTERNANCE: 'bg-cyan-500/10 text-cyan-700 border-cyan-200',
+  INTERIM: 'bg-yellow-500/10 text-yellow-700 border-yellow-200',
+};
