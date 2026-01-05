@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDate, statusLabels, statusColors, cn } from '@/lib/utils';
-import type { Reminder } from '@/types';
+import type { Reminder, ApplicationStatus } from '@/types';
 
 const DAYS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 const MONTHS = [
@@ -265,9 +265,9 @@ export function CalendarPage() {
                           </p>
                           <Badge
                             variant="outline"
-                            className={cn('text-xs mt-1', statusColors[app.status])}
+                            className={cn('text-xs mt-1', statusColors[app.status as ApplicationStatus])}
                           >
-                            {statusLabels[app.status]}
+                            {statusLabels[app.status as ApplicationStatus]}
                           </Badge>
                         </Link>
                       ))}

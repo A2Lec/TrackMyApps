@@ -332,7 +332,7 @@ export function DashboardPage() {
               <div key={status} className="text-center">
                 <div className={cn(
                   'inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-2',
-                  statusColors[status]
+                  statusColors[status as ApplicationStatus]
                 )}>
                   <span className="text-base sm:text-lg font-bold">{byStatus[status] || 0}</span>
                 </div>

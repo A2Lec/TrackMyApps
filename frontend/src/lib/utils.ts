@@ -72,11 +72,9 @@ export const statusColors: Record<ApplicationStatus, string> = {
  */
 export const jobTypeLabels: Record<JobType, string> = {
   CDI: 'CDI',
-  CDD: 'CDD',
-  FREELANCE: 'Freelance',
   STAGE: 'Stage',
   ALTERNANCE: 'Alternance',
-  INTERIM: 'Intérim',
+  JOB_ETUDIANT: 'Job étudiant',
 };
 
 /**
@@ -84,9 +82,7 @@ export const jobTypeLabels: Record<JobType, string> = {
  */
 export const jobTypeColors: Record<JobType, string> = {
   CDI: 'bg-green-500/10 text-green-700 border-green-200',
-  CDD: 'bg-blue-500/10 text-blue-700 border-blue-200',
-  FREELANCE: 'bg-purple-500/10 text-purple-700 border-purple-200',
   STAGE: 'bg-orange-500/10 text-orange-700 border-orange-200',
   ALTERNANCE: 'bg-cyan-500/10 text-cyan-700 border-cyan-200',
-  INTERIM: 'bg-yellow-500/10 text-yellow-700 border-yellow-200',
+  JOB_ETUDIANT: 'bg-yellow-500/10 text-yellow-700 border-yellow-200',
 };

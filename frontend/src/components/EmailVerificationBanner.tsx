@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, X, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/authStore';

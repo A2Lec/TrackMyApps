@@ -50,7 +50,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { formatDate, statusLabels, statusColors, jobTypeLabels, jobTypeColors, cn } from '@/lib/utils';
-import type { Application, ApplicationStatus } from '@/types';
+import type { Application, ApplicationStatus, JobType } from '@/types';
 import { Link } from 'react-router-dom';
 import { ApplicationForm, initialApplicationFormData } from '@/components/ApplicationForm';
 
@@ -307,13 +307,13 @@ export function ApplicationsPage() {
                         </td>
                         <td className="p-3 sm:p-4 text-muted-foreground">{app.position}</td>
                         <td className="p-3 sm:p-4 hidden md:table-cell">
-                          <span className={cn('px-2 py-1 rounded-full text-xs', jobTypeColors[app.jobType])}>
-                            {jobTypeLabels[app.jobType]}
+                          <span className={cn('px-2 py-1 rounded-full text-xs', jobTypeColors[app.jobType as JobType])}>
+                            {jobTypeLabels[app.jobType as JobType]}
                           </span>
                         </td>
                         <td className="p-3 sm:p-4">
-                          <span className={cn('px-2 py-1 rounded-full text-xs whitespace-nowrap', statusColors[app.status])}>
-                            {statusLabels[app.status]}
+                          <span className={cn('px-2 py-1 rounded-full text-xs whitespace-nowrap', statusColors[app.status as ApplicationStatus])}>
+                            {statusLabels[app.status as ApplicationStatus]}
                           </span>
                         </td>
                         <td className="p-3 sm:p-4 text-muted-foreground hidden lg:table-cell">
