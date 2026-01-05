@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -45,6 +46,9 @@ app.use(cors({
 // Security headers
 // @ts-ignore
 app.use(helmet());
+
+// Compression
+app.use(compression());
 
 // Cookie parser
 app.use(cookieParser());

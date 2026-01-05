@@ -82,6 +82,8 @@ model Application {
   @@index([status])
   @@index([applicationDate])
   @@index([companyId])
+  @@index([companyName])
+  @@index([position])
   @@map("applications")
 }
 
@@ -139,6 +141,8 @@ model Company {
   applications Application[]
   reviews      CompanyReview[]
 
+  @@index([userId])
+  @@index([name])
   @@map("companies")
 }
 
@@ -153,6 +157,8 @@ model CompanyReview {
 
   createdAt DateTime @default(now())
 
+  @@index([companyId])
+  @@index([userId])
   @@map("company_reviews")
 }
 
