@@ -19,6 +19,11 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+const demoCredentials = {
+  email: 'user@trackmyapps.com',
+  password: 'password123',
+} as const;
+
 export function LoginPage() {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
@@ -46,6 +51,11 @@ export function LoginPage() {
   const onSubmit = (data: LoginForm) => {
     setError('');
     loginMutation.mutate(data);
+  };
+
+  const handleDemoLogin = () => {
+    setError('');
+    loginMutation.mutate(demoCredentials);
   };
 
   return (
@@ -95,6 +105,15 @@ export function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleDemoLogin}
+              disabled={loginMutation.isPending}
+            >
+              Compte démo
+            </Button>
             <Button
               type="submit"
               className="w-full"
