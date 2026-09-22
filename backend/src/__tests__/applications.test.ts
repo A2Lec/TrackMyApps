@@ -127,4 +127,80 @@ describe('Application Service', () => {
       ).rejects.toThrow('Candidature non trouvée');
     });
   });
+
+  describe('updateStatus & Status Change Events', () => {
+    it('should update status and create an INTERVIEW_SCHEDULED event', async () => {
+      const mockExisting = { id: 'app-1', userId: 'user-1', status: 'SENT' };
+      const mockUpdated = { id: 'app-1', userId: 'user-1', status: 'INTERVIEW_SCHEDULED' };
+
+      vi.mocked(prisma.application.findFirst).mockResolvedValue(mockExisting as any);
+      vi.mocked(prisma.application.update).mockResolvedValue(mockUpdated as any);
+      vi.mocked(prisma.applicationEvent.create).mockResolvedValue({} as any);
+
+      const result = await applicationService.updateStatus('user-1', 'app-1', 'INTERVIEW_SCHEDULED');
+
+      expect(result.status).toBe('INTERVIEW_SCHEDULED');
+      expect(prisma.application.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'app-1' },
+          data: expect.objectContaining({ status: 'INTERVIEW_SCHEDULED' }),
+        })
+      );
+      expect(prisma.applicationEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          applicationId: 'app-1',
+          type: 'INTERVIEW_SCHEDULED',
+          description: expect.stringContaining('SENT → INTERVIEW_SCHEDULED'),
+        }),
+      });
+    });
+
+    it('should not create a status change event if the status is identical', async () => {
+      const mockExisting = { id: 'app-1', userId: 'user-1', status: 'SENT' };
+      const mockUpdated = { id: 'app-1', userId: 'user-1', status: 'SENT' };
+
+      vi.mocked(prisma.application.findFirst).mockResolvedValue(mockExisting as any);
+      vi.mocked(prisma.application.update).mockResolvedValue(mockUpdated as any);
+
+      await applicationService.updateStatus('user-1', 'app-1', 'SENT');
+
+      expect(prisma.applicationEvent.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw 404 if application to update does not exist', async () => {
+      vi.mocked(prisma.application.findFirst).mockResolvedValue(null);
+
+      await expect(
+        applicationService.updateStatus('user-1', 'invalid-id', 'ACCEPTED')
+      ).rejects.toThrow('Candidature non trouvée');
+    });
+  });
+
+  describe('getByStatus (Kanban grouping)', () => {
+    it('should partition applications into all 8 canonical kanban columns', async () => {
+      const mockList = [
+        { id: 'app-1', status: 'DRAFT' },
+        { id: 'app-2', status: 'SENT' },
+        { id: 'app-3', status: 'VIEWED' },
+        { id: 'app-4', status: 'INTERVIEW_SCHEDULED' },
+        { id: 'app-5', status: 'AWAITING_RESPONSE' },
+        { id: 'app-6', status: 'REJECTED' },
+        { id: 'app-7', status: 'ACCEPTED' },
+        { id: 'app-8', status: 'GHOSTED' },
+      ];
+
+      vi.mocked(prisma.application.findMany).mockResolvedValue(mockList as any);
+
+      const grouped = await applicationService.getByStatus('user-1');
+
+      expect(grouped.DRAFT).toHaveLength(1);
+      expect(grouped.SENT).toHaveLength(1);
+      expect(grouped.VIEWED).toHaveLength(1);
+      expect(grouped.INTERVIEW_SCHEDULED).toHaveLength(1);
+      expect(grouped.AWAITING_RESPONSE).toHaveLength(1);
+      expect(grouped.REJECTED).toHaveLength(1);
+      expect(grouped.ACCEPTED).toHaveLength(1);
+      expect(grouped.GHOSTED).toHaveLength(1);
+    });
+  });
 });

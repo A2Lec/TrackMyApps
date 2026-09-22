@@ -67,4 +67,5 @@ export {
   DOCUMENT_TYPE_COLORS as documentTypeColors,
   REMINDER_TYPE_LABELS as reminderTypeLabels,
   REMINDER_TYPE_COLORS as reminderTypeColors,
+  EVENT_TYPE_LABELS as eventTypeLabels,
 } from '@/constants/labels';
