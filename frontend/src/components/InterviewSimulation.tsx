@@ -40,6 +40,7 @@ import {
   VolumeX,
   MessageSquare,
   Square,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -120,6 +121,12 @@ export function InterviewSimulation({ applicationId }: InterviewSimulationProps)
   const {
     isSupported: isSynthesisSupported,
     isSpeaking,
+    speechRate,
+    setSpeechRate,
+    frenchVoices,
+    activeVoice,
+    selectedVoiceURI,
+    setSelectedVoiceURI,
     speak,
     stop: stopSpeaking,
   } = useSpeechSynthesis();
@@ -221,10 +228,13 @@ export function InterviewSimulation({ applicationId }: InterviewSimulationProps)
       setLastSpokenId(latest.id);
       if (autoPlayVoice && isSynthesisSupported) {
         setCurrentlySpeakingId(latest.id);
-        speak(latest.content, () => setCurrentlySpeakingId(null));
+        speak(latest.content, {
+          rate: speechRate,
+          onEnd: () => setCurrentlySpeakingId(null),
+        });
       }
     }
-  }, [session?.messages, autoPlayVoice, lastSpokenId, isSynthesisSupported, speak]);
+  }, [session?.messages, autoPlayVoice, lastSpokenId, isSynthesisSupported, speak, speechRate]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -256,17 +266,62 @@ export function InterviewSimulation({ applicationId }: InterviewSimulationProps)
     sendMutation.mutate({ sessionId, message: finalMsg });
   };
 
-  const handleToggleListening = () => {
+  const handleStartVocal = () => {
     if (!isSpeechSupported) {
       toast.error("La reconnaissance vocale n'est pas supportée sur ce navigateur (utilisez Chrome, Edge ou Safari).");
       return;
     }
+    stopSpeaking();
+    resetTranscript();
+    setMessage('');
+    startListening();
+  };
 
-    if (isListening) {
-      stopListening();
-    } else {
+  const handleStopAndSendVocal = () => {
+    const finalTranscript = stopListening();
+    const textToSend = (finalTranscript || message).trim();
+
+    if (!textToSend) {
+      setMessage('');
+      resetTranscript();
+      toast.info("Aucune parole détectée. Appuyez sur le micro pour parler.");
+      return;
+    }
+
+    if (sessionId) {
       stopSpeaking();
-      startListening();
+      sendMutation.mutate({ sessionId, message: textToSend });
+      setMessage('');
+      resetTranscript();
+      toast.success("Réponse vocale transmise au recruteur !", { duration: 1500 });
+    }
+  };
+
+  const handleCancelVocal = () => {
+    stopListening();
+    resetTranscript();
+    setMessage('');
+    toast.info("Enregistrement annulé");
+  };
+
+  const handleToggleListening = () => {
+    if (inputMode === 'vocal') {
+      if (isListening) {
+        handleStopAndSendVocal();
+      } else {
+        handleStartVocal();
+      }
+    } else {
+      if (!isSpeechSupported) {
+        toast.error("La reconnaissance vocale n'est pas supportée sur ce navigateur (utilisez Chrome, Edge ou Safari).");
+        return;
+      }
+      if (isListening) {
+        stopListening();
+      } else {
+        stopSpeaking();
+        startListening();
+      }
     }
   };
 
@@ -282,7 +337,10 @@ export function InterviewSimulation({ applicationId }: InterviewSimulationProps)
     } else {
       stopListening();
       setCurrentlySpeakingId(msg.id);
-      speak(msg.content, () => setCurrentlySpeakingId(null));
+      speak(msg.content, {
+        rate: speechRate,
+        onEnd: () => setCurrentlySpeakingId(null),
+      });
     }
   };
 
@@ -660,10 +718,18 @@ export function InterviewSimulation({ applicationId }: InterviewSimulationProps)
 
         {/* Global Audio Speaking Status Bar */}
         {isSpeaking && (
-          <div className="bg-primary/5 border-b border-primary/20 px-4 py-1.5 flex items-center justify-between text-xs text-primary animate-in fade-in duration-150">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-              <span className="font-medium">Le recruteur s'exprime à l'oral...</span>
+          <div className="bg-primary/5 border-b border-primary/20 px-4 py-2 flex items-center justify-between text-xs text-primary animate-in fade-in duration-150">
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-end gap-0.5 h-3.5">
+                <span className="w-1 h-2 bg-primary rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-1 h-3.5 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-1 h-2 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
+                <span className="w-1 h-4 bg-primary rounded-full animate-bounce [animation-delay:450ms]" />
+                <span className="w-1 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:200ms]" />
+              </div>
+              <span className="font-medium">
+                Le recruteur s'exprime à l'oral ({speechRate}x)...
+              </span>
             </div>
             <Button
               variant="ghost"
@@ -875,101 +941,152 @@ export function InterviewSimulation({ applicationId }: InterviewSimulationProps)
               </div>
             </form>
           ) : (
-            /* 2. Vocal Mode: Large Interactive Audio Dock with Live Transcription */
+            /* 2. Vocal Mode: Instant Voice Input & Live Transcription */
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                {/* Prominent Microphone Control Button */}
-                <button
-                  type="button"
-                  onClick={handleToggleListening}
-                  disabled={sendMutation.isPending}
-                  className={cn(
-                    'h-16 w-16 sm:h-14 sm:w-14 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 flex-shrink-0 shadow-sm relative',
-                    isListening
-                      ? 'bg-red-500 text-white ring-4 ring-red-500/20 shadow-md scale-105'
-                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  )}
-                >
-                  {isListening ? (
-                    <>
-                      <MicOff className="h-6 w-6 sm:h-5 sm:w-5 animate-pulse" />
-                      <span className="text-[9px] font-semibold mt-0.5">Stop</span>
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-6 w-6 sm:h-5 sm:w-5" />
-                      <span className="text-[9px] font-semibold mt-0.5">Parler</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Live Transcription Box */}
-                <div className="min-w-0 flex-1 w-full bg-muted/40 border border-border/70 rounded-xl p-3 flex flex-col justify-between min-h-[64px]">
-                  <div className="text-xs sm:text-sm text-foreground">
-                    {message.trim() ? (
-                      <span className="leading-relaxed whitespace-pre-wrap">{message}</span>
-                    ) : isListening ? (
-                      <span className="text-primary italic animate-pulse">Écoute active... parlez distinctement dans votre micro</span>
-                    ) : (
-                      <span className="text-muted-foreground italic">
-                        Cliquez sur le microphone pour dicter votre réponse à l'oral
+              {sendMutation.isPending ? (
+                <div className="py-5 px-4 bg-muted/40 border border-border/60 rounded-2xl flex items-center justify-center gap-3 text-center animate-in fade-in duration-150">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="text-xs sm:text-sm font-medium text-foreground">
+                    Le recruteur analyse votre réponse et prépare sa réplique...
+                  </span>
+                </div>
+              ) : isListening ? (
+                <div className="space-y-3 animate-in fade-in duration-200">
+                  {/* Live recording card with waveform */}
+                  <div className="bg-red-500/5 border-2 border-red-500/30 rounded-2xl p-3.5 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-red-600 dark:text-red-400 font-semibold flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                        Microphone actif — parlez distinctement
                       </span>
-                    )}
+                      {/* Bouncing audio equalizer bars */}
+                      <div className="flex items-end gap-0.5 h-4">
+                        <span className="w-1 h-2 bg-red-500 rounded-full animate-pulse [animation-delay:0ms]" />
+                        <span className="w-1 h-3.5 bg-red-500 rounded-full animate-pulse [animation-delay:150ms]" />
+                        <span className="w-1 h-4 bg-red-500 rounded-full animate-pulse [animation-delay:300ms]" />
+                        <span className="w-1 h-3 bg-red-500 rounded-full animate-pulse [animation-delay:450ms]" />
+                        <span className="w-1 h-2 bg-red-500 rounded-full animate-pulse [animation-delay:200ms]" />
+                      </div>
+                    </div>
 
-                    {interimTranscript && (
-                      <span className="text-muted-foreground/70 italic ml-1">{interimTranscript}</span>
-                    )}
+                    <div className="text-xs sm:text-sm text-foreground min-h-[48px] max-h-[120px] overflow-y-auto leading-relaxed">
+                      {message.trim() ? (
+                        <span className="font-medium">{message}</span>
+                      ) : (
+                        <span className="text-muted-foreground italic">
+                          Écoute active en cours... vos paroles apparaîtront ici.
+                        </span>
+                      )}
+                      {interimTranscript && (
+                        <span className="text-muted-foreground/70 italic ml-1">{interimTranscript}</span>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Waveform indicator when speaking */}
-                  {isListening && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <span className="text-[10px] text-red-500 font-medium mr-2">Audio capturé :</span>
-                      {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <span
-                          key={i}
-                          className="w-1 bg-red-500 rounded-full animate-pulse"
-                          style={{
-                            height: `${(i % 3) * 6 + 6}px`,
-                            animationDelay: `${i * 120}ms`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+                  {/* Actions: Stop & Send directly + Cancel */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleStopAndSendVocal}
+                      className="flex-1 py-3.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+                    >
+                      <Send className="h-4 w-4" />
+                      <span>Terminer & Envoyer ma réponse</span>
+                    </button>
 
-                {/* Quick Actions (Reset & Send) */}
-                <div className="flex sm:flex-col items-center gap-2 w-full sm:w-auto">
-                  <Button
-                    type="button"
-                    onClick={() => handleSend()}
-                    disabled={sendMutation.isPending || !message.trim()}
-                    className="h-10 sm:h-9 flex-1 sm:flex-none px-4 text-xs font-semibold shadow-xs"
-                  >
-                    {sendMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
-                    ) : (
-                      <Send className="h-3.5 w-3.5 mr-1.5" />
-                    )}
-                    Envoyer
-                  </Button>
-                  {message.trim() && (
                     <Button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        resetTranscript();
-                        setMessage('');
-                      }}
-                      className="h-8 text-[11px] text-muted-foreground hover:text-foreground"
+                      variant="outline"
+                      onClick={handleCancelVocal}
+                      className="h-12 px-3 text-xs text-muted-foreground hover:text-foreground rounded-xl"
+                      title="Annuler sans envoyer"
                     >
-                      Effacer
+                      <X className="h-4 w-4 mr-1" />
+                      Annuler
                     </Button>
-                  )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {/* Push to talk / start button */}
+                  <button
+                    type="button"
+                    onClick={handleStartVocal}
+                    disabled={sendMutation.isPending}
+                    className="w-full py-4 px-5 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/95 transition-all shadow-xs hover:shadow-md flex items-center justify-center gap-3.5 group active:scale-[0.99]"
+                  >
+                    <div className="h-10 w-10 rounded-full bg-primary-foreground/15 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                      <Mic className="h-5 w-5 text-primary-foreground" />
+                    </div>
+                    <div className="text-left min-w-0">
+                      <div className="text-xs sm:text-sm font-semibold truncate">Appuyer pour répondre à l'oral</div>
+                      <div className="text-[11px] text-primary-foreground/80 truncate">
+                        L'arrêt du micro enverra directement votre message
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Voice settings strip: cadence selector & voice name */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-0.5 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground/80">Vitesse de lecture :</span>
+                      <div className="flex items-center bg-muted/80 p-0.5 rounded-lg border text-[11px]">
+                        {[
+                          { r: 1.0, l: '1x' },
+                          { r: 1.15, l: '1.15x' },
+                          { r: 1.3, l: '1.3x' },
+                        ].map(({ r, l }) => (
+                          <button
+                            key={r}
+                            type="button"
+                            onClick={() => setSpeechRate(r)}
+                            className={cn(
+                              'px-2 py-0.5 rounded-md font-medium transition-colors',
+                              speechRate === r
+                                ? 'bg-background text-foreground shadow-2xs font-semibold'
+                                : 'hover:text-foreground'
+                            )}
+                          >
+                            {l}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Detected Voice display or picker */}
+                    {frenchVoices.length > 1 ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-foreground/80">Voix :</span>
+                        <Select
+                          value={selectedVoiceURI || activeVoice?.voiceURI || ''}
+                          onValueChange={(val) => setSelectedVoiceURI(val)}
+                        >
+                          <SelectTrigger className="h-7 text-[11px] border-border/60 max-w-[160px] sm:max-w-[190px]">
+                            <SelectValue placeholder="Voix du recruteur" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {frenchVoices.map((v) => (
+                              <SelectItem key={v.voiceURI} value={v.voiceURI} className="text-xs">
+                                {v.name.replace(/Online \(Natural\) - French \(France\)|Microsoft |Google /gi, '').trim()}
+                                {/natural|neural|online|google/i.test(v.name) && ' ✨'}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      activeVoice && (
+                        <span className="truncate max-w-[210px] text-[11px] text-muted-foreground flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span className="truncate font-medium">
+                            {activeVoice.name.replace(/Online \(Natural\) - French \(France\)|Microsoft |Google /gi, '').trim() || 'Voix française'}
+                          </span>
+                        </span>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

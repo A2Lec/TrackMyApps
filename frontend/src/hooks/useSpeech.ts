@@ -42,6 +42,11 @@ export function useSpeechRecognition() {
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const transcriptRef = useRef('');
+
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
 
   useEffect(() => {
     if (!isSupported) return;
@@ -75,7 +80,11 @@ export function useSpeechRecognition() {
       }
 
       if (finalStr) {
-        setTranscript((prev) => (prev ? `${prev.trim()} ${finalStr.trim()}` : finalStr.trim()));
+        setTranscript((prev) => {
+          const updated = prev ? `${prev.trim()} ${finalStr.trim()}` : finalStr.trim();
+          transcriptRef.current = updated;
+          return updated;
+        });
       }
       setInterimTranscript(interimStr);
     };
@@ -98,7 +107,7 @@ export function useSpeechRecognition() {
       try {
         recognition.abort();
       } catch {
-        // Ignore cleanup errors
+        // Ignore cleanup
       }
     };
   }, [isSupported]);
@@ -110,23 +119,24 @@ export function useSpeechRecognition() {
       setIsListening(true);
       setError(null);
     } catch (err: any) {
-      // Browser might throw if already started
       console.warn('SpeechRecognition start error:', err);
     }
   }, [isListening]);
 
-  const stopListening = useCallback(() => {
-    if (!recognitionRef.current || !isListening) return;
+  const stopListening = useCallback((): string => {
+    if (!recognitionRef.current || !isListening) return transcriptRef.current;
     try {
       recognitionRef.current.stop();
       setIsListening(false);
     } catch (err: any) {
       console.warn('SpeechRecognition stop error:', err);
     }
+    return transcriptRef.current;
   }, [isListening]);
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
+    transcriptRef.current = '';
     setInterimTranscript('');
   }, []);
 
@@ -140,14 +150,72 @@ export function useSpeechRecognition() {
     stopListening,
     resetTranscript,
     setTranscript,
+    getCurrentTranscript: () => transcriptRef.current,
   };
 }
 
 export function useSpeechSynthesis() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceURI, setSelectedVoiceURI] = useState<string | null>(null);
+  const [speechRate, setSpeechRate] = useState<number>(1.15); // Dynamic natural cadence (1.15x is ideal for fluid French)
 
   const isSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+
+  // Load and cache voices when the browser engine updates them
+  useEffect(() => {
+    if (!isSupported) return;
+
+    const updateVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        setAvailableVoices(voices);
+      }
+    };
+
+    updateVoices();
+    window.speechSynthesis.onvoiceschanged = updateVoices;
+
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
+  }, [isSupported]);
+
+  // List of all available French voices
+  const frenchVoices = availableVoices.filter(
+    (v) => v.lang === 'fr-FR' || v.lang.startsWith('fr')
+  );
+
+  // Select the highest quality natural/neural French voice available
+  const getBestFrenchVoice = useCallback((): SpeechSynthesisVoice | null => {
+    const list = frenchVoices.length > 0
+      ? frenchVoices
+      : typeof window !== 'undefined' && 'speechSynthesis' in window
+        ? window.speechSynthesis.getVoices().filter((v) => v.lang === 'fr-FR' || v.lang.startsWith('fr'))
+        : [];
+
+    if (!list.length) return null;
+
+    // 1. Natural / Neural online voices (Edge / Chrome / macOS)
+    const natural = list.find((v) =>
+      /natural|neural|online|google|premium/i.test(v.name)
+    );
+    if (natural) return natural;
+
+    // 2. High-quality non-desktop offline voices
+    const nonDesktop = list.find((v) => !/desktop/i.test(v.name));
+    if (nonDesktop) return nonDesktop;
+
+    // 3. Fallback
+    return list[0];
+  }, [frenchVoices]);
+
+  // Active voice: user selected or best detected
+  const activeVoice =
+    frenchVoices.find((v) => v.voiceURI === selectedVoiceURI) || getBestFrenchVoice();
 
   const stop = useCallback(() => {
     if (!isSupported) return;
@@ -157,30 +225,72 @@ export function useSpeechSynthesis() {
   }, [isSupported]);
 
   const speak = useCallback(
-    (text: string, onEnd?: () => void) => {
+    (
+      text: string,
+      options?: { rate?: number; pitch?: number; onEnd?: () => void } | (() => void)
+    ) => {
       if (!isSupported || !text) return;
+
+      const opts = typeof options === 'function' ? { onEnd: options } : options;
 
       // Stop any ongoing speech
       window.speechSynthesis.cancel();
 
-      // Clean markdown symbols (e.g. asterisks, hashes, backticks) for smooth speech
+      // Clean markdown symbols & phonetic acronyms for fluid spoken French
       const cleanedText = text
-        .replace(/[*#`_~]/g, '')
+        // Strip markdown headings (###, ##, #)
+        .replace(/^#{1,6}\s+/gm, '')
+        // Strip code blocks and inline code
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/`([^`]+)`/g, '$1')
+        // Strip bold, italics, strikethrough
+        .replace(/(\*\*|__)(.*?)\1/g, '$2')
+        .replace(/(\*|_)(.*?)\1/g, '$2')
+        .replace(/~~(.*?)~~/g, '$1')
+        // Strip markdown links [title](url) -> title
         .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-        .replace(/\n+/g, '. ');
+        // Strip list bullets and numbered prefixes at start of line
+        .replace(/^\s*[\*\-\+]\s+/gm, '')
+        .replace(/^\s*\d+[\.\)]\s+/gm, '')
+        // Strip blockquotes
+        .replace(/^\s*>\s*/gm, '')
+        // Convert French & Tech abbreviations into spoken form
+        .replace(/\b(API)\b/gi, 'A P I')
+        .replace(/\b(RH)\b/gi, 'R H')
+        .replace(/\b(CV)\b/gi, 'C V')
+        .replace(/\b(CTO)\b/gi, 'C T O')
+        .replace(/\b(CEO)\b/gi, 'C E O')
+        .replace(/\b(CDI)\b/gi, 'C D I')
+        .replace(/\b(CDD)\b/gi, 'C D D')
+        .replace(/\b(IA)\b/gi, 'I A')
+        .replace(/\b(ESN)\b/gi, 'E S N')
+        .replace(/\b(SaaS)\b/gi, 'Saas')
+        .replace(/\b(B2B)\b/gi, 'B to B')
+        .replace(/\b(B2C)\b/gi, 'B to C')
+        .replace(/\b(KPI)\b/gi, 'K P I')
+        .replace(/\b(QA)\b/gi, 'Q A')
+        .replace(/\b(PR)\b/gi, 'Pull Request')
+        .replace(/\b(e\.g\.|ex:)\b/gi, 'par exemple')
+        .replace(/\b(c\.-\s*à\s*-d\.|i\.e\.)\b/gi, "c'est-à-dire")
+        .replace(/\b(React\.js|ReactJS)\b/gi, 'React')
+        .replace(/\b(Node\.js|NodeJS)\b/gi, 'Node')
+        // Normalize whitespace and multiple punctuation marks
+        .replace(/\.{2,}/g, '.')
+        .replace(/!{2,}/g, '!')
+        .replace(/\?{2,}/g, '?')
+        .replace(/\n+/g, '. ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
       const utterance = new SpeechSynthesisUtterance(cleanedText);
       utterance.lang = 'fr-FR';
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
 
-      // Select French voice if available
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice = voices.find(
-        (v) => v.lang === 'fr-FR' || v.lang.startsWith('fr')
-      );
-      if (frenchVoice) {
-        utterance.voice = frenchVoice;
+      // Dynamic pacing: default 1.15 for lively human tempo
+      utterance.rate = opts?.rate || speechRate;
+      utterance.pitch = opts?.pitch || 1.02; // Warm, natural conversational pitch
+
+      if (activeVoice) {
+        utterance.voice = activeVoice;
       }
 
       utterance.onstart = () => {
@@ -191,7 +301,7 @@ export function useSpeechSynthesis() {
       utterance.onend = () => {
         setIsSpeaking(false);
         setIsPaused(false);
-        onEnd?.();
+        opts?.onEnd?.();
       };
 
       utterance.onerror = () => {
@@ -201,13 +311,19 @@ export function useSpeechSynthesis() {
 
       window.speechSynthesis.speak(utterance);
     },
-    [isSupported]
+    [isSupported, speechRate, activeVoice]
   );
 
   return {
     isSupported,
     isSpeaking,
     isPaused,
+    speechRate,
+    setSpeechRate,
+    frenchVoices,
+    activeVoice,
+    selectedVoiceURI,
+    setSelectedVoiceURI,
     speak,
     stop,
   };
