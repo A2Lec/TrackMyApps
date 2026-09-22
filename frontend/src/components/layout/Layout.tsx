@@ -24,13 +24,13 @@ export function Layout() {
       <Header />
       <main
         className={cn(
-          'pt-16 pb-16 lg:pb-0 min-h-screen transition-all duration-300 flex-1',
+          'pt-16 pb-16 lg:pb-0 min-h-screen transition-all duration-300 flex-1 overflow-x-hidden w-full min-w-0',
           'pl-0 lg:pl-20',
           sidebarOpen && 'lg:pl-64'
         )}
       >
         <EmailVerificationBanner />
-        <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full min-w-0">
           <Suspense fallback={<LoadingSkeleton type="grid" count={6} />}>
             <Outlet />
           </Suspense>
