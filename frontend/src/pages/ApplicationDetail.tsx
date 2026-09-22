@@ -222,22 +222,27 @@ export function ApplicationDetailPage() {
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {(['DRAFT', 'SENT', 'VIEWED', 'INTERVIEW_SCHEDULED', 'AWAITING_RESPONSE', 'REJECTED', 'ACCEPTED', 'GHOSTED'] as ApplicationStatus[]).map(
-                (status) => (
-                  <Button
-                    key={status}
-                    variant={application.status === status ? 'default' : 'outline'}
-                    size="sm"
-                    aria-pressed={application.status === status}
-                    className={cn(
-                      'text-xs sm:text-sm',
-                      application.status === status && statusColors[status]
-                    )}
-                    onClick={() => updateStatusMutation.mutate(status)}
-                    disabled={updateStatusMutation.isPending}
-                  >
-                    {statusLabels[status]}
-                  </Button>
-                )
+                (status) => {
+                  const isActive = application.status === status;
+                  return (
+                    <Button
+                      key={status}
+                      variant="outline"
+                      size="sm"
+                      aria-pressed={isActive}
+                      className={cn(
+                        'text-xs sm:text-sm font-medium transition-all',
+                        isActive
+                          ? cn(statusColors[status], 'ring-2 ring-primary/40 font-semibold shadow-xs')
+                          : 'hover:bg-muted/80 text-muted-foreground'
+                      )}
+                      onClick={() => updateStatusMutation.mutate(status)}
+                      disabled={updateStatusMutation.isPending}
+                    >
+                      {statusLabels[status]}
+                    </Button>
+                  );
+                }
               )}
             </div>
           </CardContent>

@@ -42,24 +42,8 @@ import {
   Star,
   StarOff,
 } from 'lucide-react';
-import { formatDate, cn } from '@/lib/utils';
+import { formatDate, cn, documentTypeLabels, documentTypeColors } from '@/lib/utils';
 import type { Document as DocType, DocumentType } from '@/types';
-
-const documentTypeLabels: Record<DocumentType, string> = {
-  CV: 'CV',
-  LETTRE_MOTIVATION: 'Lettre de motivation',
-  COVER_LETTER: 'Lettre de motivation',
-  PORTFOLIO: 'Portfolio',
-  OTHER: 'Autre',
-};
-
-const documentTypeColors: Record<DocumentType, string> = {
-  CV: 'bg-blue-500/10 text-blue-700 border-blue-200',
-  LETTRE_MOTIVATION: 'bg-purple-500/10 text-purple-700 border-purple-200',
-  COVER_LETTER: 'bg-purple-500/10 text-purple-700 border-purple-200',
-  PORTFOLIO: 'bg-green-500/10 text-green-700 border-green-200',
-  OTHER: 'bg-gray-500/10 text-gray-700 border-gray-200',
-};
 
 export function DocumentsPage() {
   const queryClient = useQueryClient();

@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { X, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Mail, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/authStore';
+import { toast } from 'sonner';
 
 export function EmailVerificationBanner() {
   const { user } = useAuthStore();
   const [dismissed, setDismissed] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Don't show if no user, email is verified, or banner is dismissed
   if (!user || user?.emailVerified || dismissed) {
@@ -17,79 +17,64 @@ export function EmailVerificationBanner() {
 
   const handleResend = async () => {
     setIsResending(true);
-    setMessage(null);
 
     try {
       await authService.resendVerification();
-      setMessage({
-        type: 'success',
-        text: 'Email de vérification renvoyé ! Vérifiez votre boîte de réception.',
+      toast.success('Email de vérification envoyé ! Pensez à vérifier vos spams.', {
+        icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />
       });
     } catch (error: any) {
-      setMessage({
-        type: 'error',
-        text: error.response?.data?.message || 'Erreur lors de l\'envoi de l\'email',
-      });
+      toast.error(error.response?.data?.message || "Erreur lors de l'envoi de l'email");
     } finally {
       setIsResending(false);
     }
   };
 
   return (
-    <div className="bg-yellow-50 dark:bg-yellow-950 border-b border-yellow-200 dark:border-yellow-800">
-      <div className="px-4 py-3 md:py-4">
-        <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-          <div className="flex items-start gap-3 flex-1 min-w-0">
-            <div className="flex-shrink-0">
-              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-1">
-                Vérification de votre adresse email requise
-              </h3>
-              <p className="text-sm text-yellow-800 dark:text-yellow-200 leading-relaxed mb-2">
-                Un email de vérification a été envoyé à <span className="font-medium">{user?.email}</span>. 
-                Veuillez consulter votre boîte de réception et cliquer sur le lien de confirmation pour activer toutes les fonctionnalités de votre compte.
-                Si vous ne trouvez pas l'email, pensez à vérifier vos spams.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleResend}
-                disabled={isResending}
-                className="bg-yellow-100 border-yellow-300 text-yellow-900 hover:bg-yellow-200 hover:border-yellow-400 dark:bg-yellow-900 dark:border-yellow-700 dark:text-yellow-100 dark:hover:bg-yellow-800 dark:hover:border-yellow-600 text-xs"
-              >
-                {isResending ? 'Envoi en cours...' : 'Renvoyer l\'email de vérification'}
-              </Button>
-            </div>
+    <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-900 dark:text-amber-200 text-xs sm:text-sm py-2.5 px-4 transition-all">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-4">
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <div className="h-7 w-7 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+            <Mail className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
           </div>
+          <p className="leading-snug">
+            <span className="font-semibold">Vérification requise :</span> un email a été envoyé à{' '}
+            <span className="font-medium underline underline-offset-2">{user.email}</span>.
+            <span className="hidden md:inline text-muted-foreground ml-1">
+              Vérifiez vos spams si besoin.
+            </span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResend}
+            disabled={isResending}
+            className="h-7 text-xs px-2.5 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-900 dark:text-amber-200 transition-colors font-medium"
+          >
+            {isResending ? (
+              <>
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                Envoi...
+              </>
+            ) : (
+              'Renvoyer le lien'
+            )}
+          </Button>
+
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => setDismissed(true)}
-            className="text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 dark:text-yellow-400 dark:hover:text-yellow-200 dark:hover:bg-yellow-900 flex-shrink-0 self-start"
+            className="h-7 w-7 text-amber-700/70 hover:text-amber-900 dark:text-amber-300/70 dark:hover:text-amber-100 hover:bg-amber-500/10"
+            aria-label="Fermer la bannière"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
-
-      {message && (
-        <div className={`border-t ${message.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-          <div className="px-4 py-2">
-            <div className="flex items-center gap-2">
-              {message.type === 'success' ? (
-                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-              ) : (
-                <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
-              )}
-              <p className={`text-sm ${message.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>
-                {message.text}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

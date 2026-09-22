@@ -67,11 +67,11 @@ const categoryLabels: Record<QuestionCategory, string> = {
 };
 
 const categoryColors: Record<QuestionCategory, string> = {
-  BEHAVIORAL: 'bg-blue-500/10 text-blue-700 border-blue-200',
-  TECHNICAL: 'bg-purple-500/10 text-purple-700 border-purple-200',
-  SITUATIONAL: 'bg-green-500/10 text-green-700 border-green-200',
-  COMPANY_SPECIFIC: 'bg-orange-500/10 text-orange-700 border-orange-200',
-  OTHER: 'bg-gray-500/10 text-gray-700 border-gray-200',
+  BEHAVIORAL: 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/80',
+  TECHNICAL: 'bg-purple-50 text-purple-700 border-purple-200/80 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800/80',
+  SITUATIONAL: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/80',
+  COMPANY_SPECIFIC: 'bg-amber-50 text-amber-800 border-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/80',
+  OTHER: 'bg-zinc-100 text-zinc-700 border-zinc-200/80 dark:bg-zinc-800/70 dark:text-zinc-300 dark:border-zinc-700/80',
 };
 
 const interviewPrepService = {

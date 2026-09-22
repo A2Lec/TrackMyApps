@@ -52,7 +52,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { formatDate, statusLabels, statusColors, jobTypeLabels, jobTypeColors, cn } from '@/lib/utils';
+import { formatDate, statusLabels, statusColors, statusDotColors, jobTypeLabels, jobTypeColors, cn } from '@/lib/utils';
 import type { Application, ApplicationStatus, JobType } from '@/types';
 import { Link } from 'react-router-dom';
 import { ApplicationForm } from '@/components/ApplicationForm';
@@ -499,7 +499,7 @@ function KanbanColumn({ status, applications, search, onDelete }: KanbanColumnPr
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className={cn('w-3 h-3 rounded-full', statusColors[status].split(' ')[0])} />
+          <span className={cn('w-2.5 h-2.5 rounded-full ring-2 ring-background', statusDotColors[status])} />
           <h3 className="font-medium">{statusLabels[status]}</h3>
           <span className="text-sm text-muted-foreground">({filteredApps.length})</span>
         </div>

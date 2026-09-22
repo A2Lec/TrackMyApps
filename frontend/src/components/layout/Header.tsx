@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Bell, Menu, LogOut, User, Settings, Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -75,11 +76,16 @@ export function Header() {
         <div className="flex items-center gap-0.5 md:gap-4">
           {/* Theme switcher */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                {getThemeIcon()}
-              </Button>
-            </DropdownMenuTrigger>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Changer de thème">
+                    {getThemeIcon()}
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Thème d'affichage</TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setTheme('light')}>
                 <Sun className="mr-2 h-4 w-4" />
@@ -97,19 +103,27 @@ export function Header() {
           </DropdownMenu>
 
           {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative"
-            onClick={() => navigate('/reminders')}
-          >
-            <Bell className={cn("h-5 w-5", reminderCount > 0 && "text-primary")} />
-            {reminderCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center animate-in zoom-in">
-                {reminderCount > 9 ? '9+' : reminderCount}
-              </span>
-            )}
-          </Button>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={() => navigate('/reminders')}
+                aria-label="Rappels"
+              >
+                <Bell className={cn("h-5 w-5", reminderCount > 0 && "text-primary")} />
+                {reminderCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center animate-in zoom-in font-medium">
+                    {reminderCount > 9 ? '9+' : reminderCount}
+                  </span>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {reminderCount > 0 ? `${reminderCount} action(s) à faire` : 'Aucun rappel en attente'}
+            </TooltipContent>
+          </Tooltip>
 
           {/* User menu */}
           <DropdownMenu>

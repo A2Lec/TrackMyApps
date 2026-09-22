@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Briefcase, Loader2 } from 'lucide-react';
+import { Briefcase, Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -28,6 +28,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -44,7 +45,7 @@ export function LoginPage() {
       navigate('/');
     },
     onError: (error: any) => {
-      setError(error.response?.data?.message || 'Erreur de connexion');
+      setError(error.response?.data?.message || 'Identifiants invalides');
     },
   });
 
@@ -59,64 +60,79 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-neutral-950 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center">
-              <Briefcase className="h-6 w-6 text-slate-300" />
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-background to-blue-50/40 dark:from-neutral-950 dark:via-background dark:to-blue-950/20 relative overflow-hidden">
+      {/* Decorative ambient gradients */}
+      <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <Card className="w-full max-w-md border-border/80 bg-card/95 backdrop-blur-md shadow-2xl shadow-primary/5 rounded-2xl relative z-10">
+        <CardHeader className="text-center pb-4">
+          <div className="flex justify-center mb-3">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/25">
+              <Briefcase className="h-6 w-6 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Connexion</CardTitle>
-          <CardDescription>
-            Connectez-vous à votre compte TrackMyApps
+          <CardTitle className="text-2xl font-bold tracking-tight">Connexion</CardTitle>
+          <CardDescription className="text-sm">
+            Ravi de vous revoir ! Accédez à vos candidatures en cours
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium animate-in fade-in-50">
                 {error}
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Adresse email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="votre@email.com"
+                placeholder="nom@exemple.com"
+                autoComplete="email"
+                className="h-10 rounded-lg"
                 {...register('email')}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register('password')}
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Mot de passe</Label>
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  className="h-10 rounded-lg pr-10"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-xs text-destructive font-medium">{errors.password.message}</p>
               )}
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleDemoLogin}
-              disabled={loginMutation.isPending}
-            >
-              Compte démo
-            </Button>
+          <CardFooter className="flex flex-col gap-3 pt-2">
             <Button
               type="submit"
-              className="w-full"
+              className="w-full h-10 rounded-lg font-medium shadow-sm shadow-primary/20"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending && (
@@ -124,10 +140,22 @@ export function LoginPage() {
               )}
               Se connecter
             </Button>
-            <p className="text-sm text-muted-foreground text-center">
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-10 rounded-lg border-primary/30 hover:bg-primary/5 text-primary hover:text-primary transition-colors"
+              onClick={handleDemoLogin}
+              disabled={loginMutation.isPending}
+            >
+              <Sparkles className="h-4 w-4 mr-2 text-primary" />
+              Tester avec le compte démo (1 clic)
+            </Button>
+
+            <p className="text-xs sm:text-sm text-muted-foreground text-center mt-2">
               Pas encore de compte ?{' '}
-              <Link to="/register" className="text-primary hover:underline">
-                S'inscrire
+              <Link to="/register" className="text-primary font-semibold hover:underline">
+                Créer un compte
               </Link>
             </p>
           </CardFooter>

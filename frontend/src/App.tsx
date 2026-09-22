@@ -6,6 +6,7 @@ import { Toaster, toast } from 'sonner';
 import { Layout } from '@/components/layout/Layout';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { CookieConsent } from '@/components/CookieConsent';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/store/authStore';
 import { setupNotificationChecker, showBrowserNotification, getNotificationPermission } from '@/utils/notifications';
 import { remindersService } from '@/services/reminders.service';
@@ -143,62 +144,64 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Suspense fallback={<div className="flex items-center justify-center h-screen"><LoadingSkeleton type="grid" count={1} className="w-full max-w-md" /></div>}>
-          <Routes>
-            {/* Public routes */}
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <LoginPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <PublicRoute>
-                  <RegisterPage />
-                </PublicRoute>
-              }
-            />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
-            
-            {/* Legal pages */}
-            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-            <Route path="/legal-notice" element={<LegalNoticePage />} />
-            
-            {/* Protected routes */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<DashboardPage />} />
-              <Route path="applications" element={<ApplicationsPage />} />
-              <Route path="applications/:id" element={<ApplicationDetailPage />} />
-              <Route path="documents" element={<DocumentsPage />} />
-              <Route path="reminders" element={<RemindersPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
-              <Route path="calendar" element={<CalendarPage />} />
-              <Route path="companies" element={<CompaniesPage />} />
-              <Route path="interview-prep" element={<InterviewPrepPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-            </Route>
-            
-            {/* Catch all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-      {analyticsEnabled && <Analytics />}
-      <CookieConsent onAccept={handleCookieAccept} onDecline={handleCookieDecline} />
-      <Toaster richColors position="bottom-right" />
+      <TooltipProvider delayDuration={150}>
+        <BrowserRouter>
+          <Suspense fallback={<div className="flex items-center justify-center h-screen"><LoadingSkeleton type="grid" count={1} className="w-full max-w-md" /></div>}>
+            <Routes>
+              {/* Public routes */}
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute>
+                    <LoginPage />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  <PublicRoute>
+                    <RegisterPage />
+                  </PublicRoute>
+                }
+              />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
+              
+              {/* Legal pages */}
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+              <Route path="/legal-notice" element={<LegalNoticePage />} />
+              
+              {/* Protected routes */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<DashboardPage />} />
+                <Route path="applications" element={<ApplicationsPage />} />
+                <Route path="applications/:id" element={<ApplicationDetailPage />} />
+                <Route path="documents" element={<DocumentsPage />} />
+                <Route path="reminders" element={<RemindersPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="calendar" element={<CalendarPage />} />
+                <Route path="companies" element={<CompaniesPage />} />
+                <Route path="interview-prep" element={<InterviewPrepPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
+              
+              {/* Catch all */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+        {analyticsEnabled && <Analytics />}
+        <CookieConsent onAccept={handleCookieAccept} onDecline={handleCookieDecline} />
+        <Toaster richColors position="bottom-right" />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
