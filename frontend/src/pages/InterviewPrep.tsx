@@ -46,6 +46,8 @@ import {
   ChevronDown,
   Building2,
   HelpCircle,
+  Target,
+  ArrowLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import api from '@/services/api';
@@ -100,6 +102,12 @@ export function InterviewPrepPage() {
 
   const [activeTab, setActiveTab] = useState<string>(tabParam || 'questions');
   const [selectedApplicationId, setSelectedApplicationId] = useState<string>(appParam || '');
+  const [simulationMode, setSimulationMode] = useState<'application' | 'free'>('application');
+  const [freeTargetRole, setFreeTargetRole] = useState('Développeur Full-Stack');
+  const [freeContractType, setFreeContractType] = useState('CDI');
+  const [freeJobDescription, setFreeJobDescription] = useState('');
+  const [isFreePracticeActive, setIsFreePracticeActive] = useState(false);
+
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<QuestionCategory | 'all'>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -119,7 +127,10 @@ export function InterviewPrepPage() {
   }, [tabParam]);
 
   useEffect(() => {
-    if (appParam) setSelectedApplicationId(appParam);
+    if (appParam) {
+      setSelectedApplicationId(appParam);
+      setSimulationMode('application');
+    }
   }, [appParam]);
 
   const { data: questions, isLoading: isLoadingQuestions } = useQuery({
@@ -411,64 +422,195 @@ export function InterviewPrepPage() {
         </TabsContent>
 
         {/* TAB 2: SIMULATION IA */}
-        <TabsContent value="simulation" className="space-y-6 m-0 w-full min-w-0">
-          <Card className="border-border/80 shadow-xs w-full min-w-0 overflow-hidden">
-            <CardHeader className="p-4 sm:p-5 border-b border-border/40">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <CardTitle className="text-base font-semibold flex items-center gap-2">
-                    <Bot className="h-4 w-4 text-primary" />
-                    Candidature ciblée pour l'entretien
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    L'IA contextualisera ses questions à partir de l'entreprise et de l'offre choisie.
-                  </CardDescription>
-                </div>
+        <TabsContent value="simulation" className="space-y-5 m-0 w-full min-w-0">
+          {/* Segmented switcher: Entraînement libre vs Candidature ciblée */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-1.5 bg-muted/40 rounded-xl border border-border/60">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setSimulationMode('free')}
+                className={cn(
+                  'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                  simulationMode === 'free'
+                    ? 'bg-background text-foreground shadow-xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Target className="h-3.5 w-3.5 text-primary" />
+                <span>Entraînement libre</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSimulationMode('application')}
+                className={cn(
+                  'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                  simulationMode === 'application'
+                    ? 'bg-background text-foreground shadow-xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Building2 className="h-3.5 w-3.5 text-primary" />
+                <span>Candidature ciblée ({applications?.length || 0})</span>
+              </button>
+            </div>
+            <div className="text-[11px] text-muted-foreground px-2">
+              {simulationMode === 'free'
+                ? 'Simulation directe sans polluer votre tableau de bord'
+                : "Questions calibrées sur l'entreprise & l'offre"}
+            </div>
+          </div>
 
-                <div className="w-full sm:w-72 flex-shrink-0">
-                  <Select
-                    value={selectedApplicationId}
-                    onValueChange={(val) => {
-                      setSelectedApplicationId(val);
-                      setSearchParams((prev) => {
-                        prev.set('applicationId', val);
-                        return prev;
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="h-9 text-xs">
-                      <SelectValue placeholder="Choisir une opportunité..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {applications?.map((app) => (
-                        <SelectItem key={app.id} value={app.id} className="text-xs">
-                          {app.companyName} — {app.position}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-0 sm:p-4 w-full min-w-0">
-              {selectedApplicationId ? (
-                <div className="w-full min-w-0">
-                  <InterviewSimulation applicationId={selectedApplicationId} />
-                </div>
-              ) : (
-                <div className="py-16 text-center px-4 space-y-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
-                    <Building2 className="h-5 w-5" />
+          {simulationMode === 'free' ? (
+            !isFreePracticeActive ? (
+              <Card className="border-border/80 shadow-xs w-full min-w-0 overflow-hidden">
+                <CardHeader className="p-4 sm:p-5 border-b border-border/40">
+                  <div className="space-y-1">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <Target className="h-4 w-4 text-primary" />
+                      Paramètres de l'entraînement libre
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Précisez le poste et le type de contrat pour adapter le niveau d'exigence et le scénario de l'entretien.
+                    </CardDescription>
                   </div>
-                  <h3 className="text-sm font-semibold text-foreground">Sélectionnez une candidature</h3>
-                  <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                    Choisissez une entreprise dans la liste ci-dessus pour lancer une session d'entraînement personnalisée.
-                  </p>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium">Poste visé *</Label>
+                      <Input
+                        placeholder="Ex: Développeur Full-Stack, Product Manager..."
+                        value={freeTargetRole}
+                        onChange={(e) => setFreeTargetRole(e.target.value)}
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium">Type de contrat</Label>
+                      <Select value={freeContractType} onValueChange={setFreeContractType}>
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="CDI">CDI</SelectItem>
+                          <SelectItem value="CDD">CDD</SelectItem>
+                          <SelectItem value="STAGE">Stage</SelectItem>
+                          <SelectItem value="ALTERNANCE">Alternance</SelectItem>
+                          <SelectItem value="FREELANCE">Freelance</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium">Fiche de poste ou compétences clés (optionnel)</Label>
+                    <Textarea
+                      placeholder="Copiez-collez une description d'offre ou listez des mots-clés / compétences clés (ex: React, Node, microservices, agilité)..."
+                      value={freeJobDescription}
+                      onChange={(e) => setFreeJobDescription(e.target.value)}
+                      rows={3}
+                      className="text-xs resize-none"
+                    />
+                  </div>
+
+                  <Button
+                    onClick={() => setIsFreePracticeActive(true)}
+                    disabled={!freeTargetRole.trim()}
+                    className="w-full h-10 text-xs font-semibold"
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Lancer la simulation libre
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/80 text-xs">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-primary/40 text-primary font-medium">
+                      Entraînement libre
+                    </Badge>
+                    <span className="font-semibold text-foreground">{freeTargetRole}</span>
+                    <span className="text-muted-foreground">• {freeContractType}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setIsFreePracticeActive(false)}
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5 mr-1" />
+                    Changer de poste
+                  </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+
+                <InterviewSimulation
+                  isFreePractice={true}
+                  defaultTargetRole={freeTargetRole}
+                  defaultContractType={freeContractType}
+                  defaultJobDescription={freeJobDescription}
+                />
+              </div>
+            )
+          ) : (
+            <Card className="border-border/80 shadow-xs w-full min-w-0 overflow-hidden">
+              <CardHeader className="p-4 sm:p-5 border-b border-border/40">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-primary" />
+                      Candidature ciblée pour l'entretien
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      L'IA contextualisera ses questions à partir de l'entreprise et de l'offre choisie.
+                    </CardDescription>
+                  </div>
+
+                  <div className="w-full sm:w-72 flex-shrink-0">
+                    <Select
+                      value={selectedApplicationId}
+                      onValueChange={(val) => {
+                        setSelectedApplicationId(val);
+                        setSearchParams((prev) => {
+                          prev.set('applicationId', val);
+                          return prev;
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="h-9 text-xs">
+                        <SelectValue placeholder="Choisir une opportunité..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {applications?.map((app) => (
+                          <SelectItem key={app.id} value={app.id} className="text-xs">
+                            {app.companyName} — {app.position}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-0 sm:p-4 w-full min-w-0">
+                {selectedApplicationId ? (
+                  <div className="w-full min-w-0">
+                    <InterviewSimulation applicationId={selectedApplicationId} />
+                  </div>
+                ) : (
+                  <div className="py-16 text-center px-4 space-y-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground">Sélectionnez une candidature</h3>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                      Choisissez une entreprise dans la liste ci-dessus pour lancer une session d'entraînement personnalisée.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 

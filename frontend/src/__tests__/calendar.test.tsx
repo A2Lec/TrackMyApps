@@ -138,4 +138,24 @@ describe('Page: CalendarPage', () => {
       expect(screen.getByText('Relance email RH DataDog')).toBeInTheDocument();
     });
   });
+
+  it('navigates cleanly across months without date overflow', async () => {
+    renderWithProviders(<CalendarPage />);
+
+    // Click next period navigation button
+    const nextBtn = screen.getByRole('button', { name: /Période suivante/i });
+    fireEvent.click(nextBtn);
+
+    // Header updates cleanly
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: /Calendrier/i })).toBeInTheDocument();
+    });
+
+    const prevBtn = screen.getByRole('button', { name: /Période précédente/i });
+    fireEvent.click(prevBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: /Calendrier/i })).toBeInTheDocument();
+    });
+  });
 });

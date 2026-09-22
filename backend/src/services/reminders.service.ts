@@ -100,6 +100,7 @@ export const reminderService = {
             id: true,
             companyName: true,
             position: true,
+            status: true,
           },
         },
       },
@@ -117,6 +118,16 @@ export const reminderService = {
       throw createError('Rappel non trouvé', 404);
     }
 
+    if (data.applicationId) {
+      const application = await prisma.application.findFirst({
+        where: { id: data.applicationId, userId },
+      });
+
+      if (!application) {
+        throw createError('Candidature non trouvée', 404);
+      }
+    }
+
     const updateData: any = { ...data };
     if (data.dueDate) {
       updateData.emailSent = false;
@@ -131,6 +142,7 @@ export const reminderService = {
             id: true,
             companyName: true,
             position: true,
+            status: true,
           },
         },
       },

@@ -150,7 +150,7 @@ export function DocumentsPage() {
     return {
       all: list.length,
       CV: list.filter((d) => d.type === 'CV').length,
-      COVER_LETTER: list.filter((d) => d.type === 'COVER_LETTER' || d.type === 'LETTRE_MOTIVATION').length,
+      LETTRE_MOTIVATION: list.filter((d) => d.type === 'COVER_LETTER' || d.type === 'LETTRE_MOTIVATION').length,
       PORTFOLIO: list.filter((d) => d.type === 'PORTFOLIO').length,
       OTHER: list.filter((d) => d.type === 'OTHER').length,
     };
@@ -235,15 +235,15 @@ export function DocumentsPage() {
           </button>
           <button
             type="button"
-            onClick={() => setTypeFilter('COVER_LETTER')}
+            onClick={() => setTypeFilter('LETTRE_MOTIVATION')}
             className={cn(
               'px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap',
-              typeFilter === 'COVER_LETTER'
+              typeFilter === 'LETTRE_MOTIVATION' || typeFilter === 'COVER_LETTER'
                 ? 'bg-primary text-primary-foreground font-semibold'
                 : 'bg-muted/60 text-muted-foreground hover:bg-muted'
             )}
           >
-            Lettres ({countsByType.COVER_LETTER})
+            Lettres ({countsByType.LETTRE_MOTIVATION})
           </button>
           <button
             type="button"
@@ -368,13 +368,13 @@ export function DocumentsPage() {
                     </DropdownMenu>
                   </div>
 
-                  {/* Badges de statut et type */}
+                  {/* Badges de statut, type et traçabilité candidatures (TICK-304) */}
                   <div className="flex items-center gap-1.5 flex-wrap pt-1">
                     <Badge
                       variant="secondary"
-                      className={cn('text-[10px] font-medium border-0 px-2 py-0.5', documentTypeColors[doc.type])}
+                      className={cn('text-[10px] font-medium border-0 px-2 py-0.5', documentTypeColors[doc.type] || documentTypeColors['LETTRE_MOTIVATION'])}
                     >
-                      {documentTypeLabels[doc.type] || doc.type}
+                      {documentTypeLabels[doc.type] || 'Lettre de motivation'}
                     </Badge>
 
                     {doc.isDefault && (
@@ -383,7 +383,38 @@ export function DocumentsPage() {
                         Par défaut
                       </span>
                     )}
+
+                    {doc.usageCount && doc.usageCount > 0 ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-800/80 px-2 py-0.5 rounded-full">
+                        <FileCheck2 className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                        Utilisé dans {doc.usageCount} {doc.usageCount > 1 ? 'candidatures' : 'candidature'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center text-[10px] text-muted-foreground bg-muted/40 border border-border/40 px-2 py-0.5 rounded-full">
+                        Non utilisé
+                      </span>
+                    )}
                   </div>
+
+                  {/* Liste des entreprises associées (TICK-304) */}
+                  {doc.companies && doc.companies.length > 0 && (
+                    <div className="pt-2 text-[11px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-medium text-muted-foreground">Entreprises :</span>
+                      {doc.companies.slice(0, 3).map((comp, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-muted/80 text-foreground px-1.5 py-0.5 rounded text-[10px] font-medium border border-border/40"
+                        >
+                          {comp}
+                        </span>
+                      ))}
+                      {doc.companies.length > 3 && (
+                        <span className="text-[10px] text-muted-foreground">
+                          +{doc.companies.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Pied de carte avec date et boutons rapides */}
@@ -517,7 +548,7 @@ export function DocumentsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="CV" className="text-xs">CV (Curriculum Vitae)</SelectItem>
-                  <SelectItem value="COVER_LETTER" className="text-xs">Lettre de motivation</SelectItem>
+                  <SelectItem value="LETTRE_MOTIVATION" className="text-xs">Lettre de motivation</SelectItem>
                   <SelectItem value="PORTFOLIO" className="text-xs">Portfolio ou book</SelectItem>
                   <SelectItem value="OTHER" className="text-xs">Autre document</SelectItem>
                 </SelectContent>

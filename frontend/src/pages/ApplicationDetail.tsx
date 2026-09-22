@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams as useRouterParams, Link } from 'react-router-dom';
 import { applicationsService } from '@/services/applications.service';
 import { documentsService } from '@/services/documents.service';
 import { remindersService } from '@/services/reminders.service';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,26 +39,31 @@ import {
   Plus,
   FileText,
   X,
-  Clock,
   Bot,
   Bell,
   CheckCircle2,
   Sparkles,
+  MessageSquare,
 } from 'lucide-react';
 import {
   formatDate,
-  formatDateTime,
   statusLabels,
   statusColors,
   statusDotColors,
   jobTypeLabels,
   jobTypeColors,
   STATUS_ORDER,
-  EVENT_TYPE_LABELS,
   cn,
 } from '@/lib/utils';
-import type { Application, ApplicationStatus, JobType, EventType } from '@/types';
+import type { Application, ApplicationStatus, JobType } from '@/types';
 import { InterviewSimulation } from '@/components/InterviewSimulation';
+import { ApplicationJournal } from '@/components/ApplicationJournal';
+import { FollowUpTemplatesDialog } from '@/components/FollowUpTemplatesDialog';
+import {
+  parseApplicationNotes,
+  serializeApplicationNotes,
+  type ExchangeDebrief,
+} from '@/lib/journal';
 import { toast } from 'sonner';
 
 export function ApplicationDetailPage() {
@@ -69,10 +74,20 @@ export function ApplicationDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDocumentsDialog, setShowDocumentsDialog] = useState(false);
+  const [showReminderDialog, setShowReminderDialog] = useState(false);
+  const [showTemplatesDialog, setShowTemplatesDialog] = useState(false);
+
   const [formData, setFormData] = useState<Partial<Application>>({});
   const [selectedCvId, setSelectedCvId] = useState<string | undefined>();
   const [selectedLmId, setSelectedLmId] = useState<string | undefined>();
-  const [activeTab, setActiveTab] = useState<'details' | 'timeline' | 'interview'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'journal' | 'timeline' | 'interview'>('details');
+
+  const [reminderForm, setReminderForm] = useState({
+    title: '',
+    dueDate: '',
+    type: 'RELANCE',
+    description: '',
+  });
 
   const { data: application, isLoading } = useQuery({
     queryKey: ['application', id],
@@ -90,8 +105,13 @@ export function ApplicationDetailPage() {
     queryFn: () => documentsService.getAll('LETTRE_MOTIVATION'),
   });
 
+  const parsedNotes = useMemo(() => {
+    return parseApplicationNotes(application?.notes);
+  }, [application?.notes]);
+
   useEffect(() => {
     if (application) {
+      const parsed = parseApplicationNotes(application.notes);
       setFormData({
         companyName: application.companyName,
         position: application.position,
@@ -100,7 +120,7 @@ export function ApplicationDetailPage() {
         location: application.location,
         jobUrl: application.jobUrl,
         salary: application.salary,
-        notes: application.notes,
+        notes: parsed.generalNotes,
         jobDescription: application.jobDescription,
       });
       setSelectedCvId(application.cvUsedId);
@@ -162,8 +182,62 @@ export function ApplicationDetailPage() {
     },
   });
 
+  const createReminderMutation = useMutation({
+    mutationFn: (data: { title: string; dueDate: string; type: string; description?: string }) =>
+      remindersService.create({
+        ...data,
+        applicationId: id!,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['application', id] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['upcomingReminders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      setShowReminderDialog(false);
+      toast.success('Rappel créé pour cette offre');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Erreur lors de la création du rappel');
+    },
+  });
+
+  const handleOpenCreateReminder = (
+    daysOffset: number = 7,
+    defaultTitle?: string,
+    defaultType: string = 'RELANCE'
+  ) => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + daysOffset);
+    setReminderForm({
+      title: defaultTitle || `Relancer ${application?.companyName || ''}`,
+      dueDate: targetDate.toISOString().split('T')[0],
+      type: defaultType,
+      description: '',
+    });
+    setShowReminderDialog(true);
+  };
+
   const handleSave = () => {
-    updateMutation.mutate(formData);
+    const currentParsed = parseApplicationNotes(application?.notes);
+    const serialized = serializeApplicationNotes({
+      generalNotes: formData.notes || '',
+      exchanges: currentParsed.exchanges,
+    });
+    updateMutation.mutate({
+      ...formData,
+      notes: serialized,
+    });
+  };
+
+  const handleSaveExchanges = async (newExchanges: ExchangeDebrief[]) => {
+    const currentParsed = parseApplicationNotes(application?.notes);
+    const serialized = serializeApplicationNotes({
+      generalNotes: currentParsed.generalNotes,
+      exchanges: newExchanges,
+    });
+    await updateMutation.mutateAsync({
+      notes: serialized,
+    });
   };
 
   const handleLinkDocuments = () => {
@@ -357,9 +431,9 @@ export function ApplicationDetailPage() {
                 <FileText className="h-3.5 w-3.5" />
                 <span>Détails & Offre</span>
               </TabsTrigger>
-              <TabsTrigger value="timeline" className="text-xs font-semibold gap-1.5">
-                <Clock className="h-3.5 w-3.5" />
-                <span>Événements ({application.events?.length || 0})</span>
+              <TabsTrigger value="journal" className="text-xs font-semibold gap-1.5">
+                <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                <span>Journal des échanges ({parsedNotes.exchanges.length})</span>
               </TabsTrigger>
               <TabsTrigger value="interview" className="text-xs font-semibold gap-1.5">
                 <Bot className="h-3.5 w-3.5 text-primary" />
@@ -441,7 +515,7 @@ export function ApplicationDetailPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label>Notes personnelles</Label>
+                        <Label>Notes personnelles & mémo</Label>
                         <Textarea
                           value={formData.notes || ''}
                           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -464,12 +538,24 @@ export function ApplicationDetailPage() {
                     <div className="space-y-6">
                       {/* Notes Section */}
                       <div className="p-4 rounded-xl bg-muted/40 border border-border/70">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
-                          Notes personnelles
-                        </span>
-                        {application.notes ? (
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
+                            Notes personnelles & mémo
+                          </span>
+                          {parsedNotes.exchanges.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveTab('journal')}
+                              className="h-6 text-[11px] text-primary px-1.5 hover:underline"
+                            >
+                              Voir le journal des échanges ({parsedNotes.exchanges.length}) →
+                            </Button>
+                          )}
+                        </div>
+                        {parsedNotes.generalNotes ? (
                           <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                            {application.notes}
+                            {parsedNotes.generalNotes}
                           </p>
                         ) : (
                           <p className="text-xs text-muted-foreground italic">
@@ -501,49 +587,24 @@ export function ApplicationDetailPage() {
               </Card>
             </TabsContent>
 
-            {/* Tab 2: Timeline */}
+            {/* Tab 2: Journal des échanges & débriefings */}
+            <TabsContent value="journal" className="mt-4">
+              <ApplicationJournal
+                application={application}
+                exchanges={parsedNotes.exchanges}
+                onSaveExchanges={handleSaveExchanges}
+                isSaving={updateMutation.isPending}
+              />
+            </TabsContent>
+
+            {/* Backward compatibility alias for timeline */}
             <TabsContent value="timeline" className="mt-4">
-              <Card className="border-border/80 shadow-xs">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-bold flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    Historique chronologique
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    Traçabilité de chaque interaction et mise à jour de statut
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {application.events && application.events.length > 0 ? (
-                    <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
-                      {application.events.map((event) => (
-                        <div key={event.id} className="relative group">
-                          <div className="absolute -left-6 top-1 w-4 h-4 rounded-full bg-primary ring-4 ring-background flex items-center justify-center shadow-xs" />
-                          <div className="bg-muted/40 p-3 rounded-xl border border-border/70 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-semibold text-foreground">
-                                {EVENT_TYPE_LABELS[event.eventType || (event.type as EventType)] || event.eventType}
-                              </p>
-                              <span className="text-[11px] text-muted-foreground">
-                                {formatDateTime(event.createdAt)}
-                              </span>
-                            </div>
-                            {(event.notes || event.description) && (
-                              <p className="text-xs text-muted-foreground leading-relaxed">
-                                {event.notes || event.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-10 text-center text-xs text-muted-foreground">
-                      Aucun événement enregistré.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <ApplicationJournal
+                application={application}
+                exchanges={parsedNotes.exchanges}
+                onSaveExchanges={handleSaveExchanges}
+                isSaving={updateMutation.isPending}
+              />
             </TabsContent>
 
             {/* Tab 3: AI Simulation */}
@@ -652,43 +713,96 @@ export function ApplicationDetailPage() {
                 <Bell className="h-4 w-4 text-primary" />
                 Rappels & Actions
               </CardTitle>
-              <Button variant="ghost" size="sm" asChild className="h-7 text-xs px-2">
-                <Link to="/reminders">Voir tout</Link>
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleOpenCreateReminder(7, `Relancer ${application.companyName}`)}
+                  className="h-7 text-xs px-2 text-primary font-semibold hover:bg-primary/10"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Ajouter
+                </Button>
+                <Button variant="ghost" size="sm" asChild className="h-7 text-xs px-2 text-muted-foreground">
+                  <Link to="/reminders">Voir tout</Link>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-2.5">
               {application.reminders && application.reminders.length > 0 ? (
-                application.reminders.map((rem) => (
-                  <div
-                    key={rem.id}
-                    className="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-muted/40 border border-border/60 text-xs"
-                  >
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <p className={cn('font-semibold truncate', rem.isCompleted && 'line-through text-muted-foreground')}>
-                        {rem.title}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(rem.dueDate)}
-                      </p>
-                    </div>
+                <>
+                  {application.reminders.map((rem) => (
+                    <div
+                      key={rem.id}
+                      className="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-muted/40 border border-border/60 text-xs"
+                    >
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <p className={cn('font-semibold truncate', rem.isCompleted && 'line-through text-muted-foreground')}>
+                          {rem.title}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(rem.dueDate)}
+                        </p>
+                      </div>
 
-                    {!rem.isCompleted && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => completeReminderMutation.mutate(rem.id)}
-                        className="h-6 w-6 text-muted-foreground hover:text-emerald-600"
-                        title="Marquer comme fait"
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                      {!rem.isCompleted && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => completeReminderMutation.mutate(rem.id)}
+                          className="h-6 w-6 text-muted-foreground hover:text-emerald-600"
+                          title="Marquer comme fait"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+
+                  <div className="pt-2 flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenCreateReminder(7, `Relancer ${application.companyName}`)}
+                      className="text-xs h-7 flex-1"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Nouveau rappel
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowTemplatesDialog(true)}
+                      className="text-xs h-7 text-primary hover:bg-primary/10 px-2"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Modèles d'emails
+                    </Button>
                   </div>
-                ))
+                </>
               ) : (
-                <div className="p-4 text-center text-xs text-muted-foreground border border-dashed border-border/70 rounded-xl">
-                  Aucun rappel actif pour cette candidature.
+                <div className="p-4 text-center text-xs text-muted-foreground border border-dashed border-border/70 rounded-xl space-y-2.5">
+                  <p>Aucun rappel actif pour cette candidature.</p>
+                  <div className="flex items-center justify-center gap-2 flex-wrap">
+                    <Button
+                      size="sm"
+                      onClick={() => handleOpenCreateReminder(7, `Relancer ${application.companyName}`)}
+                      className="h-7 text-xs font-semibold shadow-xs"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Ajouter un rappel
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowTemplatesDialog(true)}
+                      className="h-7 text-xs"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1 text-primary" />
+                      Modèles d'emails
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -795,6 +909,166 @@ export function ApplicationDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Create Reminder for this Application Dialog */}
+      <Dialog open={showReminderDialog} onOpenChange={setShowReminderDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <Bell className="h-4 w-4 text-primary" />
+              Nouveau rappel pour {application.companyName}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Planifiez une relance ou une tâche associée à cette opportunité.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!reminderForm.title.trim()) {
+                toast.error('Veuillez spécifier un titre');
+                return;
+              }
+              if (!reminderForm.dueDate) {
+                toast.error('Veuillez sélectionner une date');
+                return;
+              }
+              createReminderMutation.mutate({
+                title: reminderForm.title.trim(),
+                dueDate: new Date(reminderForm.dueDate).toISOString(),
+                type: reminderForm.type,
+                description: reminderForm.description.trim() || undefined,
+              });
+            }}
+            className="space-y-4 py-2"
+          >
+            {/* Quick Presets */}
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground uppercase font-semibold">
+                Raccourcis express
+              </Label>
+              <div className="flex flex-wrap gap-1.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const d = new Date();
+                    d.setDate(d.getDate() + 7);
+                    setReminderForm({
+                      ...reminderForm,
+                      title: `Relancer ${application.companyName} à J+7`,
+                      dueDate: d.toISOString().split('T')[0],
+                      type: 'RELANCE',
+                    });
+                  }}
+                  className="h-7 text-[11px] px-2"
+                >
+                  ⚡ Relance à J+7
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const d = new Date();
+                    d.setDate(d.getDate() + 3);
+                    setReminderForm({
+                      ...reminderForm,
+                      title: `Préparer entretien ${application.companyName}`,
+                      dueDate: d.toISOString().split('T')[0],
+                      type: 'ENTRETIEN',
+                    });
+                  }}
+                  className="h-7 text-[11px] px-2"
+                >
+                  🎯 Entretien dans 3 jours
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Titre du rappel *</Label>
+              <Input
+                value={reminderForm.title}
+                onChange={(e) => setReminderForm({ ...reminderForm, title: e.target.value })}
+                placeholder="ex: Relancer le recruteur suite à l'envoi"
+                className="text-xs h-8"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Date d'échéance *</Label>
+                <Input
+                  type="date"
+                  value={reminderForm.dueDate}
+                  onChange={(e) => setReminderForm({ ...reminderForm, dueDate: e.target.value })}
+                  className="text-xs h-8"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">Catégorie</Label>
+                <Select
+                  value={reminderForm.type}
+                  onValueChange={(val) => setReminderForm({ ...reminderForm, type: val })}
+                >
+                  <SelectTrigger className="text-xs h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="RELANCE" className="text-xs">Relance</SelectItem>
+                    <SelectItem value="ENTRETIEN" className="text-xs">Entretien</SelectItem>
+                    <SelectItem value="CANDIDATURE" className="text-xs">Candidature</SelectItem>
+                    <SelectItem value="AUTRE" className="text-xs">Autre démarche</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Note ou consigne (optionnel)</Label>
+              <Textarea
+                value={reminderForm.description}
+                onChange={(e) => setReminderForm({ ...reminderForm, description: e.target.value })}
+                placeholder="Détail du message ou document à joindre..."
+                rows={2}
+                className="text-xs"
+              />
+            </div>
+
+            <DialogFooter className="gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowReminderDialog(false)}
+                className="h-8 text-xs"
+              >
+                Annuler
+              </Button>
+              <Button
+                type="submit"
+                disabled={createReminderMutation.isPending}
+                className="h-8 text-xs font-semibold"
+              >
+                Créer le rappel
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Follow-up Email Templates Dialog */}
+      <FollowUpTemplatesDialog
+        open={showTemplatesDialog}
+        onOpenChange={setShowTemplatesDialog}
+        companyName={application.companyName}
+        position={application.position}
+      />
     </div>
   );
 }

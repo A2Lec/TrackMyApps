@@ -84,13 +84,13 @@ export function CalendarPage() {
   const getFirstDayOfMonth = (y: number, m: number) => new Date(y, m, 1).getDay();
 
   const navigate = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
     if (view === 'month') {
-      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + (direction === 'next' ? 1 : -1), 1));
     } else {
+      const newDate = new Date(currentDate);
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+      setCurrentDate(newDate);
     }
-    setCurrentDate(newDate);
   };
 
   const goToToday = () => {

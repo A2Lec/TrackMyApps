@@ -29,10 +29,14 @@ import {
   Download,
   CheckCircle2,
   AlertTriangle,
+  Calendar,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore, type Theme } from '@/store/uiStore';
 import { authService } from '@/services/auth.service';
+import { remindersService } from '@/services/reminders.service';
+import { generateIcsContent, downloadIcsFile } from '@/lib/calendarExport';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
@@ -122,6 +126,36 @@ export function SettingsPage() {
       currentPassword: passwordData.currentPassword,
       newPassword: passwordData.newPassword,
     });
+  };
+
+  const [isExportingCalendar, setIsExportingCalendar] = useState(false);
+
+  const handleExportCalendar = async () => {
+    try {
+      setIsExportingCalendar(true);
+      const reminders = await remindersService.getAll();
+      if (!reminders || reminders.length === 0) {
+        toast.info('Aucun rappel ou entretien à exporter');
+        return;
+      }
+      const events = reminders.map((r) => ({
+        title: r.title,
+        description:
+          r.description ||
+          (r.application
+            ? `Poste : ${r.application.position} chez ${r.application.companyName}`
+            : undefined),
+        startDate: new Date(r.dueDate),
+        durationMinutes: 30,
+      }));
+      const icsContent = generateIcsContent(events);
+      downloadIcsFile('trackmyapps-agenda.ics', icsContent);
+      toast.success(`${reminders.length} rappel(s) et entretien(s) exporté(s)`);
+    } catch {
+      toast.error("Erreur lors de l'export du calendrier");
+    } finally {
+      setIsExportingCalendar(false);
+    }
   };
 
   const handleLogout = () => {
@@ -431,6 +465,48 @@ export function SettingsPage() {
                     >
                       <Download className="mr-1.5 h-3.5 w-3.5" />
                       Exporter en CSV
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Synchronisation Calendrier (TICK-403) */}
+              <Card className="border border-border/70 shadow-xs">
+                <CardHeader className="pb-3 border-b">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        Synchronisation Agenda & Calendrier (.ics)
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Exportez tous vos entretiens et rappels vers Google Agenda, Apple Calendar ou Outlook
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 space-y-4">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Le format universel <strong>iCalendar (.ics)</strong> vous permet d'intégrer en quelques secondes tous vos créneaux et relances prévus sur votre téléphone ou ordinateur sans partager vos identifiants.
+                  </p>
+                  <div className="rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground space-y-1.5 border border-border/50">
+                    <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider">Comment l'utiliser :</p>
+                    <ul className="list-disc pl-4 space-y-1 text-[11px]">
+                      <li><strong>Apple Calendar (Mac / iPhone) :</strong> Ouvrez simplement le fichier téléchargé.</li>
+                      <li><strong>Google Agenda :</strong> Paramètres ➔ Importer et exporter ➔ Sélectionner le fichier .ics.</li>
+                      <li><strong>Outlook :</strong> Fichier ➔ Ouvrir et exporter ➔ Importer un calendrier iCalendar.</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportCalendar}
+                      disabled={isExportingCalendar}
+                      className="h-8 text-xs font-semibold"
+                    >
+                      <Download className="mr-1.5 h-3.5 w-3.5" />
+                      {isExportingCalendar ? 'Export en cours...' : 'Télécharger mon agenda (.ics)'}
                     </Button>
                   </div>
                 </CardContent>

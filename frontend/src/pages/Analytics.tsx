@@ -25,6 +25,7 @@ import {
   Send,
   CalendarCheck,
   Building,
+  Sparkles,
 } from 'lucide-react';
 import { statusLabels, jobTypeLabels, cn } from '@/lib/utils';
 
@@ -133,6 +134,25 @@ export function AnalyticsPage() {
         </div>
       </div>
 
+      {/* Bannière valorisante pour petits volumes (TICK-402) */}
+      {totalApplications < 10 && (
+        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-500/10 via-primary/5 to-transparent border border-blue-500/20 flex items-start sm:items-center gap-3 animate-in fade-in duration-300">
+          <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs sm:text-sm font-semibold text-foreground">
+              {totalApplications === 0
+                ? 'Démarrez votre suivi de candidatures !'
+                : 'Vos premières tendances prennent forme !'}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Vous débutez votre recherche ({totalApplications}/10 candidatures). Continuez à cibler vos offres clés pour voir vos ratios et vos courbes se dessiner avec précision !
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* 4 Sober Metric Cockpit Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full min-w-0">
         <Card className="border border-border/70 shadow-xs hover:border-border transition-all">
@@ -213,51 +233,63 @@ export function AnalyticsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-6">
-            <div className="h-64 sm:h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={timeline || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/50" vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={{ stroke: 'var(--border)' }}
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
-                    }}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={false}
-                    allowDecimals={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'var(--background)',
-                      borderColor: 'var(--border)',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    }}
-                    labelFormatter={(value) => {
-                      const date = new Date(value);
-                      return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
-                    }}
-                    formatter={(value: number) => [`${value} candidature${value > 1 ? 's' : ''}`, 'Volume']}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    stroke="#2563eb"
-                    strokeWidth={2}
-                    dot={{ fill: '#2563eb', r: 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            {totalApplications === 0 ? (
+              <div className="h-64 sm:h-72 w-full flex flex-col items-center justify-center text-center p-6 space-y-2">
+                <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <p className="text-xs sm:text-sm font-medium text-foreground">Courbe d'activité en cours de constitution</p>
+                <p className="text-xs text-muted-foreground max-w-sm">
+                  Vous débutez votre recherche. Continuez à cibler vos offres clés pour voir vos tendances se dessiner !
+                </p>
+              </div>
+            ) : (
+              <div className="h-64 sm:h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={timeline || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted/50" vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={{ stroke: 'var(--border)' }}
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+                      }}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--background)',
+                        borderColor: 'var(--border)',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      }}
+                      labelFormatter={(value) => {
+                        const date = new Date(value);
+                        return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+                      }}
+                      formatter={(value: number) => [`${value} candidature${value > 1 ? 's' : ''}`, 'Volume']}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={{ fill: '#2563eb', r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -403,9 +435,13 @@ export function AnalyticsPage() {
                   <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                     <TrendingUp className="h-3 w-3" /> Excellent ratio (moyenne du secteur : 15%)
                   </span>
+                ) : totalApplications < 10 ? (
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-primary" /> Volume initial : chaque entretien supplémentaire fera grimper ce ratio
+                  </span>
                 ) : (
-                  <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Pensez à adapter votre CV aux mots-clés de l'offre
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Astuce : ciblez les compétences clés mentionnées dans chaque offre
                   </span>
                 )}
               </p>
@@ -430,7 +466,7 @@ export function AnalyticsPage() {
                   </span>
                 ) : (
                   <span className="text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Entraînez-vous avec le simulateur d'entretien IA
+                    <Sparkles className="h-3 w-3 text-primary" /> Entraînez-vous avec le simulateur d'entretien IA
                   </span>
                 )}
               </p>
@@ -451,7 +487,7 @@ export function AnalyticsPage() {
               <p className="text-[11px] text-muted-foreground">
                 {responseRate >= 30
                   ? 'Vos cibles d’entreprises traitent activement les candidatures reçues.'
-                  : 'N’hésitez pas à programmer des rappels de relance après 7 jours.'}
+                  : 'Astuce : activez les rappels de relance automatique après 7 jours.'}
               </p>
             </div>
 

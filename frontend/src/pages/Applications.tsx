@@ -2,6 +2,7 @@ import { useState, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { applicationsService } from '@/services/applications.service';
+import { remindersService } from '@/services/reminders.service';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,8 +83,15 @@ import {
   jobTypeLabels,
   jobTypeColors,
   STATUS_ORDER,
+  KANBAN_STATUS_ORDER,
   cn,
 } from '@/lib/utils';
+import {
+  mapStatusToKanbanColumn,
+  groupApplicationsForKanban,
+  filterAndSortApplications,
+  resolveDropStatus,
+} from '@/lib/kanban';
 import type { Application, ApplicationStatus, JobType, KanbanColumns } from '@/types';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApplicationForm } from '@/components/ApplicationForm';
@@ -124,10 +132,13 @@ export function ApplicationsPage() {
     isFetchingNextPage,
     isLoading: listLoading,
   } = useInfiniteQuery({
-    queryKey: ['applications', 'list', search],
+    queryKey: ['applications', 'list', search, jobTypeFilter],
     queryFn: ({ pageParam = 1 }) =>
       applicationsService.getAll(
-        { search: search || undefined },
+        {
+          search: search || undefined,
+          jobType: jobTypeFilter !== 'ALL' ? jobTypeFilter : undefined,
+        },
         pageParam,
         25
       ),
@@ -207,6 +218,42 @@ export function ApplicationsPage() {
         setSelectedApplication((prev) => (prev ? { ...prev, status: updated.status } : null));
       }
       toast.success('Statut mis à jour');
+
+      // Proactive follow-up proposal if moved to SENT (TICK-202)
+      if (updated?.status === 'SENT') {
+        const jPlus7 = new Date();
+        jPlus7.setDate(jPlus7.getDate() + 7);
+        const jPlus7Str = formatDate(jPlus7);
+
+        toast(`Planifier une relance pour ${updated.companyName} ?`, {
+          description: `Relance recommandée le ${jPlus7Str} (J+7)`,
+          duration: 8000,
+          action: {
+            label: 'Planifier à J+7',
+            onClick: () => {
+              const dueDate = new Date();
+              dueDate.setDate(dueDate.getDate() + 7);
+              dueDate.setHours(9, 0, 0, 0);
+              remindersService
+                .create({
+                  applicationId: updated.id,
+                  title: `Relancer ${updated.companyName}`,
+                  description: `Relance suite à candidature pour le poste de ${updated.position}`,
+                  type: 'FOLLOW_UP',
+                  dueDate: dueDate.toISOString(),
+                })
+                .then(() => {
+                  queryClient.invalidateQueries({ queryKey: ['reminders'] });
+                  queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+                  toast.success(`Rappel de relance planifié pour ${updated.companyName} !`);
+                })
+                .catch(() => {
+                  toast.error('Erreur lors de la création du rappel');
+                });
+            },
+          },
+        });
+      }
     },
   });
 
@@ -261,6 +308,10 @@ export function ApplicationsPage() {
     return closestCorners(args);
   };
 
+  const streamlinedKanban = useMemo(() => {
+    return groupApplicationsForKanban(kanbanData);
+  }, [kanbanData]);
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   };
@@ -272,24 +323,7 @@ export function ApplicationsPage() {
     if (!over) return;
 
     const applicationId = active.id as string;
-
-    // Detect target status from over data or over.id
-    let newStatus: ApplicationStatus | null = null;
-
-    if (over.data?.current?.status) {
-      newStatus = over.data.current.status as ApplicationStatus;
-    } else if (over.data?.current?.type === 'Column') {
-      newStatus = over.id as ApplicationStatus;
-    } else if (STATUS_ORDER.includes(over.id as ApplicationStatus)) {
-      newStatus = over.id as ApplicationStatus;
-    } else if (kanbanData) {
-      for (const [colStatus, apps] of Object.entries(kanbanData)) {
-        if (apps.some((app: Application) => app.id === over.id)) {
-          newStatus = colStatus as ApplicationStatus;
-          break;
-        }
-      }
-    }
+    const newStatus = resolveDropStatus(over as any, kanbanData);
 
     if (!newStatus) return;
 
@@ -306,12 +340,15 @@ export function ApplicationsPage() {
       }
     }
 
-    if (currentStatus && currentStatus !== newStatus) {
-      if (!isEmailVerified) {
-        toast.error('Veuillez vérifier votre adresse email pour modifier vos candidatures');
-        return;
+    if (currentStatus) {
+      const currentCanonical = mapStatusToKanbanColumn(currentStatus);
+      if (currentCanonical !== newStatus) {
+        if (!isEmailVerified) {
+          toast.error('Veuillez vérifier votre adresse email pour modifier vos candidatures');
+          return;
+        }
+        updateStatusMutation.mutate({ id: applicationId, status: newStatus });
       }
-      updateStatusMutation.mutate({ id: applicationId, status: newStatus });
     }
   };
 
@@ -506,13 +543,13 @@ export function ApplicationsPage() {
           onDragEnd={handleDragEnd}
         >
           {isDesktop ? (
-            /* Desktop full columns */
-            <div className="flex gap-4 overflow-x-auto pb-4 items-stretch min-h-[calc(100vh-280px)]">
-              {STATUS_ORDER.map((status) => (
+            /* Desktop full columns (5 streamlined columns fitting laptop screens without scroll) */
+            <div className="flex gap-3.5 overflow-x-auto xl:overflow-x-visible pb-4 items-stretch min-h-[calc(100vh-280px)]">
+              {KANBAN_STATUS_ORDER.map((status) => (
                 <KanbanColumn
                   key={status}
                   status={status}
-                  applications={kanbanData[status] || []}
+                  applications={streamlinedKanban[status] || []}
                   search={search}
                   jobTypeFilter={jobTypeFilter}
                   sortBy={sortBy}
@@ -527,8 +564,8 @@ export function ApplicationsPage() {
             <div className="space-y-3">
               {/* Mobile column tabs */}
               <div className="overflow-x-auto pb-2 flex gap-1.5 scrollbar-none">
-                {STATUS_ORDER.map((status) => {
-                  const count = (kanbanData[status] || []).length;
+                {KANBAN_STATUS_ORDER.map((status) => {
+                  const count = (streamlinedKanban[status] || []).length;
                   const isActive = mobileActiveColumn === status;
                   return (
                     <button
@@ -551,7 +588,7 @@ export function ApplicationsPage() {
 
               <KanbanColumn
                 status={mobileActiveColumn}
-                applications={kanbanData[mobileActiveColumn] || []}
+                applications={streamlinedKanban[mobileActiveColumn] || []}
                 search={search}
                 jobTypeFilter={jobTypeFilter}
                 sortBy={sortBy}
@@ -888,54 +925,35 @@ export function ApplicationsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog (TICK-104: streamlined single confirmation) */}
       <Dialog open={!!applicationToDelete} onOpenChange={() => setApplicationToDelete(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Supprimer la candidature</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer cette candidature pour <strong>{applicationToDelete?.companyName}</strong> ?
+              Êtes-vous sûr de vouloir supprimer votre candidature chez{' '}
+              <strong>{applicationToDelete?.companyName}</strong>
+              {applicationToDelete?.position ? ` (poste : ${applicationToDelete.position})` : ''} ?
               Cette action est irréversible.
             </DialogDescription>
           </DialogHeader>
 
-          {applicationToDelete?.companyId ? (
-            <div className="py-3">
-              <p className="text-sm text-muted-foreground mb-4">
-                Cette candidature est rattachée à l'entreprise <strong>{applicationToDelete.companyName}</strong>.
-                Souhaitez-vous également supprimer l'entreprise de votre carnet si elle n'a plus d'autre candidature ?
-              </p>
-              <div className="flex flex-col gap-2">
-                <Button
-                  variant="destructive"
-                  onClick={() => confirmDelete(true)}
-                  disabled={deleteMutation.isPending}
-                >
-                  Supprimer la candidature et l'entreprise
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => confirmDelete(false)}
-                  disabled={deleteMutation.isPending}
-                >
-                  Supprimer uniquement la candidature
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setApplicationToDelete(null)}>
-                Annuler
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => confirmDelete(false)}
-                disabled={deleteMutation.isPending}
-              >
-                Supprimer
-              </Button>
-            </DialogFooter>
-          )}
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setApplicationToDelete(null)}
+              disabled={deleteMutation.isPending}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => confirmDelete(false)}
+              disabled={deleteMutation.isPending}
+            >
+              Supprimer
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
@@ -974,35 +992,16 @@ function KanbanColumn({
     },
   });
 
-  const filteredApps = useMemo(() => {
-    let list = applications.filter((app) => {
-      const matchSearch =
-        !search ||
-        app.companyName.toLowerCase().includes(search.toLowerCase()) ||
-        app.position.toLowerCase().includes(search.toLowerCase()) ||
-        (app.location && app.location.toLowerCase().includes(search.toLowerCase()));
-
-      const matchType = jobTypeFilter === 'ALL' || app.jobType === jobTypeFilter;
-
-      return matchSearch && matchType;
-    });
-
-    if (sortBy === 'date_desc') {
-      list.sort((a, b) => new Date(b.applicationDate).getTime() - new Date(a.applicationDate).getTime());
-    } else if (sortBy === 'date_asc') {
-      list.sort((a, b) => new Date(a.applicationDate).getTime() - new Date(b.applicationDate).getTime());
-    } else if (sortBy === 'company') {
-      list.sort((a, b) => a.companyName.localeCompare(b.companyName));
-    }
-
-    return list;
-  }, [applications, search, jobTypeFilter, sortBy]);
+  const filteredApps = useMemo(
+    () => filterAndSortApplications(applications, search, jobTypeFilter, sortBy),
+    [applications, search, jobTypeFilter, sortBy]
+  );
 
   return (
     <div
       className={cn(
         'flex-shrink-0 flex flex-col',
-        isMobileView ? 'w-full' : 'w-72 sm:w-80'
+        isMobileView ? 'w-full' : 'w-72 xl:w-auto xl:flex-1 min-w-[210px]'
       )}
     >
       {/* Column Header */}
@@ -1182,6 +1181,11 @@ function ApplicationCard({ application, isGhost, isOverlay, onClick, onDelete }:
           <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-medium', jobTypeColors[application.jobType])}>
             {jobTypeLabels[application.jobType]}
           </span>
+          {['VIEWED', 'AWAITING_RESPONSE', 'GHOSTED'].includes(application.status) && (
+            <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-medium', statusColors[application.status])}>
+              {statusLabels[application.status]}
+            </span>
+          )}
           {application.location && (
             <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
               <MapPin className="h-3 w-3 flex-shrink-0" />

@@ -55,6 +55,8 @@ export {
   REMINDER_TYPE_LABELS,
   REMINDER_TYPE_COLORS,
   STATUS_ORDER,
+  KANBAN_STATUS_ORDER,
+  ALL_STATUSES,
   JOB_TYPE_OPTIONS,
   STATUS_OPTIONS,
   // CamelCase aliases for backwards compatibility

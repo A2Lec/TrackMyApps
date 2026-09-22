@@ -27,6 +27,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -43,13 +44,45 @@ import {
   AlertCircle,
   X,
   Mail,
+  ExternalLink,
+  Sparkles,
+  Download,
   Check,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useSearchParams, Link } from 'react-router-dom';
+import { applicationsService } from '@/services/applications.service';
+import { FollowUpTemplatesDialog } from '@/components/FollowUpTemplatesDialog';
+import { RemindersCalendarView } from '@/components/RemindersCalendarView';
+import {
+  generateIcsContent,
+  downloadIcsFile,
+  getGoogleCalendarUrl,
+  getOutlookCalendarUrl,
+} from '@/lib/calendarExport';
 import { formatDateTime, cn, reminderTypeLabels, reminderTypeColors } from '@/lib/utils';
-import type { Reminder, ReminderType } from '@/types';
+import type { Reminder, ReminderType, Application } from '@/types';
+
+function getReminderCalendarEvent(reminder: Reminder) {
+  return {
+    title: reminder.title,
+    description:
+      reminder.description ||
+      (reminder.application
+        ? `Poste : ${reminder.application.position} chez ${reminder.application.companyName}`
+        : undefined),
+    startDate: new Date(reminder.dueDate),
+    durationMinutes: 30,
+  };
+}
 
 export function RemindersPage() {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialView = searchParams.get('view') === 'calendar' ? 'calendar' : 'list';
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>(initialView);
+  const [showTemplatesDialog, setShowTemplatesDialog] = useState(false);
+
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<ReminderType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all');
@@ -61,6 +94,7 @@ export function RemindersPage() {
     type: 'FOLLOW_UP' as ReminderType,
     dueDate: '',
     dueTime: '09:00',
+    applicationId: 'none',
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -135,6 +169,44 @@ export function RemindersPage() {
     },
   });
 
+  // Fetch applications for association (TICK-201)
+  const { data: applicationsData } = useQuery({
+    queryKey: ['applications', 'all-list'],
+    queryFn: () => applicationsService.getAll({}, 1, 100),
+  });
+  const applications = applicationsData?.data || [];
+
+  // Detect applications needing follow-up (TICK-202)
+  const suggestedFollowUps = useMemo(() => {
+    if (!applications || !reminders) return [];
+    const now = new Date();
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(now.getDate() - 5);
+
+    return applications.filter((app) => {
+      if (!['SENT', 'VIEWED', 'INTERVIEW_SCHEDULED'].includes(app.status)) return false;
+      const appDate = new Date(app.applicationDate);
+      if (appDate > fiveDaysAgo) return false;
+
+      const hasActiveReminder = reminders.some((r) => r.applicationId === app.id && !r.isCompleted);
+      return !hasActiveReminder;
+    });
+  }, [applications, reminders]);
+
+  const handleQuickFollowUp = (app: Application) => {
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 7);
+    dueDate.setHours(9, 0, 0, 0);
+
+    createMutation.mutate({
+      title: `Relancer ${app.companyName}`,
+      description: `Relance suite à candidature pour le poste de ${app.position}`,
+      type: 'FOLLOW_UP',
+      dueDate: dueDate.toISOString(),
+      applicationId: app.id,
+    });
+  };
+
   const closeDialog = () => {
     setShowCreateDialog(false);
     setEditingReminder(null);
@@ -144,18 +216,25 @@ export function RemindersPage() {
       type: 'FOLLOW_UP',
       dueDate: '',
       dueTime: '09:00',
+      applicationId: 'none',
     });
   };
 
-  const openCreateDialog = () => {
+  const openCreateDialog = (preselectedAppId?: string) => {
     const today = new Date().toISOString().split('T')[0];
     setEditingReminder(null);
+    let title = '';
+    if (preselectedAppId) {
+      const app = applications.find((a) => a.id === preselectedAppId);
+      if (app) title = `Relancer ${app.companyName}`;
+    }
     setFormData({
-      title: '',
+      title,
       description: '',
       type: 'FOLLOW_UP',
       dueDate: today,
       dueTime: '09:00',
+      applicationId: preselectedAppId || 'none',
     });
     setShowCreateDialog(true);
   };
@@ -169,6 +248,7 @@ export function RemindersPage() {
       type: reminder.type as ReminderType,
       dueDate: date.toISOString().split('T')[0],
       dueTime: date.toTimeString().slice(0, 5),
+      applicationId: reminder.applicationId || 'none',
     });
     setShowCreateDialog(true);
   };
@@ -182,6 +262,7 @@ export function RemindersPage() {
       description: formData.description || undefined,
       type: formData.type,
       dueDate: dueDate.toISOString(),
+      applicationId: formData.applicationId !== 'none' ? formData.applicationId : undefined,
     };
 
     if (editingReminder) {
@@ -189,6 +270,17 @@ export function RemindersPage() {
     } else {
       createMutation.mutate(data);
     }
+  };
+
+  const handleExportAllIcs = () => {
+    if (!reminders || reminders.length === 0) {
+      toast.info('Aucun rappel à exporter');
+      return;
+    }
+    const events = reminders.map(getReminderCalendarEvent);
+    const icsContent = generateIcsContent(events);
+    downloadIcsFile('trackmyapps-rappels.ics', icsContent);
+    toast.success(`${reminders.length} rappel(s) exporté(s) au format .ics`);
   };
 
   const filteredReminders = useMemo(() => {
@@ -291,14 +383,114 @@ export function RemindersPage() {
           </p>
         </div>
 
-        <Button onClick={openCreateDialog} className="h-9 px-4 text-xs font-semibold shadow-xs">
-          <Plus className="mr-1.5 h-4 w-4" />
-          Nouveau rappel
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* View mode toggle (TICK-204) */}
+          <div className="flex items-center bg-muted/70 p-0.5 rounded-lg border text-xs">
+            <button
+              onClick={() => {
+                setViewMode('list');
+                setSearchParams({});
+              }}
+              className={cn(
+                'px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5',
+                viewMode === 'list'
+                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Bell className="h-3.5 w-3.5" />
+              Vue Liste
+            </button>
+            <button
+              onClick={() => {
+                setViewMode('calendar');
+                setSearchParams({ view: 'calendar' });
+              }}
+              className={cn(
+                'px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5',
+                viewMode === 'calendar'
+                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              Vue Calendrier
+            </button>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportAllIcs}
+            className="h-9 px-3 text-xs font-semibold"
+            title="Télécharger tous les rappels dans un fichier .ics pour Google Agenda, Apple ou Outlook"
+          >
+            <Download className="mr-1.5 h-3.5 w-3.5" />
+            Exporter .ics
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowTemplatesDialog(true)}
+            className="h-9 px-3 text-xs font-semibold"
+          >
+            <Sparkles className="mr-1.5 h-3.5 w-3.5 text-primary" />
+            Modèles d'emails
+          </Button>
+
+          <Button onClick={() => openCreateDialog()} className="h-9 px-4 text-xs font-semibold shadow-xs">
+            <Plus className="mr-1.5 h-4 w-4" />
+            Nouveau rappel
+          </Button>
+        </div>
       </div>
 
-      {/* Sober KPI Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full min-w-0">
+      {viewMode === 'calendar' ? (
+        <RemindersCalendarView onNewReminder={() => openCreateDialog()} />
+      ) : (
+        <>
+          {/* Smart Follow-Up Banner (TICK-202) */}
+          {suggestedFollowUps.length > 0 && (
+            <Card className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-amber-500/20 shadow-xs">
+              <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold text-foreground">
+                      {suggestedFollowUps.length} relance{suggestedFollowUps.length > 1 ? 's' : ''} suggérée{suggestedFollowUps.length > 1 ? 's' : ''} cette semaine
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Des candidatures envoyées il y a plus de 5 jours n'ont pas encore reçu de réponse ni de rappel.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap self-end sm:self-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowTemplatesDialog(true)}
+                    className="h-8 text-xs font-medium border-amber-500/30 text-amber-800 dark:text-amber-300"
+                  >
+                    Voir les modèles d'email
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleQuickFollowUp(suggestedFollowUps[0])}
+                    className="h-8 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
+                  >
+                    Planifier pour {suggestedFollowUps[0].companyName} (J+7)
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Sober KPI Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full min-w-0">
         <div className="p-3.5 rounded-lg border border-border/70 bg-card/50 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Total rappels</span>
@@ -590,7 +782,7 @@ export function RemindersPage() {
                 : 'Créez un rappel pour suivre vos relances et échéances en toute sérénité.'}
             </p>
             {(!search && typeFilter === 'all' && statusFilter === 'all') && (
-              <Button onClick={openCreateDialog} size="sm" className="mt-4 text-xs">
+              <Button onClick={() => openCreateDialog()} size="sm" className="mt-4 text-xs">
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Créer un rappel
               </Button>
@@ -598,6 +790,14 @@ export function RemindersPage() {
           </div>
         )}
       </div>
+      </>
+      )}
+
+      {/* Follow-up Templates Dialog (TICK-202) */}
+      <FollowUpTemplatesDialog
+        open={showTemplatesDialog}
+        onOpenChange={setShowTemplatesDialog}
+      />
 
       {/* Dialog for Create & Edit */}
       <Dialog open={showCreateDialog} onOpenChange={closeDialog}>
@@ -614,6 +814,38 @@ export function RemindersPage() {
           </DialogHeader>
 
           <div className="space-y-4 py-2">
+            {/* Application selector (TICK-201) */}
+            <div className="space-y-1.5">
+              <Label htmlFor="applicationId" className="text-xs font-medium">
+                Candidature associée (optionnel)
+              </Label>
+              <Select
+                value={formData.applicationId}
+                onValueChange={(val) => {
+                  setFormData((prev) => {
+                    const next = { ...prev, applicationId: val };
+                    if (val !== 'none' && !prev.title) {
+                      const app = applications.find((a) => a.id === val);
+                      if (app) next.title = `Relancer ${app.companyName}`;
+                    }
+                    return next;
+                  });
+                }}
+              >
+                <SelectTrigger id="applicationId" className="h-9 text-xs">
+                  <SelectValue placeholder="Aucune (Rappel général)" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  <SelectItem value="none">Aucune (Rappel général)</SelectItem>
+                  {applications.map((app) => (
+                    <SelectItem key={app.id} value={app.id}>
+                      {app.companyName} — {app.position}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="title" className="text-xs font-medium">Titre *</Label>
               <Input
@@ -792,13 +1024,29 @@ function ReminderItemCard({
                 <Calendar className="h-3 w-3" />
                 {formatDateTime(reminder.dueDate)}
               </span>
-
-              {reminder.application && (
-                <span className="truncate text-muted-foreground/80">
-                  {reminder.application.companyName} • {reminder.application.position}
-                </span>
-              )}
             </div>
+
+            {reminder.application && (
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/40 text-xs">
+                <div className="h-6 w-6 rounded bg-primary/10 text-primary font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+                  {reminder.application.companyName.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1 truncate">
+                  <span className="font-semibold text-foreground mr-1.5">
+                    {reminder.application.companyName}
+                  </span>
+                  <span className="text-muted-foreground text-[11px]">
+                    {reminder.application.position}
+                  </span>
+                </div>
+                <Link
+                  to={`/applications/${reminder.application.id}`}
+                  className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium flex-shrink-0"
+                >
+                  Voir la candidature <ExternalLink className="h-3 w-3" />
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Actions & Checkbox selection */}
@@ -830,6 +1078,37 @@ function ReminderItemCard({
                   <Edit className="mr-2 h-3.5 w-3.5" />
                   Modifier
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    const event = getReminderCalendarEvent(reminder);
+                    window.open(getGoogleCalendarUrl(event), '_blank');
+                  }}
+                >
+                  <Calendar className="mr-2 h-3.5 w-3.5 text-blue-500" />
+                  Google Agenda
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const event = getReminderCalendarEvent(reminder);
+                    window.open(getOutlookCalendarUrl(event), '_blank');
+                  }}
+                >
+                  <Calendar className="mr-2 h-3.5 w-3.5 text-sky-600" />
+                  Outlook
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const event = getReminderCalendarEvent(reminder);
+                    const ics = generateIcsContent([event]);
+                    downloadIcsFile(`${reminder.title.replace(/[^a-zA-Z0-9]/g, '_')}.ics`, ics);
+                    toast.success('Fichier .ics téléchargé');
+                  }}
+                >
+                  <Download className="mr-2 h-3.5 w-3.5" />
+                  Télécharger .ics
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={onDelete}>
                   <Trash2 className="mr-2 h-3.5 w-3.5" />
                   Supprimer

@@ -2,8 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Briefcase,
+  Bell,
   Sparkles,
-  Calendar,
   Menu,
 } from 'lucide-react';
 import { useUIStore } from '@/store/uiStore';
@@ -27,6 +27,12 @@ export function BottomNav() {
       isActive: location.pathname.startsWith('/applications'),
     },
     {
+      name: 'Rappels',
+      href: '/reminders',
+      icon: Bell,
+      isActive: location.pathname.startsWith('/reminders'),
+    },
+    {
       name: 'Entretiens',
       href: '/interview-prep',
       icon: Sparkles,
@@ -34,12 +40,6 @@ export function BottomNav() {
         location.pathname.startsWith('/interview-prep') ||
         location.pathname.startsWith('/interview-simulation'),
       badge: 'IA',
-    },
-    {
-      name: 'Calendrier',
-      href: '/calendar',
-      icon: Calendar,
-      isActive: location.pathname === '/calendar',
     },
   ];
 

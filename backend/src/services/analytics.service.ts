@@ -116,6 +116,38 @@ export const analyticsService = {
     const sixMonthsAgo = new Date(now);
     sixMonthsAgo.setMonth(now.getMonth() - 6);
 
+    const getMonthlyApplications = async () => {
+      try {
+        return await prisma.$queryRaw<Array<{ month: Date; count: number }>>`
+          SELECT 
+            DATE_TRUNC('month', "applicationDate") as month,
+            COUNT(*)::int as count
+          FROM applications
+          WHERE "userId" = ${userId}
+            AND "applicationDate" >= ${sixMonthsAgo}
+          GROUP BY DATE_TRUNC('month', "applicationDate")
+          ORDER BY month ASC
+        `;
+      } catch {
+        const apps = await prisma.application.findMany({
+          where: {
+            userId,
+            applicationDate: { gte: sixMonthsAgo },
+          },
+          select: { applicationDate: true },
+        });
+        const monthMap = new Map<string, number>();
+        for (const app of apps) {
+          const d = new Date(app.applicationDate);
+          const key = new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
+          monthMap.set(key, (monthMap.get(key) || 0) + 1);
+        }
+        return Array.from(monthMap.entries())
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([m, count]) => ({ month: new Date(m), count }));
+      }
+    };
+
     const [
       applicationsByMonth,
       byJobType,
@@ -123,17 +155,7 @@ export const analyticsService = {
       topCompanies,
       allApplications,
     ] = await Promise.all([
-      // Applications by month (last 6 months)
-      prisma.$queryRaw`
-        SELECT 
-          DATE_TRUNC('month', "applicationDate") as month,
-          COUNT(*)::int as count
-        FROM applications
-        WHERE "userId" = ${userId}
-          AND "applicationDate" >= ${sixMonthsAgo}
-        GROUP BY DATE_TRUNC('month', "applicationDate")
-        ORDER BY month ASC
-      ` as Promise<{ month: Date; count: number }[]>,
+      getMonthlyApplications(),
 
       // By job type
       prisma.application.groupBy({

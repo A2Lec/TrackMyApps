@@ -25,7 +25,12 @@ export const analyticsController = {
   exportData: asyncHandler(async (req: AuthRequest, res: Response) => {
     const data = await analyticsService.exportData(req.userId!);
 
-    // Convert to CSV format
+    const escapeCsvField = (field: unknown): string => {
+      if (field === null || field === undefined) return '""';
+      const str = String(field);
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+
     const headers = [
       'Entreprise',
       'Poste',
@@ -43,15 +48,18 @@ export const analyticsController = {
       app.jobType,
       app.location,
       app.status,
-      app.applicationDate.toISOString().split('T')[0],
+      app.applicationDate ? new Date(app.applicationDate).toISOString().split('T')[0] : '',
       app.salary || '',
-      (app.notes || '').replace(/,/g, ';'),
+      app.notes || '',
     ]);
 
-    const csv = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+    const csv = '\uFEFF' + [
+      headers.map(escapeCsvField).join(','),
+      ...rows.map(row => row.map(escapeCsvField).join(',')),
+    ].join('\r\n');
 
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=candidatures.csv');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="candidatures.csv"');
     res.send(csv);
   }),
 

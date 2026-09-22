@@ -15,7 +15,9 @@ router.use((req, res, next) => {
 router.use(authMiddleware);
 
 router.post('/start', interviewSimulationController.startSession);
+router.get('/sessions', interviewSimulationController.getAllUserSessions);
 router.get('/application/:applicationId', interviewSimulationController.getSessionsByApplication);
+router.post('/:sessionId/complete', interviewSimulationController.completeSession);
 router.post('/:sessionId/message', interviewSimulationController.sendMessage);
 router.get('/:sessionId', interviewSimulationController.getSession);
 router.delete('/:sessionId', interviewSimulationController.deleteSession);

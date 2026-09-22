@@ -34,7 +34,10 @@ interface ApplicationFilters {
 
 export const applicationService = {
   async getAll(userId: string, filters: ApplicationFilters = {}, page: number = 1, limit: number = 20) {
-    const where: Prisma.ApplicationWhereInput = { userId };
+    const where: Prisma.ApplicationWhereInput = {
+      userId,
+      NOT: { notes: { contains: '[PRACTICE_MODE]' } },
+    };
 
     if (filters.status) {
       where.status = filters.status;
@@ -226,7 +229,7 @@ export const applicationService = {
           companyName: data.companyName,
           position: data.position,
           jobType: data.jobType,
-          location: data.location,
+          location: data.location?.trim() || 'Non précisée',
           status: data.status || 'SENT',
           applicationDate: data.applicationDate || new Date(),
           jobUrl: data.jobUrl,
@@ -275,12 +278,40 @@ export const applicationService = {
     }
 
     // Check if status changed
-    const statusChanged = data.status && data.status !== existing.status;
+    let companyId = data.companyId !== undefined ? data.companyId : existing.companyId;
+    const normalizedCompanyName = data.companyName?.trim();
+
+    if (normalizedCompanyName && normalizedCompanyName !== existing.companyName) {
+      const existingCompany = await prisma.company.findFirst({
+        where: {
+          name: { equals: normalizedCompanyName, mode: 'insensitive' },
+          userId,
+        },
+      });
+
+      if (existingCompany) {
+        companyId = existingCompany.id;
+      } else {
+        const newCompany = await prisma.company.create({
+          data: {
+            name: normalizedCompanyName,
+            userId,
+            location: data.location || existing.location,
+          },
+        });
+        companyId = newCompany.id;
+      }
+    }
+
+    const statusChanged = Boolean(data.status && data.status !== existing.status);
 
     const application = await prisma.application.update({
       where: { id },
       data: {
         ...data,
+        ...(normalizedCompanyName ? { companyName: normalizedCompanyName } : {}),
+        ...(data.location !== undefined ? { location: data.location?.trim() || 'Non précisée' } : {}),
+        companyId,
         updatedAt: new Date(),
       },
       include: {
@@ -418,7 +449,10 @@ export const applicationService = {
 
   async getByStatus(userId: string) {
     const applications = await prisma.application.findMany({
-      where: { userId },
+      where: {
+        userId,
+        NOT: { notes: { contains: '[PRACTICE_MODE]' } },
+      },
       include: {
         company: true,
         reminders: {

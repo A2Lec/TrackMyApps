@@ -21,12 +21,22 @@ export const documentService = {
   async getAll(userId: string, type?: DocumentType) {
     const where: Prisma.DocumentWhereInput = { userId };
     if (type) {
-      where.type = type;
+      if (type === 'COVER_LETTER' || type === 'LETTRE_MOTIVATION') {
+        where.type = { in: ['COVER_LETTER', 'LETTRE_MOTIVATION'] };
+      } else {
+        where.type = type;
+      }
     }
 
     const documents = await prisma.document.findMany({
       where,
       include: {
+        applicationsCV: {
+          select: { id: true, companyName: true, position: true },
+        },
+        applicationsLM: {
+          select: { id: true, companyName: true, position: true },
+        },
         _count: {
           select: {
             applicationsCV: true,
@@ -37,10 +47,22 @@ export const documentService = {
       orderBy: { createdAt: 'desc' },
     });
 
-    return documents.map(doc => ({
-      ...doc,
-      usageCount: doc._count.applicationsCV + doc._count.applicationsLM,
-    }));
+    return documents.map(doc => {
+      const companies = Array.from(
+        new Set([
+          ...doc.applicationsCV.map(a => a.companyName),
+          ...doc.applicationsLM.map(a => a.companyName),
+        ])
+      ).filter(Boolean);
+
+      return {
+        ...doc,
+        type: doc.type === 'COVER_LETTER' ? 'LETTRE_MOTIVATION' : doc.type,
+        usageCount: doc._count.applicationsCV + doc._count.applicationsLM,
+        companies,
+        applications: [...doc.applicationsCV, ...doc.applicationsLM],
+      };
+    });
   },
 
   async getById(userId: string, id: string) {
@@ -64,10 +86,12 @@ export const documentService = {
   },
 
   async create(userId: string, data: CreateDocumentData) {
+    const normalizedType = data.type === 'COVER_LETTER' ? 'LETTRE_MOTIVATION' : data.type;
+
     // If setting as default, unset other default documents of same type
     if (data.isDefault) {
       await prisma.document.updateMany({
-        where: { userId, type: data.type, isDefault: true },
+        where: { userId, type: normalizedType, isDefault: true },
         data: { isDefault: false },
       });
     }
@@ -76,6 +100,7 @@ export const documentService = {
       data: {
         userId,
         ...data,
+        type: normalizedType,
       },
     });
 

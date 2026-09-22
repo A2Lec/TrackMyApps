@@ -152,30 +152,34 @@ describe('Page: DashboardPage', () => {
     });
   });
 
-  it('renders SaaS KPI cards with correct metric values', async () => {
+  it('renders operational action-plan KPI cards with correct metric values', async () => {
     renderWithProviders(<DashboardPage />);
 
     await waitFor(() => {
-      // Total candidatures: 12 (appears in KPI and funnel)
+      // Candidatures actives
+      expect(screen.getByText('Candidatures actives')).toBeInTheDocument();
       expect(screen.getAllByText('12').length).toBeGreaterThanOrEqual(1);
-      // Taux de réponse: 25%
-      expect(screen.getAllByText('25%').length).toBeGreaterThanOrEqual(1);
-      // Entretiens prévus: 2
-      expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1);
-      // Offres décrochées: 1
+
+      // Relances à effectuer
+      expect(screen.getByText('Relances à effectuer')).toBeInTheDocument();
+
+      // Prochain entretien
+      expect(screen.getByText('Prochain entretien')).toBeInTheDocument();
+
+      // Offres & Réussites
+      expect(screen.getByText('Offres & Réussites')).toBeInTheDocument();
       expect(screen.getAllByText('1').length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  it('renders global status breakdown overview with proper labels', async () => {
+  it('renders Plan d action du jour card, agenda export, and quick action CTAs', async () => {
     renderWithProviders(<DashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Répartition globale')).toBeInTheDocument();
-      expect(screen.getByText('Brouillon')).toBeInTheDocument();
-      expect(screen.getByText('Envoyée')).toBeInTheDocument();
-      expect(screen.getAllByText('Entretien').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Acceptée')).toBeInTheDocument();
+      expect(screen.getByText("Plan d'action du jour")).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Simulateur IA/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Nouvelle candidature/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Ajouter à mon agenda/i })).toBeInTheDocument();
     });
   });
 

@@ -49,9 +49,8 @@ export const applicationValidation = [
     .isIn(['STAGE', 'ALTERNANCE', 'CDI', 'JOB_ETUDIANT'])
     .withMessage('Type de poste invalide'),
   body('location')
-    .trim()
-    .notEmpty()
-    .withMessage('La localisation est requise'),
+    .optional({ checkFalsy: true })
+    .trim(),
 ];
 
 export const updateStatusValidation = [
@@ -66,7 +65,7 @@ export const documentValidation = [
     .notEmpty()
     .withMessage('Le nom du document est requis'),
   body('type')
-    .isIn(['CV', 'LETTRE_MOTIVATION'])
+    .isIn(['CV', 'LETTRE_MOTIVATION', 'COVER_LETTER', 'PORTFOLIO', 'OTHER'])
     .withMessage('Type de document invalide'),
 ];
 
@@ -84,6 +83,10 @@ export const reminderValidation = [
   body('description')
     .optional()
     .trim(),
+  body('applicationId')
+    .optional({ checkFalsy: true })
+    .isUUID()
+    .withMessage('ID de candidature invalide'),
 ];
 
 export const companyReviewValidation = [

@@ -6,14 +6,10 @@ import {
   LayoutDashboard,
   FileText,
   Bell,
-  BarChart3,
-  Calendar,
-  Building2,
-  Settings,
-  MessageSquare,
   ChevronLeft,
   ChevronRight,
   Briefcase,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -21,13 +17,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Candidatures', href: '/applications', icon: Briefcase },
-  { name: 'Documents', href: '/documents', icon: FileText },
   { name: 'Rappels', href: '/reminders', icon: Bell },
-  { name: 'Statistiques', href: '/analytics', icon: BarChart3 },
-  { name: 'Calendrier', href: '/calendar', icon: Calendar },
-  { name: 'Entreprises', href: '/companies', icon: Building2 },
-  { name: 'Entretiens', href: '/interview-prep', icon: MessageSquare },
-  { name: 'Paramètres', href: '/settings', icon: Settings },
+  { name: 'Entraînement IA', href: '/interview-prep', icon: Sparkles },
+  { name: 'Documents', href: '/documents', icon: FileText },
 ];
 
 export function Sidebar() {

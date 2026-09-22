@@ -101,7 +101,15 @@ export const REMINDER_TYPE_COLORS: Record<ReminderType, string> = {
   OTHER: 'bg-zinc-100 text-zinc-700 border border-zinc-200/80 dark:bg-zinc-800/70 dark:text-zinc-300 dark:border-zinc-700/80',
 };
 
-export const STATUS_ORDER: ApplicationStatus[] = [
+export const KANBAN_STATUS_ORDER: ApplicationStatus[] = [
+  'DRAFT',
+  'SENT',
+  'INTERVIEW_SCHEDULED',
+  'ACCEPTED',
+  'REJECTED',
+];
+
+export const ALL_STATUSES: ApplicationStatus[] = [
   'DRAFT',
   'SENT',
   'VIEWED',
@@ -111,6 +119,8 @@ export const STATUS_ORDER: ApplicationStatus[] = [
   'ACCEPTED',
   'GHOSTED',
 ];
+
+export const STATUS_ORDER: ApplicationStatus[] = ALL_STATUSES;
 
 export const JOB_TYPE_OPTIONS = [
   { value: 'STAGE' as const, label: 'Stage' },

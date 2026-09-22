@@ -51,9 +51,9 @@ export type { ApplicationStatus, JobType, EventType, DocumentType, ReminderType 
 export interface ApplicationEvent {
   id: string;
   applicationId: string;
-  eventType: EventType;
+  eventType?: EventType;
   type?: EventType;
-  eventDate: string;
+  eventDate?: string;
   notes?: string;
   description?: string;
   createdAt: string;
@@ -73,6 +73,8 @@ export interface Document {
   createdAt: string;
   updatedAt: string;
   usageCount?: number;
+  companies?: string[];
+  applications?: Array<{ id: string; companyName: string; position: string }>;
 }
 
 export interface Company {

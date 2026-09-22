@@ -1,5 +1,16 @@
 import api from './api';
 
+export interface InterviewFeedback {
+  score: number;
+  strengths: string[];
+  improvements: string[];
+  idealAnswer?: {
+    question: string;
+    improvedAnswer: string;
+  };
+  summary: string;
+}
+
 export interface InterviewSession {
   id: string;
   title: string;
@@ -9,6 +20,12 @@ export interface InterviewSession {
   messages: InterviewMessage[];
   createdAt: string;
   updatedAt: string;
+  application?: {
+    id: string;
+    companyName: string;
+    position: string;
+    status: string;
+  };
   _count?: {
     messages: number;
   };
@@ -16,13 +33,17 @@ export interface InterviewSession {
 
 export interface InterviewMessage {
   id: string;
-  role: 'user' | 'model';
+  role: 'user' | 'model' | 'feedback';
   content: string;
   createdAt: string;
 }
 
-interface StartSessionData {
-  applicationId: string;
+export interface StartSessionData {
+  applicationId?: string;
+  isFreePractice?: boolean;
+  targetRole?: string;
+  contractType?: string;
+  jobDescription?: string;
   interviewerType: string;
   difficulty: string;
   cvId?: string;
@@ -40,17 +61,27 @@ export const interviewSimulationService = {
     return response.data;
   },
 
+  async completeSession(sessionId: string): Promise<InterviewFeedback> {
+    const response = await api.post(`/interview-simulation/${sessionId}/complete`);
+    return response.data;
+  },
+
   async getSession(sessionId: string): Promise<InterviewSession> {
-      const response = await api.get(`/interview-simulation/${sessionId}`);
-      return response.data;
+    const response = await api.get(`/interview-simulation/${sessionId}`);
+    return response.data;
+  },
+
+  async getAllSessions(): Promise<InterviewSession[]> {
+    const response = await api.get('/interview-simulation/sessions');
+    return response.data;
   },
 
   async getSessionsByApplication(applicationId: string): Promise<InterviewSession[]> {
-      const response = await api.get(`/interview-simulation/application/${applicationId}`);
-      return response.data;
+    const response = await api.get(`/interview-simulation/application/${applicationId}`);
+    return response.data;
   },
 
   async deleteSession(sessionId: string): Promise<void> {
-      await api.delete(`/interview-simulation/${sessionId}`);
-  }
+    await api.delete(`/interview-simulation/${sessionId}`);
+  },
 };

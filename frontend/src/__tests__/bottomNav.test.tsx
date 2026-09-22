@@ -18,8 +18,8 @@ describe('Component: BottomNav', () => {
 
     expect(screen.getByText('Accueil')).toBeInTheDocument();
     expect(screen.getByText('Candidatures')).toBeInTheDocument();
+    expect(screen.getByText('Rappels')).toBeInTheDocument();
     expect(screen.getByText('Entretiens')).toBeInTheDocument();
-    expect(screen.getByText('Calendrier')).toBeInTheDocument();
     expect(screen.getByText('Menu')).toBeInTheDocument();
     expect(screen.getByText('IA')).toBeInTheDocument(); // Badge IA on Entretiens
   });

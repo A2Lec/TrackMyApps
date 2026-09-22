@@ -22,8 +22,9 @@ interface LoginData {
 
 export const authService = {
   async register(data: RegisterData) {
+    const normalizedEmail = data.email.trim().toLowerCase();
     const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -42,6 +43,7 @@ export const authService = {
     const user = await prisma.user.create({
       data: {
         ...rest,
+        email: normalizedEmail,
         password: hashedPassword,
         fieldOfStudy: field,
         verificationToken,
@@ -69,8 +71,9 @@ export const authService = {
   },
 
   async login(data: LoginData) {
+    const normalizedEmail = data.email.trim().toLowerCase();
     const user = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
@@ -118,9 +121,16 @@ export const authService = {
   },
 
   async updateProfile(userId: string, data: Partial<RegisterData>) {
+    const allowedUpdates: Record<string, unknown> = {};
+    if (data.firstName !== undefined) allowedUpdates.firstName = data.firstName;
+    if (data.lastName !== undefined) allowedUpdates.lastName = data.lastName;
+    if (data.school !== undefined) allowedUpdates.school = data.school;
+    if (data.graduationYear !== undefined) allowedUpdates.graduationYear = data.graduationYear;
+    if (data.field !== undefined) allowedUpdates.fieldOfStudy = data.field;
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data,
+      data: allowedUpdates,
       select: {
         id: true,
         email: true,

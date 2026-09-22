@@ -12,15 +12,15 @@ export const cronController = {
 
     try {
       const now = new Date();
-      // Check for reminders due in the next minute or past due but not sent
-      // We look back 5 minutes to catch any missed ones, and forward 1 minute
-      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+      // Check for reminders due in the next minute or past due within 24h that haven't been sent yet
+      // Looking back up to 24h prevents reminders from being permanently lost if cron was delayed or paused
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const nextMinute = new Date(now.getTime() + 60 * 1000);
 
       const reminders = await prisma.reminder.findMany({
         where: {
           dueDate: {
-            gte: fiveMinutesAgo,
+            gte: oneDayAgo,
             lt: nextMinute,
           },
           isCompleted: false,
