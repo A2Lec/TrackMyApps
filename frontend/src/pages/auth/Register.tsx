@@ -49,7 +49,7 @@ export function RegisterPage() {
   const registerMutation = useMutation({
     mutationFn: authService.register,
     onSuccess: (data) => {
-      setAuth(data.user);
+      setAuth(data.user, data.token);
       navigate('/');
     },
     onError: (error: any) => {

@@ -32,17 +32,20 @@ app.use(cors({
       callback(null, true);
     } else {
       logInfo(`CORS blocked origin: ${origin} (allowed: ${raw})`, { context: 'CORS' });
-      callback(new Error('Not allowed by CORS'));
+      callback(null, false);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
 }));
 
 // Security headers
 // @ts-ignore
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: false,
+}));
 
 // Compression
 app.use(compression());
@@ -56,8 +59,11 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate limiting
-app.use(globalLimiter);
+// Rate limiting (skip preflight OPTIONS to avoid double-counting cross-origin requests)
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') return next();
+  globalLimiter(req, res, next);
+});
 
 // Request logging
 app.use((req, res, next) => {

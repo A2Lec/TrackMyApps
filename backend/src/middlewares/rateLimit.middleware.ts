@@ -19,11 +19,12 @@ export const globalLimiter = rateLimit({
   },
 });
 
-// Auth rate limiter: 5 requests per 15 minutes (for login/register)
+// Auth rate limiter: 20 requests per 15 minutes (for login/register)
 // @ts-ignore
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+  max: 20, // Limit each IP to 20 requests per windowMs
+  skipSuccessfulRequests: true, // Only count failed attempts
   standardHeaders: true,
   legacyHeaders: false,
   message: {

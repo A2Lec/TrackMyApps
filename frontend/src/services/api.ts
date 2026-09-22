@@ -5,8 +5,6 @@ import { useAuthStore } from '@/store/authStore';
 // En développement, on utilise le proxy Vite
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-console.log('[API] Configured URL:', API_URL);
-
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
@@ -15,10 +13,13 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for logging
+// Request interceptor to attach Authorization header
 api.interceptors.request.use(
   (config) => {
-    console.log(`[API] Request: ${config.method?.toUpperCase()} ${config.url}`, config);
+    const token = useAuthStore.getState().token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -29,10 +30,8 @@ api.interceptors.request.use(
 // Response interceptor for handling errors and extracting data
 api.interceptors.response.use(
   (response) => {
-    console.log(`[API] Response: ${response.status} ${response.config.url}`);
     // Check if response is HTML (likely a 404 or 500 error page from Vercel/Proxy)
     if (typeof response.data === 'string' && response.data.trim().toLowerCase().startsWith('<!doctype html')) {
-      console.error('[API] CRITICAL: Received HTML response. This usually means the API URL is incorrect or the backend is crashing/returning 404.');
       return Promise.reject(new Error('Invalid API response: Received HTML instead of JSON. Check API URL configuration.'));
     }
 
@@ -43,14 +42,12 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('[API] Error:', error);
-    if (error.response) {
-      console.error('[API] Error Data:', error.response.data);
-      console.error('[API] Error Status:', error.response.status);
-    }
-
     if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
+      // Don't logout on auth endpoints (login/register failures are expected)
+      const url = error.config?.url || '';
+      if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+        useAuthStore.getState().logout();
+      }
     }
     return Promise.reject(error);
   }

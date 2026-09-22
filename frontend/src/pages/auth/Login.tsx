@@ -21,7 +21,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 const demoCredentials = {
   email: 'user@trackmyapps.com',
-  password: 'password123',
+  password: 'Password123!',
 } as const;
 
 export function LoginPage() {
@@ -40,7 +40,7 @@ export function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: authService.login,
     onSuccess: (data) => {
-      setAuth(data.user);
+      setAuth(data.user, data.token);
       navigate('/');
     },
     onError: (error: any) => {
