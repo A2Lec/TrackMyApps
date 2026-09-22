@@ -560,12 +560,14 @@ export function ApplicationsPage() {
           </div>
 
           <DragOverlay dropAnimation={null}>
-            {activeId && getActiveApplication() && (
-              <ApplicationCard
-                application={getActiveApplication()!}
-                isOverlay
-              />
-            )}
+            {activeId && getActiveApplication() ? (
+              <div className="w-72 sm:w-80 pointer-events-none">
+                <ApplicationCard
+                  application={getActiveApplication()!}
+                  isOverlay
+                />
+              </div>
+            ) : null}
           </DragOverlay>
         </DndContext>
       )}
@@ -1085,7 +1087,7 @@ function SortableApplicationCard({ application, onClick, onDelete }: SortableApp
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Translate.toString(transform),
     transition,
   };
 
@@ -1115,9 +1117,9 @@ function ApplicationCard({ application, isGhost, isOverlay, onClick, onDelete }:
     <Card
       onClick={onClick}
       className={cn(
-        'cursor-grab active:cursor-grabbing bg-card/95 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 border-border/80 rounded-xl group relative overflow-hidden select-none',
-        isGhost && 'opacity-25 border-dashed border-primary/50 scale-[0.98]',
-        isOverlay && 'shadow-2xl rotate-1 scale-102 ring-2 ring-primary/50 border-primary bg-card z-50 cursor-grabbing'
+        'cursor-grab active:cursor-grabbing bg-card/95 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 border-border/80 rounded-xl group relative overflow-hidden select-none w-full',
+        isGhost && 'opacity-25 border-dashed border-primary/40 bg-muted/20',
+        isOverlay && 'w-72 sm:w-80 shadow-2xl rotate-1 scale-102 ring-2 ring-primary/60 border-primary bg-card z-50 cursor-grabbing pointer-events-none'
       )}
     >
       <CardContent className="p-3.5 space-y-2.5">
