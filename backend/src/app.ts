@@ -21,13 +21,17 @@ app.set('trust proxy', 1);
 // CORS configuration
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow all origins in development or if FRONTEND_URL is not set
-    // In production, allow the specific frontend URL
-    const allowedOrigin = process.env.FRONTEND_URL;
-    
-    if (!origin || !allowedOrigin || allowedOrigin === '*' || origin === allowedOrigin) {
+    const raw = process.env.FRONTEND_URL;
+    if (!origin || !raw || raw === '*') {
+      callback(null, true);
+      return;
+    }
+    const allowed = raw.replace(/\/+$/, '').toLowerCase();
+    const incoming = origin.replace(/\/+$/, '').toLowerCase();
+    if (incoming === allowed) {
       callback(null, true);
     } else {
+      logInfo(`CORS blocked origin: ${origin} (allowed: ${raw})`, { context: 'CORS' });
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -46,8 +50,7 @@ app.use(compression());
 // Cookie parser
 app.use(cookieParser());
 
-// Handle preflight requests explicitly
-app.options('*', cors());
+// Preflight is handled by the cors middleware above (preflightContinue: false by default)
 
 // Body parsing
 app.use(express.json());
