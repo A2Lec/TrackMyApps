@@ -21,7 +21,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 const demoCredentials = {
   email: 'user@trackmyapps.com',
-  password: 'Password123!',
+  password: 'password123',
 } as const;
 
 export function LoginPage() {

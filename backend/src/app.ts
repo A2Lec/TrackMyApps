@@ -19,16 +19,36 @@ const app = express();
 app.set('trust proxy', 1);
 
 // CORS configuration
-app.use(cors({
+const defaultAllowedOrigins = [
+  'https://track-myapps.vercel.app',
+  'https://trackmyapps.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5173',
+];
+
+const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
     const raw = process.env.FRONTEND_URL;
     if (!origin || !raw || raw === '*') {
       callback(null, true);
       return;
     }
-    const allowed = raw.replace(/\/+$/, '').toLowerCase();
+
     const incoming = origin.replace(/\/+$/, '').toLowerCase();
-    if (incoming === allowed) {
+    const allowed = [...defaultAllowedOrigins];
+
+    const envUrls = raw.split(',').map((u) =>
+      u.trim().replace(/^['"]|['"]$/g, '').replace(/\/+$/, '').toLowerCase()
+    );
+    allowed.push(...envUrls);
+
+    const isAllowed =
+      allowed.includes(incoming) ||
+      /^https:\/\/track-?my-?apps.*\.vercel\.app$/.test(incoming);
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       logInfo(`CORS blocked origin: ${origin} (allowed: ${raw})`, { context: 'CORS' });
@@ -37,8 +57,12 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-}));
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Origin'],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Security headers
 // @ts-ignore
