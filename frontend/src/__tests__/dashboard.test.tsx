@@ -167,15 +167,15 @@ describe('Page: DashboardPage', () => {
     });
   });
 
-  it('renders conversion funnel stages with proper labels', async () => {
+  it('renders global status breakdown overview with proper labels', async () => {
     renderWithProviders(<DashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pipeline de conversion')).toBeInTheDocument();
-      expect(screen.getByText('1. Envoyées')).toBeInTheDocument();
-      expect(screen.getByText('2. Vues')).toBeInTheDocument();
-      expect(screen.getByText('3. Entretiens')).toBeInTheDocument();
-      expect(screen.getByText('4. Offres')).toBeInTheDocument();
+      expect(screen.getByText('Répartition globale')).toBeInTheDocument();
+      expect(screen.getByText('Brouillon')).toBeInTheDocument();
+      expect(screen.getByText('Envoyée')).toBeInTheDocument();
+      expect(screen.getAllByText('Entretien').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Acceptée')).toBeInTheDocument();
     });
   });
 
