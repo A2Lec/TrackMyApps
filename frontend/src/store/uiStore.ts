@@ -27,7 +27,7 @@ const applyTheme = (theme: Theme) => {
 };
 
 // Écouter les changements de préférence système
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     const currentTheme = useUIStore.getState().theme;
     if (currentTheme === 'system') {

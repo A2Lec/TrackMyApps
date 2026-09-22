@@ -5,6 +5,7 @@ import { useUIStore } from '@/store/uiStore';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { BottomNav } from './BottomNav';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import { cn } from '@/lib/utils';
@@ -23,7 +24,7 @@ export function Layout() {
       <Header />
       <main
         className={cn(
-          'pt-16 min-h-screen transition-all duration-300 flex-1',
+          'pt-16 pb-16 lg:pb-0 min-h-screen transition-all duration-300 flex-1',
           'pl-0 lg:pl-20',
           sidebarOpen && 'lg:pl-64'
         )}
@@ -37,13 +38,14 @@ export function Layout() {
       </main>
       <div
         className={cn(
-          'transition-all duration-300',
+          'pb-16 lg:pb-0 transition-all duration-300',
           'pl-0 lg:pl-20',
           sidebarOpen && 'lg:pl-64'
         )}
       >
         <Footer />
       </div>
+      <BottomNav />
     </div>
   );
 }
