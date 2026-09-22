@@ -87,11 +87,13 @@ import {
 import type { Application, ApplicationStatus, JobType, KanbanColumns } from '@/types';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApplicationForm } from '@/components/ApplicationForm';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 export function ApplicationsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isEmailVerified = useEmailVerified();
+  const isDesktop = useMediaQuery('(min-width: 768px)');
   
   // View & Filter states
   const [view, setView] = useState<'kanban' | 'list'>('kanban');
@@ -503,61 +505,63 @@ export function ApplicationsPage() {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          {/* Mobile column tabs */}
-          <div className="md:hidden overflow-x-auto pb-2 flex gap-1.5 scrollbar-none">
-            {STATUS_ORDER.map((status) => {
-              const count = (kanbanData[status] || []).length;
-              const isActive = mobileActiveColumn === status;
-              return (
-                <button
+          {isDesktop ? (
+            /* Desktop full columns */
+            <div className="flex gap-4 overflow-x-auto pb-4 items-stretch min-h-[calc(100vh-280px)]">
+              {STATUS_ORDER.map((status) => (
+                <KanbanColumn
                   key={status}
-                  onClick={() => setMobileActiveColumn(status)}
-                  className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0',
-                    isActive
-                      ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                      : 'bg-muted/60 text-muted-foreground hover:bg-muted'
-                  )}
-                >
-                  <span className={cn('w-2 h-2 rounded-full', statusDotColors[status])} />
-                  <span>{statusLabels[status]}</span>
-                  <span className="opacity-80">({count})</span>
-                </button>
-              );
-            })}
-          </div>
+                  status={status}
+                  applications={kanbanData[status] || []}
+                  search={search}
+                  jobTypeFilter={jobTypeFilter}
+                  sortBy={sortBy}
+                  onCardClick={(app) => setSelectedApplication(app)}
+                  onDelete={handleDeleteClick}
+                  onAddClick={() => openCreateForStatus(status)}
+                />
+              ))}
+            </div>
+          ) : (
+            /* Mobile Single Column View with Tabs */
+            <div className="space-y-3">
+              {/* Mobile column tabs */}
+              <div className="overflow-x-auto pb-2 flex gap-1.5 scrollbar-none">
+                {STATUS_ORDER.map((status) => {
+                  const count = (kanbanData[status] || []).length;
+                  const isActive = mobileActiveColumn === status;
+                  return (
+                    <button
+                      key={status}
+                      onClick={() => setMobileActiveColumn(status)}
+                      className={cn(
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0',
+                        isActive
+                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                          : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                      )}
+                    >
+                      <span className={cn('w-2 h-2 rounded-full', statusDotColors[status])} />
+                      <span>{statusLabels[status]}</span>
+                      <span className="opacity-80">({count})</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-          {/* Desktop full columns & Mobile single selected column */}
-          <div className="hidden md:flex gap-4 overflow-x-auto pb-4 items-stretch min-h-[calc(100vh-280px)]">
-            {STATUS_ORDER.map((status) => (
               <KanbanColumn
-                key={status}
-                status={status}
-                applications={kanbanData[status] || []}
+                status={mobileActiveColumn}
+                applications={kanbanData[mobileActiveColumn] || []}
                 search={search}
                 jobTypeFilter={jobTypeFilter}
                 sortBy={sortBy}
                 onCardClick={(app) => setSelectedApplication(app)}
                 onDelete={handleDeleteClick}
-                onAddClick={() => openCreateForStatus(status)}
+                onAddClick={() => openCreateForStatus(mobileActiveColumn)}
+                isMobileView
               />
-            ))}
-          </div>
-
-          {/* Mobile Column View */}
-          <div className="md:hidden">
-            <KanbanColumn
-              status={mobileActiveColumn}
-              applications={kanbanData[mobileActiveColumn] || []}
-              search={search}
-              jobTypeFilter={jobTypeFilter}
-              sortBy={sortBy}
-              onCardClick={(app) => setSelectedApplication(app)}
-              onDelete={handleDeleteClick}
-              onAddClick={() => openCreateForStatus(mobileActiveColumn)}
-              isMobileView
-            />
-          </div>
+            </div>
+          )}
 
           <DragOverlay dropAnimation={null}>
             {activeId && getActiveApplication() ? (
