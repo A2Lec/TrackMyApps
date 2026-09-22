@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import routes from './routes/index.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { globalLimiter } from './middlewares/rateLimit.middleware.js';
+import { logInfo } from './utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,18 +25,10 @@ app.use(cors({
     // In production, allow the specific frontend URL
     const allowedOrigin = process.env.FRONTEND_URL;
     
-    // Log for debugging
-    if (process.env.NODE_ENV === 'production') {
-      console.log(`[CORS] Request origin: ${origin}, Allowed: ${allowedOrigin}`);
-    }
-
     if (!origin || !allowedOrigin || allowedOrigin === '*' || origin === allowedOrigin) {
       callback(null, true);
     } else {
-      // For debugging purposes, we might want to allow it temporarily or log it
-      console.warn(`[CORS] Blocked origin: ${origin}`);
-      // callback(new Error('Not allowed by CORS')); // Strict mode
-      callback(null, true); // Permissive mode for debugging
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
@@ -60,9 +53,12 @@ app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Rate limiting
+app.use(globalLimiter);
+
 // Request logging
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  logInfo(`${req.method} ${req.url}`, { context: 'Request' });
   next();
 });
 

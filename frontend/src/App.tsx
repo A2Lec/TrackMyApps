@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, Suspense, lazy, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { Toaster, toast } from 'sonner';
 import { Layout } from '@/components/layout/Layout';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { CookieConsent } from '@/components/CookieConsent';
@@ -35,6 +36,14 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       retry: 1,
       refetchOnWindowFocus: false,
+    },
+    mutations: {
+      onError: (error: any) => {
+        const message = error?.response?.data?.message
+          || error?.message
+          || 'Une erreur est survenue';
+        toast.error(message);
+      },
     },
   },
 });
@@ -189,6 +198,7 @@ function App() {
       </BrowserRouter>
       {analyticsEnabled && <Analytics />}
       <CookieConsent onAccept={handleCookieAccept} onDecline={handleCookieDecline} />
+      <Toaster richColors position="bottom-right" />
     </QueryClientProvider>
   );
 }

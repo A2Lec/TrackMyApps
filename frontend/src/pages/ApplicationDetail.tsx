@@ -42,18 +42,7 @@ import {
 import { formatDate, formatDateTime, statusLabels, statusColors, jobTypeLabels, jobTypeColors, cn } from '@/lib/utils';
 import type { Application, ApplicationStatus, JobType, EventType } from '@/types';
 import { InterviewSimulation } from '@/components/InterviewSimulation';
-
-const eventTypeLabels: Record<EventType, string> = {
-  CREATED: 'Créée',
-  SENT: 'Envoyée',
-  VIEWED: 'Consultée',
-  RELANCE_SENT: 'Relance envoyée',
-  INTERVIEW_SCHEDULED: 'Entretien planifié',
-  INTERVIEW_DONE: 'Entretien terminé',
-  REJECTED: 'Refusée',
-  ACCEPTED: 'Acceptée',
-  STATUS_CHANGED: 'Changement de statut',
-};
+import { EVENT_TYPE_LABELS } from '@/constants/labels';
 
 export function ApplicationDetailPage() {
   const { id } = useRouterParams<{ id: string }>();
@@ -129,7 +118,7 @@ export function ApplicationDetailPage() {
   });
 
   const linkDocumentsMutation = useMutation({
-    mutationFn: (data: { cvUsedId?: string; lmUsedId?: string }) => 
+    mutationFn: (data: { cvUsedId?: string | null; lmUsedId?: string | null }) =>
       applicationsService.update(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['application', id] });
@@ -151,9 +140,9 @@ export function ApplicationDetailPage() {
 
   const handleUnlinkDocument = (type: 'cv' | 'lm') => {
     if (type === 'cv') {
-      linkDocumentsMutation.mutate({ cvUsedId: null as any });
+      linkDocumentsMutation.mutate({ cvUsedId: null });
     } else {
-      linkDocumentsMutation.mutate({ lmUsedId: null as any });
+      linkDocumentsMutation.mutate({ lmUsedId: null });
     }
   };
 
@@ -238,6 +227,7 @@ export function ApplicationDetailPage() {
                     key={status}
                     variant={application.status === status ? 'default' : 'outline'}
                     size="sm"
+                    aria-pressed={application.status === status}
                     className={cn(
                       'text-xs sm:text-sm',
                       application.status === status && statusColors[status]
@@ -484,7 +474,7 @@ export function ApplicationDetailPage() {
                     <div key={event.id} className="relative pl-6">
                       <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-primary" />
                       <div>
-                        <p className="text-sm font-medium">{eventTypeLabels[event.eventType || event.type as EventType] || event.eventType}</p>
+                        <p className="text-sm font-medium">{EVENT_TYPE_LABELS[event.eventType || event.type as EventType] || event.eventType}</p>
                         {(event.notes || event.description) && (
                           <p className="text-sm text-muted-foreground">{event.notes || event.description}</p>
                         )}

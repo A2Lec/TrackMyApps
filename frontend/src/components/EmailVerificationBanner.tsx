@@ -36,18 +36,18 @@ export function EmailVerificationBanner() {
   };
 
   return (
-    <div className="bg-yellow-50 border-b border-yellow-200">
+    <div className="bg-yellow-50 dark:bg-yellow-950 border-b border-yellow-200 dark:border-yellow-800">
       <div className="px-4 py-3 md:py-4">
         <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="flex-shrink-0">
-              <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-yellow-900 mb-1">
+              <h3 className="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-1">
                 Vérification de votre adresse email requise
               </h3>
-              <p className="text-sm text-yellow-800 leading-relaxed mb-2">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200 leading-relaxed mb-2">
                 Un email de vérification a été envoyé à <span className="font-medium">{user?.email}</span>. 
                 Veuillez consulter votre boîte de réception et cliquer sur le lien de confirmation pour activer toutes les fonctionnalités de votre compte.
                 Si vous ne trouvez pas l'email, pensez à vérifier vos spams.
@@ -57,7 +57,7 @@ export function EmailVerificationBanner() {
                 size="sm"
                 onClick={handleResend}
                 disabled={isResending}
-                className="bg-yellow-100 border-yellow-300 text-yellow-900 hover:bg-yellow-200 hover:border-yellow-400 text-xs"
+                className="bg-yellow-100 border-yellow-300 text-yellow-900 hover:bg-yellow-200 hover:border-yellow-400 dark:bg-yellow-900 dark:border-yellow-700 dark:text-yellow-100 dark:hover:bg-yellow-800 dark:hover:border-yellow-600 text-xs"
               >
                 {isResending ? 'Envoi en cours...' : 'Renvoyer l\'email de vérification'}
               </Button>
@@ -67,7 +67,7 @@ export function EmailVerificationBanner() {
             variant="ghost"
             size="sm"
             onClick={() => setDismissed(true)}
-            className="text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 flex-shrink-0 self-start"
+            className="text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 dark:text-yellow-400 dark:hover:text-yellow-200 dark:hover:bg-yellow-900 flex-shrink-0 self-start"
           >
             <X className="h-4 w-4" />
           </Button>

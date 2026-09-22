@@ -26,7 +26,7 @@ export function Header() {
   const { data: reminderCount = 0 } = useQuery({
     queryKey: ['reminderCount'],
     queryFn: () => remindersService.getCount(),
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 60000, // Refresh every 60 seconds
   });
 
   const handleLogout = async () => {

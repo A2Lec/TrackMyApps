@@ -31,14 +31,24 @@ interface ApplicationStats {
   byJobType: Record<string, number>;
 }
 
+interface PaginatedApplications {
+  data: Application[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export const applicationsService = {
-  async getAll(filters: ApplicationFilters = {}): Promise<Application[]> {
+  async getAll(filters: ApplicationFilters = {}, page: number = 1, limit: number = 20): Promise<PaginatedApplications> {
     const params = new URLSearchParams();
     if (filters.status) params.append('status', filters.status);
     if (filters.jobType) params.append('jobType', filters.jobType);
     if (filters.search) params.append('search', filters.search);
-    
-    const response = await api.get<Application[]>(`/applications?${params}`);
+    params.append('page', String(page));
+    params.append('limit', String(limit));
+
+    const response = await api.get<PaginatedApplications>(`/applications?${params}`);
     return response.data;
   },
 
@@ -62,7 +72,7 @@ export const applicationsService = {
     return response.data;
   },
 
-  async update(id: string, data: Partial<CreateApplicationData>): Promise<Application> {
+  async update(id: string, data: Partial<Omit<CreateApplicationData, 'cvUsedId' | 'lmUsedId'>> & { cvUsedId?: string | null; lmUsedId?: string | null }): Promise<Application> {
     const response = await api.put<Application>(`/applications/${id}`, data);
     return response.data;
   },

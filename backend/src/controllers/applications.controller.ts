@@ -2,20 +2,25 @@ import { Response } from 'express';
 import { applicationService } from '../services/applications.service.js';
 import { asyncHandler } from '../middlewares/errorHandler.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
-import { validateRequest, sendSuccess, parseBoolean } from '../utils/response.utils.js';
+import { validateRequest, sendSuccess, parseBoolean, parseIntOrDefault } from '../utils/response.utils.js';
 import type { ApplicationStatus, JobType } from '../types/index.js';
 
 export const applicationController = {
   getAll: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const { status, jobType, search } = req.query;
+    const { status, jobType, search, page, limit } = req.query;
 
-    const applications = await applicationService.getAll(req.userId!, {
-      status: status as ApplicationStatus,
-      jobType: jobType as JobType,
-      search: search as string,
-    });
+    const result = await applicationService.getAll(
+      req.userId!,
+      {
+        status: status as ApplicationStatus,
+        jobType: jobType as JobType,
+        search: search as string,
+      },
+      parseIntOrDefault(page as string, 1),
+      parseIntOrDefault(limit as string, 20),
+    );
 
-    return sendSuccess(res, applications);
+    return sendSuccess(res, result);
   }),
 
   getByStatus: asyncHandler(async (req: AuthRequest, res: Response) => {

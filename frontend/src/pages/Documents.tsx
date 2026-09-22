@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentsService } from '@/services/documents.service';
 import { Card, CardContent } from '@/components/ui/card';
@@ -299,7 +300,7 @@ export function DocumentsPage() {
                           await documentsService.download(doc.id, doc.fileName);
                         } catch (error) {
                           console.error('Download error:', error);
-                          alert('Erreur lors du téléchargement. Le fichier est peut-être introuvable sur le serveur.');
+                          toast.error('Erreur lors du téléchargement. Le fichier est peut-être introuvable sur le serveur.');
                         }
                       }}
                     >

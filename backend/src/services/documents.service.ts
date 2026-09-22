@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 import { storageService } from './storage.service.js';
@@ -18,7 +19,7 @@ interface CreateDocumentData {
 
 export const documentService = {
   async getAll(userId: string, type?: DocumentType) {
-    const where: any = { userId };
+    const where: Prisma.DocumentWhereInput = { userId };
     if (type) {
       where.type = type;
     }

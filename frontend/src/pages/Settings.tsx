@@ -33,7 +33,6 @@ import { authService } from '@/services/auth.service';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
-  isNotificationSupported,
   getNotificationPermission,
   requestNotificationPermission,
   showBrowserNotification,
@@ -62,9 +61,6 @@ export function SettingsPage() {
     emailNotifications: user?.emailNotifications ?? true,
     relanceFrequency: user?.relanceFrequency ?? 7,
   });
-  const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(
-    getNotificationPermission() === 'granted'
-  );
   const { theme, setTheme } = useUIStore();
 
   const updateProfileMutation = useMutation({
@@ -79,7 +75,7 @@ export function SettingsPage() {
 
   const changePasswordMutation = useMutation({
     mutationFn: (data: { currentPassword: string; newPassword: string }) =>
-      authService.changePassword(data.currentPassword, data.newPassword),
+      authService.updatePassword(data.currentPassword, data.newPassword),
     onSuccess: () => {
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     },
@@ -112,26 +108,6 @@ export function SettingsPage() {
       currentPassword: passwordData.currentPassword,
       newPassword: passwordData.newPassword,
     });
-  };
-
-  const handleToggleBrowserNotifications = async () => {
-    if (!isNotificationSupported()) {
-      alert('Les notifications ne sont pas supportées par votre navigateur');
-      return;
-    }
-
-    if (browserNotificationsEnabled) {
-      // Can't really disable, just update state
-      setBrowserNotificationsEnabled(false);
-    } else {
-      const granted = await requestNotificationPermission();
-      setBrowserNotificationsEnabled(granted);
-      if (granted) {
-        showBrowserNotification('Notifications activées', {
-          body: 'Vous recevrez maintenant des rappels dans votre navigateur',
-        });
-      }
-    }
   };
 
   const handleLogout = () => {
@@ -388,7 +364,8 @@ export function SettingsPage() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        window.location.href = `${import.meta.env.VITE_API_URL}/user/export?format=json`;
+                        const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
+                        window.location.href = `${apiBaseUrl}/user/export?format=json`;
                       }}
                     >
                       Exporter en JSON
@@ -396,7 +373,8 @@ export function SettingsPage() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        window.location.href = `${import.meta.env.VITE_API_URL}/user/export?format=csv`;
+                        const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
+                        window.location.href = `${apiBaseUrl}/user/export?format=csv`;
                       }}
                     >
                       Exporter en CSV
@@ -514,33 +492,6 @@ export function SettingsPage() {
                     <p className="text-sm text-muted-foreground">
                       Délai recommandé après une candidature sans réponse
                     </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-medium">Notifications navigateur</h4>
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <Label htmlFor="browserNotifications" className="font-medium cursor-pointer">
-                          Notifications push
-                        </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Recevez des notifications directement dans votre navigateur
-                        </p>
-                        {!isNotificationSupported() && (
-                          <p className="text-sm text-destructive mt-1">
-                            Non supporté par votre navigateur
-                          </p>
-                        )}
-                      </div>
-                      <Checkbox
-                        id="browserNotifications"
-                        checked={browserNotificationsEnabled}
-                        onCheckedChange={handleToggleBrowserNotifications}
-                        disabled={!isNotificationSupported()}
-                      />
-                    </div>
                   </div>
                 </div>
 

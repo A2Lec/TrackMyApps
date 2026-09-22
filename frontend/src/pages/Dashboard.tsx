@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { analyticsService } from '@/services/analytics.service';
@@ -28,12 +29,12 @@ import {
 } from 'lucide-react';
 import { formatDate, statusLabels, statusColors, cn } from '@/lib/utils';
 import type { ApplicationStatus } from '@/types';
-import { ApplicationForm, initialApplicationFormData } from '@/components/ApplicationForm';
+import { ApplicationForm } from '@/components/ApplicationForm';
 
 export function DashboardPage() {
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newApplication, setNewApplication] = useState(initialApplicationFormData);
+  const submitRef = useRef<(() => void) | null>(null);
 
   const { data: dashboard, isLoading: dashboardLoading } = useQuery({
     queryKey: ['dashboard'],
@@ -51,19 +52,12 @@ export function DashboardPage() {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setShowCreateDialog(false);
-      setNewApplication(initialApplicationFormData);
+      toast.success('Candidature créée avec succès');
     },
     onError: (error: any) => {
-      alert('Erreur: ' + (error.response?.data?.message || error.message || 'Erreur inconnue'));
+      toast.error('Erreur: ' + (error.response?.data?.message || error.message || 'Erreur inconnue'));
     },
   });
-
-  const handleCreate = () => {
-    if (!newApplication.companyName || !newApplication.position || !newApplication.location) {
-      return;
-    }
-    createMutation.mutate(newApplication);
-  };
 
   if (dashboardLoading) {
     return <DashboardSkeleton />;
@@ -354,9 +348,10 @@ export function DashboardPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <ApplicationForm 
-              formData={newApplication} 
-              onChange={setNewApplication} 
+            <ApplicationForm
+              onSubmit={(data) => createMutation.mutate(data)}
+              isSubmitting={createMutation.isPending}
+              submitRef={submitRef}
             />
           </div>
           <DialogFooter>
@@ -364,7 +359,7 @@ export function DashboardPage() {
               Annuler
             </Button>
             <Button
-              onClick={handleCreate}
+              onClick={() => submitRef.current?.()}
               disabled={createMutation.isPending}
             >
               Créer candidature

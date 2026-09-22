@@ -20,12 +20,6 @@ export const authController = {
     });
 
     // Set HTTP-only cookie
-    const isProduction = process.env.NODE_ENV === 'production';
-    
-    // Configuration des cookies :
-    // En production (Vercel) : Secure + SameSite=None (car cross-domain)
-    // En développement (Localhost) : Secure + SameSite=None (pour supporter le cross-port 5173->5000)
-    // Note : Chrome accepte les cookies Secure sur localhost même en HTTP.
     res.cookie('token', result.token, {
       httpOnly: true,
       secure: true, // Toujours secure (requis pour SameSite=None)
@@ -43,7 +37,6 @@ export const authController = {
     const result = await authService.login({ email, password });
 
     // Set HTTP-only cookie
-    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', result.token, {
       httpOnly: true,
       secure: true, // Toujours secure (requis pour SameSite=None)
@@ -56,7 +49,6 @@ export const authController = {
   }),
 
   logout: asyncHandler(async (req: Request, res: Response) => {
-    const isProduction = process.env.NODE_ENV === 'production';
     res.clearCookie('token', {
       httpOnly: true,
       secure: true,
@@ -119,10 +111,14 @@ export const authController = {
   deleteAccount: asyncHandler(async (req: AuthRequest, res: Response) => {
     const result = await authService.deleteAccount(req.userId!);
 
-    res.json({
-      success: true,
-      data: result,
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/'
     });
+
+    return sendSuccess(res, result);
   }),
 
   verifyEmail: asyncHandler(async (req: Request, res: Response) => {

@@ -254,9 +254,10 @@ export const authService = {
   },
 
   generateToken(userId: string): string {
-    const secret = process.env.JWT_SECRET || 'default-secret';
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET environment variable is not set');
+    }
     const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
-
-    return jwt.sign({ userId }, secret, { expiresIn } as jwt.SignOptions);
+    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn } as jwt.SignOptions);
   },
 };

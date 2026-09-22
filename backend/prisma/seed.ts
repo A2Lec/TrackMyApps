@@ -17,7 +17,7 @@ async function main() {
   await prisma.user.deleteMany();
 
   // Create users
-  const hashedPassword = await bcrypt.hash('password123', 10);
+  const hashedPassword = await bcrypt.hash('Password123!', 10);
 
   const admin = await prisma.user.create({
     data: {
@@ -380,8 +380,8 @@ async function main() {
   console.log('🎉 Seed completed successfully!');
   console.log('');
   console.log('📧 Test accounts:');
-  console.log('   admin@trackmyapps.com / password123');
-  console.log('   user@trackmyapps.com / password123');
+  console.log('   admin@trackmyapps.com / Password123!');
+  console.log('   user@trackmyapps.com / Password123!');
 }
 
 main()

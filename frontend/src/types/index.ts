@@ -1,3 +1,5 @@
+import type { ApplicationStatus, JobType, EventType, DocumentType, ReminderType } from '@shared/types';
+
 export interface User {
   id: string;
   email: string;
@@ -44,17 +46,7 @@ export interface Application {
   reminders?: Reminder[];
 }
 
-export type JobType = 'STAGE' | 'ALTERNANCE' | 'CDI' | 'JOB_ETUDIANT';
-
-export type ApplicationStatus = 
-  | 'DRAFT'
-  | 'SENT'
-  | 'VIEWED'
-  | 'INTERVIEW_SCHEDULED'
-  | 'AWAITING_RESPONSE'
-  | 'REJECTED'
-  | 'ACCEPTED'
-  | 'GHOSTED';
+export type { ApplicationStatus, JobType, EventType, DocumentType, ReminderType };
 
 export interface ApplicationEvent {
   id: string;
@@ -66,17 +58,6 @@ export interface ApplicationEvent {
   description?: string;
   createdAt: string;
 }
-
-export type EventType = 
-  | 'CREATED'
-  | 'SENT'
-  | 'VIEWED'
-  | 'RELANCE_SENT'
-  | 'INTERVIEW_SCHEDULED'
-  | 'INTERVIEW_DONE'
-  | 'REJECTED'
-  | 'ACCEPTED'
-  | 'STATUS_CHANGED';
 
 export interface Document {
   id: string;
@@ -93,8 +74,6 @@ export interface Document {
   updatedAt: string;
   usageCount?: number;
 }
-
-export type DocumentType = 'CV' | 'LETTRE_MOTIVATION' | 'COVER_LETTER' | 'PORTFOLIO' | 'OTHER';
 
 export interface Company {
   id: string;
@@ -154,16 +133,6 @@ export interface Reminder {
     status: ApplicationStatus;
   };
 }
-
-export type ReminderType = 
-  | 'RELANCE'
-  | 'INTERVIEW_PREP'
-  | 'THANK_YOU_EMAIL'
-  | 'FOLLOW_UP'
-  | 'DEADLINE'
-  | 'INTERVIEW'
-  | 'CUSTOM'
-  | 'OTHER';
 
 export interface InterviewPrep {
   id: string;

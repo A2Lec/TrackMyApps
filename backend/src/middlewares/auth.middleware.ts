@@ -29,17 +29,8 @@ export const authMiddleware = async (
     else if (req.cookies && req.cookies.token) {
       token = req.cookies.token;
     }
-    // Fallback to query parameter (for file viewing in browser)
-    else if (req.query.token && typeof req.query.token === 'string') {
-      token = req.query.token;
-      logDebug('Token found in query params', { context: 'AuthMiddleware' });
-    }
 
     if (!token) {
-      console.log('[AuthMiddleware Debug] Headers:', JSON.stringify(req.headers, null, 2));
-      console.log('[AuthMiddleware Debug] Cookies:', req.cookies);
-      console.log('[AuthMiddleware Debug] Signed Cookies:', req.signedCookies);
-      
       logWarn('No token found in request', { context: 'AuthMiddleware' });
       throw createError('Token d\'authentification requis', 401);
     }

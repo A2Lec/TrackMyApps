@@ -1,17 +1,18 @@
 import { PrismaClient } from '@prisma/client';
+import { logInfo, logError } from '../utils/logger.js';
 
-console.log('[DB] Database URL:', process.env.DATABASE_URL ? '✓ Set' : '✗ Missing');
-console.log('[DB] Node env:', process.env.NODE_ENV);
+logInfo(`Database URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Missing'}`, { context: 'Database' });
+logInfo(`Node env: ${process.env.NODE_ENV}`, { context: 'Database' });
 
 const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' 
-    ? ['info', 'warn', 'error'] 
+  log: process.env.NODE_ENV === 'development'
+    ? ['info', 'warn', 'error']
     : ['error'],
 });
 
 // Test connection on startup
 prisma.$connect()
-  .then(() => console.log('[DB] ✅ Connected to database'))
-  .catch((error) => console.error('[DB] ❌ Connection failed:', error.message));
+  .then(() => logInfo('Connected to database', { context: 'Database' }))
+  .catch((error: Error) => logError('Connection failed: ' + error.message, { context: 'Database' }));
 
 export default prisma;

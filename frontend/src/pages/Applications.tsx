@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useRef } from 'react';
+import { toast } from 'sonner';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { applicationsService } from '@/services/applications.service';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ import {
   useSensor,
   useSensors,
   PointerSensor,
+  KeyboardSensor,
   DragStartEvent,
   DragEndEvent,
 } from '@dnd-kit/core';
@@ -28,6 +30,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
   useSortable,
+  sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -52,7 +55,7 @@ import {
 import { formatDate, statusLabels, statusColors, jobTypeLabels, jobTypeColors, cn } from '@/lib/utils';
 import type { Application, ApplicationStatus, JobType } from '@/types';
 import { Link } from 'react-router-dom';
-import { ApplicationForm, initialApplicationFormData } from '@/components/ApplicationForm';
+import { ApplicationForm } from '@/components/ApplicationForm';
 
 const statusOrder: ApplicationStatus[] = [
   'DRAFT',
@@ -72,14 +75,38 @@ export function ApplicationsPage() {
   const [search, setSearch] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [newApplication, setNewApplication] = useState(initialApplicationFormData);
+  const submitRef = useRef<(() => void) | null>(null);
 
   const [applicationToDelete, setApplicationToDelete] = useState<Application | null>(null);
 
-  const { data: kanbanData, isLoading, isError, error } = useQuery({
+  const { data: kanbanData, isLoading: kanbanLoading, isError, error } = useQuery({
     queryKey: ['applications', 'kanban'],
     queryFn: applicationsService.getByStatus,
+    enabled: view === 'kanban',
   });
+
+  const {
+    data: listData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: listLoading,
+  } = useInfiniteQuery({
+    queryKey: ['applications', 'list', search],
+    queryFn: ({ pageParam = 1 }) => applicationsService.getAll(
+      { search: search || undefined },
+      pageParam,
+      20
+    ),
+    getNextPageParam: (lastPage) => {
+      if (lastPage.page < lastPage.totalPages) return lastPage.page + 1;
+      return undefined;
+    },
+    initialPageParam: 1,
+    enabled: view === 'list',
+  });
+
+  const isLoading = view === 'kanban' ? kanbanLoading : listLoading;
 
   const createMutation = useMutation({
     mutationFn: applicationsService.create,
@@ -88,11 +115,10 @@ export function ApplicationsPage() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       setShowCreateDialog(false);
-      setNewApplication(initialApplicationFormData);
+      toast.success('Candidature créée avec succès');
     },
     onError: (error: any) => {
-      console.error('Create error:', error);
-      alert('Erreur: ' + (error.response?.data?.message || error.message || 'Erreur inconnue'));
+      toast.error('Erreur: ' + (error.response?.data?.message || error.message || 'Erreur inconnue'));
     },
   });
 
@@ -102,6 +128,7 @@ export function ApplicationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      toast.success('Statut mis à jour');
     },
   });
 
@@ -113,6 +140,7 @@ export function ApplicationsPage() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       setApplicationToDelete(null);
+      toast.success('Candidature supprimée');
     },
   });
 
@@ -131,6 +159,9 @@ export function ApplicationsPage() {
       activationConstraint: {
         distance: 8,
       },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
@@ -168,13 +199,6 @@ export function ApplicationsPage() {
       if (app) return app;
     }
     return null;
-  };
-
-  const handleCreate = () => {
-    if (!newApplication.companyName || !newApplication.position || !newApplication.location) {
-      return;
-    }
-    createMutation.mutate(newApplication);
   };
 
   if (isLoading) {
@@ -271,93 +295,101 @@ export function ApplicationsPage() {
       )}
 
       {/* List View */}
-      {view === 'list' && kanbanData && (
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-3 sm:p-4 font-medium">Entreprise</th>
-                    <th className="text-left p-3 sm:p-4 font-medium">Poste</th>
-                    <th className="text-left p-3 sm:p-4 font-medium hidden md:table-cell">Type</th>
-                    <th className="text-left p-3 sm:p-4 font-medium">Statut</th>
-                    <th className="text-left p-3 sm:p-4 font-medium hidden lg:table-cell">Date</th>
-                    <th className="text-right p-3 sm:p-4 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.values(kanbanData)
-                    .flat()
-                    .filter(
-                      (app) =>
-                        !search ||
-                        app.companyName.toLowerCase().includes(search.toLowerCase()) ||
-                        app.position.toLowerCase().includes(search.toLowerCase())
-                    )
-                    .map((app) => (
-                      <tr key={app.id} className="border-b hover:bg-muted/50">
-                        <td className="p-3 sm:p-4">
-                          <Link
-                            to={`/applications/${app.id}`}
-                            className="font-medium hover:text-primary"
-                          >
-                            {app.companyName}
-                          </Link>
-                        </td>
-                        <td className="p-3 sm:p-4 text-muted-foreground">{app.position}</td>
-                        <td className="p-3 sm:p-4 hidden md:table-cell">
-                          <span className={cn('px-2 py-1 rounded-full text-xs', jobTypeColors[app.jobType as JobType])}>
-                            {jobTypeLabels[app.jobType as JobType]}
-                          </span>
-                        </td>
-                        <td className="p-3 sm:p-4">
-                          <span className={cn('px-2 py-1 rounded-full text-xs whitespace-nowrap', statusColors[app.status as ApplicationStatus])}>
-                            {statusLabels[app.status as ApplicationStatus]}
-                          </span>
-                        </td>
-                        <td className="p-3 sm:p-4 text-muted-foreground hidden lg:table-cell">
-                          {formatDate(app.applicationDate)}
-                        </td>
-                      <td className="p-3 sm:p-4 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link to={`/applications/${app.id}`}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Voir détails
-                              </Link>
-                            </DropdownMenuItem>
-                            {app.jobUrl && (
-                              <DropdownMenuItem asChild>
-                                <a href={app.jobUrl} target="_blank" rel="noopener noreferrer">
-                                  <ExternalLink className="mr-2 h-4 w-4" />
-                                  Voir l'annonce
-                                </a>
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() => handleDeleteClick(app)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
+      {view === 'list' && listData && (
+        <>
+          <p className="text-sm text-muted-foreground">
+            {listData.pages[0]?.total ?? 0} candidatures
+          </p>
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px]">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-3 sm:p-4 font-medium">Entreprise</th>
+                      <th className="text-left p-3 sm:p-4 font-medium">Poste</th>
+                      <th className="text-left p-3 sm:p-4 font-medium hidden md:table-cell">Type</th>
+                      <th className="text-left p-3 sm:p-4 font-medium">Statut</th>
+                      <th className="text-left p-3 sm:p-4 font-medium hidden lg:table-cell">Date</th>
+                      <th className="text-right p-3 sm:p-4 font-medium">Actions</th>
                     </tr>
-                  ))}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {(listData.pages.flatMap(page => page.data)).map((app) => (
+                        <tr key={app.id} className="border-b hover:bg-muted/50">
+                          <td className="p-3 sm:p-4">
+                            <Link
+                              to={`/applications/${app.id}`}
+                              className="font-medium hover:text-primary"
+                            >
+                              {app.companyName}
+                            </Link>
+                          </td>
+                          <td className="p-3 sm:p-4 text-muted-foreground">{app.position}</td>
+                          <td className="p-3 sm:p-4 hidden md:table-cell">
+                            <span className={cn('px-2 py-1 rounded-full text-xs', jobTypeColors[app.jobType as JobType])}>
+                              {jobTypeLabels[app.jobType as JobType]}
+                            </span>
+                          </td>
+                          <td className="p-3 sm:p-4">
+                            <span className={cn('px-2 py-1 rounded-full text-xs whitespace-nowrap', statusColors[app.status as ApplicationStatus])}>
+                              {statusLabels[app.status as ApplicationStatus]}
+                            </span>
+                          </td>
+                          <td className="p-3 sm:p-4 text-muted-foreground hidden lg:table-cell">
+                            {formatDate(app.applicationDate)}
+                          </td>
+                          <td className="p-3 sm:p-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild>
+                                  <Link to={`/applications/${app.id}`}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Voir détails
+                                  </Link>
+                                </DropdownMenuItem>
+                                {app.jobUrl && (
+                                  <DropdownMenuItem asChild>
+                                    <a href={app.jobUrl} target="_blank" rel="noopener noreferrer">
+                                      <ExternalLink className="mr-2 h-4 w-4" />
+                                      Voir l'annonce
+                                    </a>
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={() => handleDeleteClick(app)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Supprimer
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+          {hasNextPage && (
+            <div className="flex justify-center p-4">
+              <Button
+                variant="outline"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? 'Chargement...' : 'Charger plus'}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </>
       )}
 
       {/* Create Dialog */}
@@ -370,16 +402,17 @@ export function ApplicationsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <ApplicationForm 
-              formData={newApplication} 
-              onChange={setNewApplication} 
+            <ApplicationForm
+              onSubmit={(data) => createMutation.mutate(data)}
+              isSubmitting={createMutation.isPending}
+              submitRef={submitRef}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
               Annuler
             </Button>
-            <Button onClick={handleCreate} disabled={createMutation.isPending}>
+            <Button onClick={() => submitRef.current?.()} disabled={createMutation.isPending}>
               Créer
             </Button>
           </DialogFooter>

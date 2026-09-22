@@ -55,6 +55,8 @@ const reminderTypeLabels: Record<ReminderType, string> = {
   RELANCE: 'Relance',
   INTERVIEW_PREP: 'Préparation entretien',
   THANK_YOU_EMAIL: 'Email de remerciement',
+  DECISION: 'Décision',
+  DOCUMENT: 'Document',
   CUSTOM: 'Personnalisé',
   OTHER: 'Autre',
 };
@@ -66,6 +68,8 @@ const reminderTypeColors: Record<ReminderType, string> = {
   RELANCE: 'bg-blue-500/10 text-blue-700 border-blue-200',
   INTERVIEW_PREP: 'bg-indigo-500/10 text-indigo-700 border-indigo-200',
   THANK_YOU_EMAIL: 'bg-green-500/10 text-green-700 border-green-200',
+  DECISION: 'bg-orange-500/10 text-orange-700 border-orange-200',
+  DOCUMENT: 'bg-teal-500/10 text-teal-700 border-teal-200',
   CUSTOM: 'bg-amber-500/10 text-amber-700 border-amber-200',
   OTHER: 'bg-gray-500/10 text-gray-700 border-gray-200',
 };

@@ -112,10 +112,11 @@ export function InterviewPrepPage() {
     queryFn: interviewPrepService.getAll,
   });
 
-  const { data: applications, isLoading: isLoadingApplications } = useQuery({
+  const { data: applicationsData, isLoading: isLoadingApplications } = useQuery({
     queryKey: ['applications'],
-    queryFn: () => applicationsService.getAll(),
+    queryFn: () => applicationsService.getAll({}, 1, 100),
   });
+  const applications = applicationsData?.data;
 
   const createMutation = useMutation({
     mutationFn: interviewPrepService.create,
