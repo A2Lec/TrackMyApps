@@ -1,14 +1,8 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsService } from '@/services/analytics.service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   BarChart,
   Bar,
@@ -25,16 +19,14 @@ import {
 } from 'recharts';
 import {
   TrendingUp,
-  TrendingDown,
   Target,
-  CheckCircle,
+  CheckCircle2,
   Clock,
   Send,
-  MessageSquare,
-  XCircle,
+  CalendarCheck,
+  Building,
 } from 'lucide-react';
-import { useState } from 'react';
-import { statusLabels, jobTypeLabels } from '@/lib/utils';
+import { statusLabels, jobTypeLabels, cn } from '@/lib/utils';
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: '#94a3b8',
@@ -43,14 +35,14 @@ const STATUS_COLORS: Record<string, string> = {
   INTERVIEW_SCHEDULED: '#f59e0b',
   AWAITING_RESPONSE: '#6366f1',
   REJECTED: '#ef4444',
-  ACCEPTED: '#22c55e',
+  ACCEPTED: '#10b981',
   GHOSTED: '#71717a',
 };
 
 const JOB_TYPE_COLORS: Record<string, string> = {
   STAGE: '#3b82f6',
   ALTERNANCE: '#8b5cf6',
-  CDI: '#22c55e',
+  CDI: '#10b981',
   JOB_ETUDIANT: '#f59e0b',
 };
 
@@ -93,141 +85,175 @@ export function AnalyticsPage() {
   const totalApplications = dashboard?.totalApplications || 0;
   const acceptedCount = (dashboard?.statusOverview?.ACCEPTED || dashboard?.byStatus?.ACCEPTED || 0) as number;
   const interviewCount = (dashboard?.statusOverview?.INTERVIEW_SCHEDULED || dashboard?.byStatus?.INTERVIEW_SCHEDULED || 0) as number;
-  
+
   const conversionRate = totalApplications
-    ? Math.round(acceptedCount / totalApplications * 100)
+    ? Math.round((acceptedCount / totalApplications) * 100)
     : 0;
 
   const interviewRate = totalApplications
-    ? Math.round(interviewCount / totalApplications * 100)
+    ? Math.round((interviewCount / totalApplications) * 100)
     : 0;
 
+  const responseRate = dashboard?.responseRate || 0;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full min-w-0 overflow-x-hidden animate-in fade-in-50 duration-200">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Statistiques</h1>
-          <p className="text-muted-foreground">
-            Analysez vos performances et suivez votre progression
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Statistiques & Performance</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Tableau de bord décisionnel pour optimiser vos candidatures et taux de conversion
           </p>
         </div>
-        <Select value={period} onValueChange={(v) => setPeriod(v as typeof period)}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7d">7 derniers jours</SelectItem>
-            <SelectItem value="30d">30 derniers jours</SelectItem>
-            <SelectItem value="90d">90 derniers jours</SelectItem>
-            <SelectItem value="all">Tout</SelectItem>
-          </SelectContent>
-        </Select>
+
+        {/* Period Segmented Toggle */}
+        <div className="flex items-center bg-muted/60 p-0.5 rounded-lg border text-xs self-start sm:self-auto">
+          {(
+            [
+              { id: '7d', label: '7 jours' },
+              { id: '30d', label: '30 jours' },
+              { id: '90d', label: '90 jours' },
+              { id: 'all', label: 'Tout' },
+            ] as const
+          ).map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setPeriod(item.id)}
+              className={cn(
+                'px-3 py-1.5 rounded-md font-medium transition-all',
+                period === item.id
+                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg flex-shrink-0">
-                <Send className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Total candidatures</p>
-                <p className="text-xl sm:text-2xl font-bold">{totalApplications}</p>
-              </div>
+      {/* 4 Sober Metric Cockpit Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full min-w-0">
+        <Card className="border border-border/70 shadow-xs hover:border-border transition-all">
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between text-muted-foreground mb-2">
+              <span className="text-xs font-medium">Total candidatures</span>
+              <Send className="h-4 w-4 text-blue-500" />
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl sm:text-3xl font-bold tracking-tight">{totalApplications}</p>
+              <span className="text-xs text-muted-foreground">
+                {dashboard?.sentThisMonth || 0} ce mois
+              </span>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg flex-shrink-0">
-                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Entretiens</p>
-                <div className="flex items-baseline gap-1 sm:gap-2">
-                  <p className="text-xl sm:text-2xl font-bold">
-                    {interviewCount}
-                  </p>
-                  <span className="text-xs sm:text-sm text-muted-foreground">({interviewRate}%)</span>
-                </div>
-              </div>
+
+        <Card className="border border-border/70 shadow-xs hover:border-border transition-all">
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between text-muted-foreground mb-2">
+              <span className="text-xs font-medium">Entretiens obtenus</span>
+              <CalendarCheck className="h-4 w-4 text-amber-500" />
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                {interviewCount}
+              </p>
+              <span className="text-xs font-medium text-amber-600/90 dark:text-amber-400/90">
+                {interviewRate}% ratio
+              </span>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg flex-shrink-0">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Acceptées</p>
-                <div className="flex items-baseline gap-1 sm:gap-2">
-                  <p className="text-xl sm:text-2xl font-bold">
-                    {acceptedCount}
-                  </p>
-                  <span className="text-xs sm:text-sm text-muted-foreground">({conversionRate}%)</span>
-                </div>
-              </div>
+
+        <Card className="border border-border/70 shadow-xs hover:border-border transition-all">
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between text-muted-foreground mb-2">
+              <span className="text-xs font-medium">Offres acceptées</span>
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {acceptedCount}
+              </p>
+              <span className="text-xs font-medium text-emerald-600/90 dark:text-emerald-400/90">
+                {conversionRate}% succès
+              </span>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-2 bg-yellow-500/10 rounded-lg flex-shrink-0">
-                <Target className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Taux de réponse</p>
-                <p className="text-xl sm:text-2xl font-bold">{dashboard?.responseRate || 0}%</p>
-              </div>
+
+        <Card className="border border-border/70 shadow-xs hover:border-border transition-all">
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between text-muted-foreground mb-2">
+              <span className="text-xs font-medium">Taux de réponse</span>
+              <Target className="h-4 w-4 text-indigo-500" />
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
+                {responseRate}%
+              </p>
+              <span className="text-xs text-muted-foreground">
+                {stats?.avgResponseTime ? `~${stats.avgResponseTime}j délai` : 'délai moyen'}
+              </span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts Row 1 */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Row 1: Timeline & Status breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full min-w-0">
         {/* Timeline Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Évolution des candidatures</CardTitle>
-            <CardDescription>
-              Nombre de candidatures envoyées sur la période
+        <Card className="lg:col-span-7 border border-border/70 shadow-xs w-full min-w-0 overflow-hidden">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base font-semibold">Rythme des envois</CardTitle>
+            <CardDescription className="text-xs">
+              Évolution du volume de candidatures sur la période sélectionnée
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-64 sm:h-72">
+          <CardContent className="p-4 pt-6">
+            <div className="h-64 sm:h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={timeline || []}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <LineChart data={timeline || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/50" vertical={false} />
                   <XAxis
                     dataKey="date"
-                    tick={{ fontSize: 12 }}
+                    tick={{ fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: 'var(--border)' }}
                     tickFormatter={(value) => {
                       const date = new Date(value);
                       return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
                     }}
                   />
-                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <YAxis
+                    tick={{ fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
                   <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--background)',
+                      borderColor: 'var(--border)',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    }}
                     labelFormatter={(value) => {
                       const date = new Date(value);
                       return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
                     }}
-                    formatter={(value: number) => [value, 'Candidatures']}
+                    formatter={(value: number) => [`${value} candidature${value > 1 ? 's' : ''}`, 'Volume']}
                   />
                   <Line
                     type="monotone"
                     dataKey="count"
-                    stroke="#3b82f6"
+                    stroke="#2563eb"
                     strokeWidth={2}
-                    dot={{ fill: '#3b82f6' }}
+                    dot={{ fill: '#2563eb', r: 3 }}
+                    activeDot={{ r: 5 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -235,203 +261,211 @@ export function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        {/* Status Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Répartition par statut</CardTitle>
-            <CardDescription>
-              Distribution de vos candidatures par statut actuel
+        {/* Status Distribution Pie */}
+        <Card className="lg:col-span-5 border border-border/70 shadow-xs w-full min-w-0 overflow-hidden">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base font-semibold">Répartition par statut</CardTitle>
+            <CardDescription className="text-xs">
+              Positionnement actuel dans le pipe de recrutement
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-64 sm:h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      percent > 0.05 ? `${name} (${(percent * 100).toFixed(0)}%)` : ''
-                    }
-                    labelLine={false}
-                  >
-                    {statusData.map((entry) => (
-                      <Cell
-                        key={entry.status}
-                        fill={STATUS_COLORS[entry.status] || '#94a3b8'}
+          <CardContent className="p-4 pt-6 flex flex-col items-center justify-center">
+            {statusData.length > 0 ? (
+              <div className="h-64 sm:h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {statusData.map((entry) => (
+                        <Cell
+                          key={entry.status}
+                          fill={STATUS_COLORS[entry.status] || '#94a3b8'}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--background)',
+                        borderColor: 'var(--border)',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                      }}
+                      formatter={(value: number) => [`${value} candidatures`, 'Total']}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Quick clean legend */}
+                <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-2">
+                  {statusData.slice(0, 5).map((item) => (
+                    <div key={item.status} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: STATUS_COLORS[item.status] || '#94a3b8' }}
                       />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => [value, 'Candidatures']} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+                      <span>{item.name} ({item.value})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="py-16 text-center text-muted-foreground text-xs">
+                Aucune donnée de statut disponible
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts Row 2 */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Job Type Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Répartition par type</CardTitle>
-            <CardDescription>
-              Distribution de vos candidatures par type de contrat
+      {/* Row 2: Contract Types & Conversion Indicators */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full min-w-0">
+        {/* Job Type Horizontal Bars */}
+        <Card className="lg:col-span-6 border border-border/70 shadow-xs w-full min-w-0 overflow-hidden">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base font-semibold">Types de contrats</CardTitle>
+            <CardDescription className="text-xs">
+              Ventilation de vos recherches par typologie de poste
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-64 sm:h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={jobTypeData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    tick={{ fontSize: 12 }}
-                    width={100}
-                  />
-                  <Tooltip formatter={(value: number) => [value, 'Candidatures']} />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {jobTypeData.map((entry) => (
-                      <Cell
-                        key={entry.type}
-                        fill={JOB_TYPE_COLORS[entry.type] || '#94a3b8'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          <CardContent className="p-4 pt-6">
+            {jobTypeData.length > 0 ? (
+              <div className="h-64 sm:h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={jobTypeData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted/40" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} axisLine={false} tickLine={false} />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={90}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--background)',
+                        borderColor: 'var(--border)',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                      }}
+                      formatter={(value: number) => [`${value} candidatures`, 'Total']}
+                    />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                      {jobTypeData.map((entry) => (
+                        <Cell
+                          key={entry.type}
+                          fill={JOB_TYPE_COLORS[entry.type] || '#3b82f6'}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="py-16 text-center text-muted-foreground text-xs">
+                Aucun contrat catégorisé
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Performance Metrics */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Indicateurs de performance</CardTitle>
-            <CardDescription>
-              Métriques clés pour évaluer vos candidatures
+        {/* Funnel & Efficiency Diagnostics */}
+        <Card className="lg:col-span-6 border border-border/70 shadow-xs w-full min-w-0 overflow-hidden">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base font-semibold">Efficacité du Funnel</CardTitle>
+            <CardDescription className="text-xs">
+              Diagnostics de conversion pour chaque étape de votre recherche
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Taux d'entretien</span>
-                <span className="font-medium">{interviewRate}%</span>
+          <CardContent className="p-4 sm:p-6 space-y-5">
+            {/* Taux d'entretien */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-foreground">Étape 1 : Accès aux entretiens</span>
+                <span className="font-semibold text-amber-600 dark:text-amber-400">{interviewRate}%</span>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-purple-500 rounded-full transition-all"
+                  className="h-full bg-amber-500 rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(interviewRate, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                 {interviewRate >= 20 ? (
-                  <span className="text-green-600 flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3" /> Excellent ! Au-dessus de la moyenne
+                  <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" /> Excellent ratio (moyenne du secteur : 15%)
                   </span>
                 ) : (
-                  <span className="text-yellow-600 flex items-center gap-1">
-                    <TrendingDown className="h-3 w-3" /> Pensez à personnaliser vos candidatures
+                  <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Pensez à adapter votre CV aux mots-clés de l'offre
                   </span>
                 )}
               </p>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Taux de conversion</span>
-                <span className="font-medium">{conversionRate}%</span>
+            {/* Taux de conversion finale */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-foreground">Étape 2 : Transformation en offre</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{conversionRate}%</span>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-green-500 rounded-full transition-all"
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(conversionRate, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                 {conversionRate >= 10 ? (
-                  <span className="text-green-600 flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3" /> Très bon taux de conversion !
+                  <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" /> Très bonne performance d'acceptation
                   </span>
                 ) : (
                   <span className="text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Continuez vos efforts
+                    <Clock className="h-3 w-3" /> Entraînez-vous avec le simulateur d'entretien IA
                   </span>
                 )}
               </p>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Taux de réponse</span>
-                <span className="font-medium">{dashboard?.responseRate || 0}%</span>
+            {/* Taux de réponse des recruteurs */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-foreground">Réactivité des recruteurs</span>
+                <span className="font-semibold text-indigo-600 dark:text-indigo-400">{responseRate}%</span>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(dashboard?.responseRate || 0, 100)}%` }}
+                  className="h-full bg-indigo-500 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(responseRate, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                {(dashboard?.responseRate || 0) >= 30 ? (
-                  <span className="text-green-600 flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3" /> Bon taux de réponse
-                  </span>
-                ) : (
-                  <span className="text-yellow-600 flex items-center gap-1">
-                    <XCircle className="h-3 w-3" /> Les entreprises mettent du temps à répondre
-                  </span>
-                )}
+              <p className="text-[11px] text-muted-foreground">
+                {responseRate >= 30
+                  ? 'Vos cibles d’entreprises traitent activement les candidatures reçues.'
+                  : 'N’hésitez pas à programmer des rappels de relance après 7 jours.'}
               </p>
             </div>
 
-            <div className="pt-4 border-t">
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-primary">
-                    {dashboard?.sentThisMonth || 0}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Envoyées ce mois</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-primary">
-                    {stats?.avgResponseTime || '-'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Jours de réponse moy.</p>
-                </div>
-              </div>
+            {/* Extra summary note */}
+            <div className="pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Building className="h-3.5 w-3.5 text-muted-foreground" />
+                Entreprises ciblées : {dashboard?.recentApplications?.length || 0} récentes
+              </span>
+              <span>Délai moyen : {stats?.avgResponseTime ? `${stats.avgResponseTime} jours` : 'Non calculé'}</span>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Status Legend */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Légende des statuts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            {Object.entries(STATUS_COLORS).map(([status, color]) => (
-              <div key={status} className="flex items-center gap-2">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="text-sm">{statusLabels[status as keyof typeof statusLabels]}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
@@ -442,18 +476,18 @@ function AnalyticsSkeleton() {
       <div className="flex items-center justify-between">
         <div>
           <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64 mt-2" />
+          <Skeleton className="h-4 w-64 mt-1" />
         </div>
-        <Skeleton className="h-10 w-40" />
+        <Skeleton className="h-9 w-40" />
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-24" />
+          <Skeleton key={i} className="h-24 rounded-lg" />
         ))}
       </div>
-      <div className="grid lg:grid-cols-2 gap-6">
-        <Skeleton className="h-96" />
-        <Skeleton className="h-96" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <Skeleton className="lg:col-span-7 h-80 rounded-lg" />
+        <Skeleton className="lg:col-span-5 h-80 rounded-lg" />
       </div>
     </div>
   );
