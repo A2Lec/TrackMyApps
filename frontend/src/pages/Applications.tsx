@@ -34,12 +34,15 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
+  pointerWithin,
+  CollisionDetection,
   useSensor,
   useSensors,
   PointerSensor,
   KeyboardSensor,
   DragStartEvent,
   DragEndEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -81,7 +84,7 @@ import {
   STATUS_ORDER,
   cn,
 } from '@/lib/utils';
-import type { Application, ApplicationStatus, JobType } from '@/types';
+import type { Application, ApplicationStatus, JobType, KanbanColumns } from '@/types';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApplicationForm } from '@/components/ApplicationForm';
 
@@ -154,9 +157,50 @@ export function ApplicationsPage() {
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: ApplicationStatus }) =>
       applicationsService.updateStatus(id, status),
-    onSuccess: (updated) => {
+    onMutate: async ({ id, status }) => {
+      // Cancel outgoing refetches so they don't overwrite optimistic update
+      await queryClient.cancelQueries({ queryKey: ['applications', 'kanban'] });
+
+      const previousKanban = queryClient.getQueryData<KanbanColumns>(['applications', 'kanban']);
+
+      if (previousKanban) {
+        const nextKanban: KanbanColumns = { ...previousKanban };
+        let movedApp: Application | null = null;
+
+        // Remove application from its current status column
+        for (const col of Object.keys(nextKanban) as ApplicationStatus[]) {
+          const list = nextKanban[col];
+          if (Array.isArray(list)) {
+            const idx = list.findIndex((a) => a.id === id);
+            if (idx !== -1) {
+              movedApp = { ...list[idx], status };
+              nextKanban[col] = [...list.slice(0, idx), ...list.slice(idx + 1)];
+              break;
+            }
+          }
+        }
+
+        // Add application to the target status column
+        if (movedApp) {
+          nextKanban[status] = [movedApp, ...(nextKanban[status] || [])];
+          queryClient.setQueryData(['applications', 'kanban'], nextKanban);
+        }
+      }
+
+      return { previousKanban };
+    },
+    onError: (err: any, _vars, context) => {
+      if (context?.previousKanban) {
+        queryClient.setQueryData(['applications', 'kanban'], context.previousKanban);
+      }
+      const message = err.response?.data?.message || err.message || 'Erreur lors du changement de statut';
+      toast.error(message);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onSuccess: (updated) => {
       if (selectedApplication?.id === updated?.id) {
         setSelectedApplication((prev) => (prev ? { ...prev, status: updated.status } : null));
       }
@@ -194,11 +238,11 @@ export function ApplicationsPage() {
     setShowCreateDialog(true);
   };
 
-  // DnD Sensors
+  // DnD Sensors: 6px distance constraint allows smooth drag while keeping normal clicks reliable
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 6,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -206,21 +250,17 @@ export function ApplicationsPage() {
     })
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+  // Custom collision detection: checks pointer position first (best for kanban columns), then closestCorners
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    return closestCorners(args);
   };
 
-  // Robust status lookup whether dropping on a column or onto another card
-  const findStatusForOver = (overId: string): ApplicationStatus | null => {
-    if (STATUS_ORDER.includes(overId as ApplicationStatus)) {
-      return overId as ApplicationStatus;
-    }
-    for (const [status, apps] of Object.entries(kanbanData || {})) {
-      if (apps.some((app: Application) => app.id === overId)) {
-        return status as ApplicationStatus;
-      }
-    }
-    return null;
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -230,20 +270,45 @@ export function ApplicationsPage() {
     if (!over) return;
 
     const applicationId = active.id as string;
-    const newStatus = findStatusForOver(over.id as string);
+
+    // Detect target status from over data or over.id
+    let newStatus: ApplicationStatus | null = null;
+
+    if (over.data?.current?.status) {
+      newStatus = over.data.current.status as ApplicationStatus;
+    } else if (over.data?.current?.type === 'Column') {
+      newStatus = over.id as ApplicationStatus;
+    } else if (STATUS_ORDER.includes(over.id as ApplicationStatus)) {
+      newStatus = over.id as ApplicationStatus;
+    } else if (kanbanData) {
+      for (const [colStatus, apps] of Object.entries(kanbanData)) {
+        if (apps.some((app: Application) => app.id === over.id)) {
+          newStatus = colStatus as ApplicationStatus;
+          break;
+        }
+      }
+    }
 
     if (!newStatus) return;
 
-    // Find current status of active item
+    // Determine current status of active item
     let currentStatus: ApplicationStatus | null = null;
-    for (const [status, apps] of Object.entries(kanbanData || {})) {
-      if (apps.some((app: Application) => app.id === applicationId)) {
-        currentStatus = status as ApplicationStatus;
-        break;
+    if (active.data?.current?.status) {
+      currentStatus = active.data.current.status as ApplicationStatus;
+    } else if (kanbanData) {
+      for (const [status, apps] of Object.entries(kanbanData)) {
+        if (apps.some((app: Application) => app.id === applicationId)) {
+          currentStatus = status as ApplicationStatus;
+          break;
+        }
       }
     }
 
     if (currentStatus && currentStatus !== newStatus) {
+      if (!isEmailVerified) {
+        toast.error('Veuillez vérifier votre adresse email pour modifier vos candidatures');
+        return;
+      }
       updateStatusMutation.mutate({ id: applicationId, status: newStatus });
     }
   };
@@ -434,7 +499,7 @@ export function ApplicationsPage() {
       {view === 'kanban' && kanbanData && (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={collisionDetectionStrategy}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
@@ -463,7 +528,7 @@ export function ApplicationsPage() {
           </div>
 
           {/* Desktop full columns & Mobile single selected column */}
-          <div className="hidden md:flex gap-4 overflow-x-auto pb-4 items-start">
+          <div className="hidden md:flex gap-4 overflow-x-auto pb-4 items-stretch min-h-[calc(100vh-280px)]">
             {STATUS_ORDER.map((status) => (
               <KanbanColumn
                 key={status}
@@ -494,11 +559,11 @@ export function ApplicationsPage() {
             />
           </div>
 
-          <DragOverlay>
+          <DragOverlay dropAnimation={null}>
             {activeId && getActiveApplication() && (
               <ApplicationCard
                 application={getActiveApplication()!}
-                isDragging
+                isOverlay
               />
             )}
           </DragOverlay>
@@ -895,8 +960,12 @@ function KanbanColumn({
   onAddClick,
   isMobileView,
 }: KanbanColumnProps) {
-  const { setNodeRef } = useSortable({
+  const { setNodeRef, isOver } = useDroppable({
     id: status,
+    data: {
+      type: 'Column',
+      status,
+    },
   });
 
   const filteredApps = useMemo(() => {
@@ -925,7 +994,6 @@ function KanbanColumn({
 
   return (
     <div
-      ref={setNodeRef}
       className={cn(
         'flex-shrink-0 flex flex-col',
         isMobileView ? 'w-full' : 'w-72 sm:w-80'
@@ -953,7 +1021,13 @@ function KanbanColumn({
       </div>
 
       {/* Cards drop container */}
-      <div className="bg-muted/35 dark:bg-muted/20 rounded-xl p-2 min-h-[300px] border border-border/50 flex flex-col gap-2 transition-colors">
+      <div
+        ref={setNodeRef}
+        className={cn(
+          'bg-muted/35 dark:bg-muted/20 rounded-xl p-2 min-h-[450px] flex-1 border border-border/50 flex flex-col gap-2 transition-all duration-150',
+          isOver && 'ring-2 ring-primary/50 bg-primary/10 border-primary/40'
+        )}
+      >
         <SortableContext items={filteredApps.map((app) => app.id)} strategy={verticalListSortingStrategy}>
           {filteredApps.length > 0 ? (
             filteredApps.map((app) => (
@@ -967,7 +1041,12 @@ function KanbanColumn({
           ) : (
             <div
               onClick={onAddClick}
-              className="flex-1 flex flex-col items-center justify-center p-6 border border-dashed border-border/80 rounded-lg text-center cursor-pointer hover:bg-muted/40 transition-colors group"
+              className={cn(
+                'flex-1 flex flex-col items-center justify-center p-6 border border-dashed rounded-lg text-center cursor-pointer transition-colors group',
+                isOver
+                  ? 'border-primary/60 bg-primary/10'
+                  : 'border-border/80 hover:bg-muted/40'
+              )}
             >
               <Plus className="h-5 w-5 text-muted-foreground/60 group-hover:text-primary transition-colors mb-1" />
               <p className="text-xs text-muted-foreground/80 group-hover:text-foreground font-medium">
@@ -998,6 +1077,11 @@ function SortableApplicationCard({ application, onClick, onDelete }: SortableApp
     isDragging,
   } = useSortable({
     id: application.id,
+    data: {
+      type: 'Card',
+      status: application.status,
+      application,
+    },
   });
 
   const style = {
@@ -1009,7 +1093,7 @@ function SortableApplicationCard({ application, onClick, onDelete }: SortableApp
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <ApplicationCard
         application={application}
-        isDragging={isDragging}
+        isGhost={isDragging}
         onClick={onClick}
         onDelete={onDelete}
       />
@@ -1020,18 +1104,20 @@ function SortableApplicationCard({ application, onClick, onDelete }: SortableApp
 // Application Card Component
 interface ApplicationCardProps {
   application: Application;
-  isDragging?: boolean;
+  isGhost?: boolean;
+  isOverlay?: boolean;
   onClick?: () => void;
   onDelete?: () => void;
 }
 
-function ApplicationCard({ application, isDragging, onClick, onDelete }: ApplicationCardProps) {
+function ApplicationCard({ application, isGhost, isOverlay, onClick, onDelete }: ApplicationCardProps) {
   return (
     <Card
       onClick={onClick}
       className={cn(
-        'cursor-grab active:cursor-grabbing bg-card/95 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 border-border/80 rounded-xl group relative overflow-hidden',
-        isDragging && 'opacity-50 rotate-2 scale-102 shadow-2xl ring-2 ring-primary/40'
+        'cursor-grab active:cursor-grabbing bg-card/95 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 border-border/80 rounded-xl group relative overflow-hidden select-none',
+        isGhost && 'opacity-25 border-dashed border-primary/50 scale-[0.98]',
+        isOverlay && 'shadow-2xl rotate-1 scale-102 ring-2 ring-primary/50 border-primary bg-card z-50 cursor-grabbing'
       )}
     >
       <CardContent className="p-3.5 space-y-2.5">
@@ -1048,7 +1134,10 @@ function ApplicationCard({ application, isDragging, onClick, onDelete }: Applica
           </div>
 
           {onDelete && (
-            <div onClick={(e) => e.stopPropagation()}>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-6 w-6 -mr-1 text-muted-foreground hover:text-foreground">
