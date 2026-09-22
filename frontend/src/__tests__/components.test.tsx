@@ -129,3 +129,24 @@ describe('Component: EmailVerificationBanner', () => {
     });
   });
 });
+
+describe('Component: Footer', () => {
+  it('renders modern footer with brand, operational status, and legal links', async () => {
+    const { Footer } = await import('@/components/layout/Footer');
+    const { MemoryRouter } = await import('react-router-dom');
+
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('TrackMyApps')).toBeInTheDocument();
+    expect(screen.getByText('v1.2')).toBeInTheDocument();
+    expect(screen.getByText('Systèmes opérationnels')).toBeInTheDocument();
+    expect(screen.getByText('Politique de confidentialité')).toBeInTheDocument();
+    expect(screen.getByText('Conditions générales d\'utilisation')).toBeInTheDocument();
+    expect(screen.getByText(/Tous droits réservés/i)).toBeInTheDocument();
+  });
+});
+
