@@ -47,7 +47,7 @@ import {
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const { user, logout, setUser } = useAuthStore();
+  const { user, logout, updateUser } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'notifications' | 'appearance'>('profile');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -83,7 +83,8 @@ export function SettingsPage() {
         graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : undefined,
       }),
     onSuccess: (updatedUser) => {
-      setUser(updatedUser);
+      // Merge instead of replacing so fields absent from the response (e.g. emailVerified) are kept
+      updateUser(updatedUser);
       setProfileSuccess(true);
       setTimeout(() => setProfileSuccess(false), 3000);
     },
@@ -108,9 +109,10 @@ export function SettingsPage() {
   });
 
   const updateNotificationsMutation = useMutation({
-    mutationFn: (data: typeof notifications) => authService.updateProfile(data),
+    mutationFn: (data: typeof notifications) =>
+      authService.updatePreferences(data.emailNotifications, data.relanceFrequency),
     onSuccess: (updatedUser) => {
-      setUser(updatedUser);
+      updateUser(updatedUser);
     },
   });
 

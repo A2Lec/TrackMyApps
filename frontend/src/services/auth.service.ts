@@ -65,8 +65,10 @@ export const authService = {
     return response.data;
   },
 
-  async resendVerification(): Promise<{ message: string }> {
-    const response = await api.post<{ message: string }>('/auth/resend-verification');
+  async resendVerification(): Promise<{ message: string; alreadyVerified?: boolean }> {
+    const response = await api.post<{ message: string; alreadyVerified?: boolean }>(
+      '/auth/resend-verification'
+    );
     return response.data;
   },
 };
