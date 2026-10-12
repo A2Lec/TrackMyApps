@@ -709,6 +709,14 @@ export function InterviewSimulation({
                   </>
                 )}
               </Button>
+              {/* Inform before personal data (CV text, answers) leaves for the AI provider */}
+              <p className="text-[11px] leading-snug text-muted-foreground text-center">
+                Le poste, l'offre, le texte des documents sélectionnés et vos réponses sont envoyés à Google Gemini
+                pour générer l'entretien, sans être utilisés pour entraîner ses modèles.{' '}
+                <a href="/privacy-policy#ia" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                  En savoir plus
+                </a>
+              </p>
             </>
           )}
         </CardContent>

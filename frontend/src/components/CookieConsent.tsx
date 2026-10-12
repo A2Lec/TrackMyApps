@@ -1,83 +1,53 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { X, Cookie } from 'lucide-react';
+import { Cookie } from 'lucide-react';
+import { getConsent, onCookieSettingsOpen, setConsent } from '@/lib/cookieConsent';
 
-interface CookieConsentProps {
-  onAccept: () => void;
-  onDecline: () => void;
-}
+export function CookieConsent() {
+  const [isVisible, setIsVisible] = useState(() => getConsent() === null);
 
-export function CookieConsent({ onAccept, onDecline }: CookieConsentProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  useEffect(() => onCookieSettingsOpen(() => setIsVisible(true)), []);
 
-  useEffect(() => {
-    // Check if consent has already been given
-    const consent = localStorage.getItem('cookie-consent');
-    if (!consent) {
-      setIsVisible(true);
-    }
-  }, []);
-
-  const handleAccept = () => {
-    localStorage.setItem('cookie-consent', 'accepted');
+  const choose = (choice: 'accepted' | 'declined') => {
+    setConsent(choice);
     setIsVisible(false);
-    onAccept();
-  };
-
-  const handleDecline = () => {
-    localStorage.setItem('cookie-consent', 'declined');
-    setIsVisible(false);
-    onDecline();
   };
 
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6">
-      <Card className="mx-auto max-w-4xl border-2 border-primary/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0">
-              <Cookie className="h-8 w-8 text-primary" />
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6" role="dialog" aria-labelledby="cookie-consent-title">
+      <Card className="mx-auto max-w-3xl border-2 border-primary/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="p-5 sm:p-6 flex items-start gap-4">
+          <Cookie className="hidden sm:block h-8 w-8 text-primary flex-shrink-0" aria-hidden="true" />
+
+          <div className="flex-1 space-y-3">
+            <h3 id="cookie-consent-title" className="text-base font-semibold">
+              Cookies et mesure d'audience
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Le site utilise uniquement le stockage indispensable à son fonctionnement (connexion, préférences).
+              Avec votre accord, nous mesurons aussi la fréquentation de façon anonyme avec Vercel Web Analytics,
+              sans cookie publicitaire ni suivi d'un site à l'autre.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Vous pouvez changer d'avis à tout moment avec le lien « Gérer les cookies » en bas de page.{' '}
+              <Link to="/privacy-policy#cookies" className="text-primary underline hover:text-primary/80">
+                En savoir plus
+              </Link>
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-1">
+              {/* Same weight for both choices: refusing must be as easy as accepting */}
+              <Button onClick={() => choose('accepted')} className="flex-1 sm:flex-none">
+                Accepter
+              </Button>
+              <Button onClick={() => choose('declined')} variant="outline" className="flex-1 sm:flex-none">
+                Refuser
+              </Button>
             </div>
-            
-            <div className="flex-1 space-y-3">
-              <h3 className="text-lg font-semibold">🍪 Gestion des cookies</h3>
-              
-              <p className="text-sm text-muted-foreground">
-                Nous utilisons des cookies essentiels pour garantir le bon fonctionnement de notre site et des cookies analytiques pour comprendre comment vous l'utilisez. 
-                Les cookies analytiques ne sont activés qu'avec votre consentement.
-              </p>
-
-              <p className="text-xs text-muted-foreground">
-                En cliquant sur "Tout accepter", vous acceptez notre utilisation des cookies. 
-                Vous pouvez consulter notre{' '}
-                <a href="/privacy-policy" className="text-primary underline hover:text-primary/80">
-                  Politique de confidentialité
-                </a>{' '}
-                pour plus d'informations.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <Button onClick={handleAccept} className="flex-1 sm:flex-none">
-                  Tout accepter
-                </Button>
-                <Button onClick={handleDecline} variant="outline" className="flex-1 sm:flex-none">
-                  Refuser les cookies analytiques
-                </Button>
-              </div>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleDecline}
-              className="flex-shrink-0"
-              aria-label="Fermer"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </Card>

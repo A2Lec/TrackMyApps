@@ -16,6 +16,8 @@ import { useDelayedFlag } from '@/hooks/useDelayedFlag';
 import { SlowServerHint, SLOW_LOADING_DELAY_MS } from '@/components/loading/SlowServerHint';
 import { prefetchPages } from '@/lib/pageLoaders';
 import { BrandLogo } from '@/components/BrandLogo';
+import { LegalLinks } from '@/components/legal/LegalLinks';
+import { LEGAL } from '@/lib/legal';
 
 const registerSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -76,7 +78,7 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-background to-blue-50/40 dark:from-neutral-950 dark:via-background dark:to-blue-950/20 relative overflow-hidden py-8 sm:py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-gradient-to-br from-slate-50 via-background to-blue-50/40 dark:from-neutral-950 dark:via-background dark:to-blue-950/20 relative overflow-hidden py-8 sm:py-12">
       {/* Decorative ambient gradients */}
       <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -252,6 +254,12 @@ export function RegisterPage() {
               {registerMutation.isPending ? 'Création du compte…' : 'Créer mon compte gratuitement'}
             </Button>
             {isSlow && <SlowServerHint />}
+            <p className="text-xs text-muted-foreground text-center">
+              En créant un compte, vous confirmez avoir au moins {LEGAL.minimumAge} ans et acceptez les{' '}
+              <Link to="/terms-of-service" className="text-primary hover:underline">conditions générales d'utilisation</Link>.
+              Vos données sont traitées conformément à notre{' '}
+              <Link to="/privacy-policy" className="text-primary hover:underline">politique de confidentialité</Link>.
+            </p>
 
             <p className="text-xs sm:text-sm text-muted-foreground text-center mt-1">
               Vous avez déjà un compte ?{' '}
@@ -262,6 +270,7 @@ export function RegisterPage() {
           </CardFooter>
         </form>
       </Card>
+      <LegalLinks className="relative z-10" />
     </div>
   );
 }
