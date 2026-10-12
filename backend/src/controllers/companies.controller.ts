@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { companyService } from '../services/companies.service.js';
 import { asyncHandler } from '../middlewares/errorHandler.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
@@ -20,8 +20,8 @@ export const companyController = {
     return sendSuccess(res, companies);
   }),
 
-  getById: asyncHandler(async (req: Request, res: Response) => {
-    const company = await companyService.getById(req.params.id);
+  getById: asyncHandler(async (req: AuthRequest, res: Response) => {
+    const company = await companyService.getById(req.userId!, req.params.id);
     return sendSuccess(res, company);
   }),
 
@@ -42,14 +42,14 @@ export const companyController = {
     return sendSuccess(res, review, 201);
   }),
 
-  getReviews: asyncHandler(async (req: Request, res: Response) => {
-    const reviews = await companyService.getReviews(req.params.id);
+  getReviews: asyncHandler(async (req: AuthRequest, res: Response) => {
+    const reviews = await companyService.getReviews(req.userId!, req.params.id);
     return sendSuccess(res, reviews);
   }),
 
-  delete: asyncHandler(async (req: Request, res: Response) => {
+  delete: asyncHandler(async (req: AuthRequest, res: Response) => {
     const deleteApplications = parseBoolean(req.query.deleteApplications as string);
-    await companyService.delete(req.params.id, deleteApplications);
+    await companyService.delete(req.userId!, req.params.id, deleteApplications);
     return sendSuccessMessage(res, 'Entreprise supprimée avec succès');
   }),
 };

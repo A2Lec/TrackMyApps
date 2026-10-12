@@ -47,6 +47,19 @@ export const storageService = {
   },
 
   /**
+   * Best-effort deletion of several files: one failure does not stop the others
+   */
+  async deleteFiles(fileUrls: string[]): Promise<void> {
+    await Promise.all(
+      fileUrls.map((url) =>
+        this.deleteFile(url).catch((error) => {
+          console.error(`Failed to delete file ${url}:`, error);
+        })
+      )
+    );
+  },
+
+  /**
    * Check if a file exists
    */
   async fileExists(fileUrl: string): Promise<boolean> {

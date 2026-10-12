@@ -1,4 +1,5 @@
 import prisma from '../config/database.js';
+import { excludePracticeMode, PRACTICE_MODE_MARKER } from '../utils/practiceMode.js';
 
 // Define type locally since we're using SQLite (no Prisma enums)
 type ApplicationStatus = 'DRAFT' | 'SENT' | 'VIEWED' | 'INTERVIEW_SCHEDULED' | 'AWAITING_RESPONSE' | 'REJECTED' | 'ACCEPTED' | 'GHOSTED';
@@ -20,12 +21,13 @@ export const analyticsService = {
       upcomingInterviews,
     ] = await Promise.all([
       // Total applications
-      prisma.application.count({ where: { userId } }),
+      prisma.application.count({ where: { userId, AND: [excludePracticeMode] } }),
 
       // This month applications
       prisma.application.count({
         where: {
           userId,
+          AND: [excludePracticeMode],
           applicationDate: { gte: startOfMonth },
         },
       }),
@@ -34,6 +36,7 @@ export const analyticsService = {
       prisma.application.count({
         where: {
           userId,
+          AND: [excludePracticeMode],
           status: 'INTERVIEW_SCHEDULED',
         },
       }),
@@ -50,13 +53,13 @@ export const analyticsService = {
       // By status
       prisma.application.groupBy({
         by: ['status'],
-        where: { userId },
+        where: { userId, AND: [excludePracticeMode] },
         _count: true,
       }),
 
       // Recent applications
       prisma.application.findMany({
-        where: { userId },
+        where: { userId, AND: [excludePracticeMode] },
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: {
@@ -72,6 +75,7 @@ export const analyticsService = {
       prisma.application.findMany({
         where: {
           userId,
+          AND: [excludePracticeMode],
           status: 'INTERVIEW_SCHEDULED',
           interviewDate: { gte: now },
         },
@@ -125,6 +129,7 @@ export const analyticsService = {
           FROM applications
           WHERE "userId" = ${userId}
             AND "applicationDate" >= ${sixMonthsAgo}
+            AND ("notes" IS NULL OR "notes" NOT LIKE ${'%' + PRACTICE_MODE_MARKER + '%'})
           GROUP BY DATE_TRUNC('month', "applicationDate")
           ORDER BY month ASC
         `;
@@ -132,6 +137,7 @@ export const analyticsService = {
         const apps = await prisma.application.findMany({
           where: {
             userId,
+            AND: [excludePracticeMode],
             applicationDate: { gte: sixMonthsAgo },
           },
           select: { applicationDate: true },
@@ -160,21 +166,21 @@ export const analyticsService = {
       // By job type
       prisma.application.groupBy({
         by: ['jobType'],
-        where: { userId },
+        where: { userId, AND: [excludePracticeMode] },
         _count: true,
       }),
 
       // By status
       prisma.application.groupBy({
         by: ['status'],
-        where: { userId },
+        where: { userId, AND: [excludePracticeMode] },
         _count: true,
       }),
 
       // Top companies applied to
       prisma.application.groupBy({
         by: ['companyName'],
-        where: { userId },
+        where: { userId, AND: [excludePracticeMode] },
         _count: true,
         orderBy: { _count: { companyName: 'desc' } },
         take: 5,
@@ -182,7 +188,7 @@ export const analyticsService = {
 
       // All applications for conversion funnel
       prisma.application.findMany({
-        where: { userId },
+        where: { userId, AND: [excludePracticeMode] },
         select: { status: true },
       }),
     ]);
@@ -229,7 +235,7 @@ export const analyticsService = {
 
   async exportData(userId: string) {
     const applications = await prisma.application.findMany({
-      where: { userId },
+      where: { userId, AND: [excludePracticeMode] },
       include: {
         company: true,
         events: true,
@@ -264,6 +270,7 @@ export const analyticsService = {
     const applications = await prisma.application.findMany({
       where: {
         userId,
+        AND: [excludePracticeMode],
         applicationDate: {
           gte: startDate,
         },

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import multer from 'multer';
 
 export interface ApiError extends Error {
   statusCode: number;
@@ -13,8 +14,18 @@ export const errorHandler = (
 ) => {
   console.error('Error:', err.message);
 
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Internal Server Error';
+
+  // Upload errors (size limit, rejected file type) are client errors, not 500s
+  if (err instanceof multer.MulterError) {
+    statusCode = 400;
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      message = 'Fichier trop volumineux.';
+    }
+  } else if (err.message?.startsWith('Format de fichier non autorisé')) {
+    statusCode = 400;
+  }
 
   res.status(statusCode).json({
     success: false,

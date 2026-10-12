@@ -32,8 +32,8 @@ export const companyService = {
     
     if (search) {
       where.OR = [
-        { name: { contains: search } },
-        { industry: { contains: search } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { industry: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -69,9 +69,9 @@ export const companyService = {
     });
   },
 
-  async getById(id: string) {
-    const company = await prisma.company.findUnique({
-      where: { id },
+  async getById(userId: string, id: string) {
+    const company = await prisma.company.findFirst({
+      where: { id, userId },
       include: {
         reviews: {
           include: {
@@ -111,7 +111,7 @@ export const companyService = {
     const companies = await prisma.company.findMany({
       where: {
         userId,
-        name: { contains: query },
+        name: { contains: query, mode: 'insensitive' },
       },
       select: {
         id: true,
@@ -126,7 +126,7 @@ export const companyService = {
 
   async create(data: CreateCompanyData) {
     const existing = await prisma.company.findFirst({
-      where: { name: data.name, userId: data.userId },
+      where: { name: { equals: data.name, mode: 'insensitive' }, userId: data.userId },
     });
 
     if (existing) {
@@ -150,8 +150,8 @@ export const companyService = {
   },
 
   async addReview(userId: string, data: CreateReviewData) {
-    const company = await prisma.company.findUnique({
-      where: { id: data.companyId },
+    const company = await prisma.company.findFirst({
+      where: { id: data.companyId, userId },
     });
 
     if (!company) {
@@ -167,9 +167,12 @@ export const companyService = {
       throw createError('Vous avez déjà laissé un avis pour cette entreprise', 400);
     }
 
+    // Only persist columns that exist on CompanyReview (extra form fields are not stored)
     const review = await prisma.companyReview.create({
       data: {
-        ...data,
+        companyId: data.companyId,
+        rating: Number(data.rating),
+        comment: data.comment,
         userId,
       },
     });
@@ -177,7 +180,15 @@ export const companyService = {
     return review;
   },
 
-  async getReviews(companyId: string) {
+  async getReviews(userId: string, companyId: string) {
+    const company = await prisma.company.findFirst({
+      where: { id: companyId, userId },
+      select: { id: true },
+    });
+    if (!company) {
+      throw createError('Entreprise non trouvée', 404);
+    }
+
     const reviews = await prisma.companyReview.findMany({
       where: { companyId },
       include: {
@@ -194,9 +205,9 @@ export const companyService = {
     return reviews;
   },
 
-  async delete(id: string, deleteApplications: boolean = false) {
-    const company = await prisma.company.findUnique({
-      where: { id },
+  async delete(userId: string, id: string, deleteApplications: boolean = false) {
+    const company = await prisma.company.findFirst({
+      where: { id, userId },
     });
 
     if (!company) {
@@ -206,7 +217,7 @@ export const companyService = {
     if (deleteApplications) {
       // Delete associated applications
       await prisma.application.deleteMany({
-        where: { companyId: id },
+        where: { companyId: id, userId },
       });
     } else {
       // Unlink applications

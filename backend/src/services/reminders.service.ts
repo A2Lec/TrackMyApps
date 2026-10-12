@@ -9,6 +9,17 @@ interface CreateReminderData {
   dueDate: Date;
 }
 
+// Only these fields come from the client; userId, emailSent... are server-controlled
+function pickReminderFields(data: Partial<CreateReminderData & { isCompleted: boolean }>) {
+  const picked: Record<string, unknown> = {};
+  for (const key of ['applicationId', 'title', 'description', 'type', 'dueDate', 'isCompleted'] as const) {
+    if (data[key] !== undefined) picked[key] = data[key];
+  }
+  // An empty applicationId means "detach from application"
+  if (picked.applicationId === '') picked.applicationId = null;
+  return picked;
+}
+
 export const reminderService = {
   async getAll(userId: string, includeCompleted = false) {
     const where: any = { userId };
@@ -89,10 +100,15 @@ export const reminderService = {
       }
     }
 
+    const { applicationId, title, description, type, dueDate } = data;
     const reminder = await prisma.reminder.create({
       data: {
         userId,
-        ...data,
+        applicationId: applicationId || undefined,
+        title,
+        description,
+        type,
+        dueDate,
       },
       include: {
         application: {
@@ -128,7 +144,7 @@ export const reminderService = {
       }
     }
 
-    const updateData: any = { ...data };
+    const updateData: any = pickReminderFields(data);
     if (data.dueDate) {
       updateData.emailSent = false;
     }
