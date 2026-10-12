@@ -136,4 +136,17 @@ export const authController = {
     const result = await authService.resendVerificationEmail(req.userId!);
     return sendSuccess(res, result);
   }),
+
+  forgotPassword: asyncHandler(async (req: Request, res: Response) => {
+    validateRequest(req);
+    const result = await authService.requestPasswordReset(req.body.email);
+    return sendSuccess(res, result);
+  }),
+
+  resetPassword: asyncHandler(async (req: Request, res: Response) => {
+    validateRequest(req);
+    const { token, password } = req.body;
+    const result = await authService.resetPassword(token, password);
+    return sendSuccess(res, result);
+  }),
 };

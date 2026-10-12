@@ -36,3 +36,21 @@ export const authLimiter = rateLimit({
     res.status(options.statusCode).json(options.message);
   },
 });
+
+// Password reset limiter: counts every request (the endpoint always answers 200,
+// so authLimiter's skipSuccessfulRequests would never throttle it)
+// @ts-ignore
+export const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Trop de demandes de réinitialisation, veuillez réessayer dans 15 minutes.',
+  },
+  handler: (req: Request, res: Response, next: NextFunction, options: any) => {
+    logWarn(`Password reset rate limit exceeded for IP: ${req.ip}`, { context: 'RateLimit' });
+    res.status(options.statusCode).json(options.message);
+  },
+});
