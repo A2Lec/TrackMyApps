@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect, Suspense, lazy, useState } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster, toast } from 'sonner';
 import { Layout } from '@/components/layout/Layout';
@@ -8,6 +8,7 @@ import { AppLoader } from '@/components/loading/AppLoader';
 import { TopProgressBar } from '@/components/loading/TopProgressBar';
 import { pageLoaders, PROTECTED_PAGES, prefetchPagesWhenIdle } from '@/lib/pageLoaders';
 import { CookieConsent } from '@/components/CookieConsent';
+import { useCookieConsent } from '@/lib/cookieConsent';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/store/authStore';
 import { setupNotificationChecker, showBrowserNotification, getNotificationPermission } from '@/utils/notifications';
@@ -75,21 +76,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const { isAuthenticated } = useAuthStore();
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
-
-  useEffect(() => {
-    // Check cookie consent for analytics
-    const consent = localStorage.getItem('cookie-consent');
-    setAnalyticsEnabled(consent === 'accepted');
-  }, []);
-
-  const handleCookieAccept = () => {
-    setAnalyticsEnabled(true);
-  };
-
-  const handleCookieDecline = () => {
-    setAnalyticsEnabled(false);
-  };
+  const analyticsEnabled = useCookieConsent() === 'accepted';
 
   // Once logged in, download the other pages in the background so their first visit is instant
   useEffect(() => {
@@ -218,9 +205,9 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
+          <CookieConsent />
         </BrowserRouter>
         {analyticsEnabled && <Analytics />}
-        <CookieConsent onAccept={handleCookieAccept} onDecline={handleCookieDecline} />
         <Toaster richColors position="bottom-right" />
       </TooltipProvider>
     </QueryClientProvider>

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Mail, ExternalLink } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
+import { openCookieSettings } from '@/lib/cookieConsent';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -91,6 +92,11 @@ export function Footer() {
                 <Link to="/legal-notice" className="hover:text-foreground transition-colors">
                   Mentions légales
                 </Link>
+              </li>
+              <li>
+                <button type="button" onClick={openCookieSettings} className="hover:text-foreground transition-colors">
+                  Gérer les cookies
+                </button>
               </li>
               <li>
                 <Link to="/settings" className="hover:text-foreground transition-colors">

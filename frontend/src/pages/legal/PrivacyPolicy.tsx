@@ -1,179 +1,276 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { LegalPage, LegalTable, type LegalSection } from '@/components/legal/LegalPage';
+import { LEGAL } from '@/lib/legal';
+import { openCookieSettings } from '@/lib/cookieConsent';
+
+const mail = <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>;
+
+const sections: LegalSection[] = [
+  {
+    id: 'responsable',
+    title: 'Responsable du traitement',
+    content: (
+      <p>
+        Le responsable du traitement est <strong>{LEGAL.ownerName}</strong>, éditeur de {LEGAL.siteName} à titre
+        personnel et non commercial. Pour toute question sur vos données : {mail}. Aucun délégué à la protection des
+        données (DPO) n'a été désigné, cette désignation n'étant pas obligatoire pour ce service.
+      </p>
+    ),
+  },
+  {
+    id: 'donnees',
+    title: 'Données traitées',
+    content: (
+      <>
+        <ul>
+          <li>
+            <strong>Compte :</strong> prénom, nom, adresse email, mot de passe (stocké uniquement sous forme
+            chiffrée irréversible), et si vous les renseignez : école, année de diplôme, domaine d'études.
+          </li>
+          <li>
+            <strong>Suivi de candidatures :</strong> entreprises, postes, lieux, statuts, dates, salaires, liens et
+            descriptions d'offres, notes et comptes rendus d'échanges, rappels.
+          </li>
+          <li>
+            <strong>Documents :</strong> les fichiers que vous déposez (CV, lettres de motivation…) et le texte qui en
+            est extrait pour la simulation d'entretien.
+          </li>
+          <li>
+            <strong>Préparation et simulation d'entretien :</strong> vos questions et réponses, les messages échangés
+            avec l'IA et les évaluations obtenues.
+          </li>
+          <li>
+            <strong>Préférences :</strong> notifications par email, fréquence des relances, thème d'affichage.
+          </li>
+          <li>
+            <strong>Données techniques :</strong> adresse IP et informations de connexion, utilisées pour la sécurité
+            (limitation des tentatives, prévention des abus) et conservées dans les journaux techniques de
+            l'hébergeur.
+          </li>
+          <li>
+            <strong>Mesure d'audience (uniquement avec votre accord) :</strong> pages consultées, site de provenance,
+            type d'appareil et de navigateur, pays approximatif.
+          </li>
+        </ul>
+        <p>
+          Les notes que vous saisissez peuvent mentionner des tiers (par exemple le nom d'un recruteur). Ne saisissez
+          que ce qui est utile à votre suivi, et aucune donnée sensible (santé, opinions, etc.).
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'finalites',
+    title: 'Finalités et bases légales',
+    content: (
+      <LegalTable
+        head={['Pourquoi', 'Base légale (RGPD, art. 6)']}
+        rows={[
+          ['Créer et gérer votre compte, fournir le suivi de candidatures et le stockage de documents', 'Exécution du contrat (les CGU que vous acceptez)'],
+          ['Envoyer les emails de service : vérification de l\'adresse, réinitialisation du mot de passe', 'Exécution du contrat'],
+          ['Envoyer les rappels par email (désactivable dans Paramètres → Notifications)', 'Exécution du contrat'],
+          ['Générer les simulations d\'entretien avec l\'IA, à votre demande', 'Exécution du contrat'],
+          ['Sécuriser le service et prévenir les abus', 'Intérêt légitime de l\'éditeur'],
+          ['Mesurer l\'audience du site', 'Consentement (retirable à tout moment)'],
+        ]}
+      />
+    ),
+  },
+  {
+    id: 'ia',
+    title: 'Simulation d\'entretien par intelligence artificielle',
+    content: (
+      <>
+        <p>
+          Lorsque vous lancez une simulation, les informations nécessaires sont envoyées à l'API{' '}
+          <strong>Google Gemini</strong> (Google LLC) : intitulé du poste, nom de l'entreprise, description de l'offre,
+          texte du CV et de la lettre que vous sélectionnez, puis vos réponses au fil de l'entretien.
+        </p>
+        <p>
+          Le service utilise l'offre payante de l'API Gemini : selon les conditions de Google, ces données ne sont pas
+          utilisées pour entraîner ou améliorer les modèles de Google. Google les conserve pendant une durée limitée,
+          uniquement pour détecter les abus et respecter ses obligations légales.
+        </p>
+        <p>
+          Les résultats de l'IA sont indicatifs. Si vous ne souhaitez pas transmettre votre CV, lancez la simulation
+          sans sélectionner de document.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'destinataires',
+    title: 'Destinataires et prestataires',
+    content: (
+      <>
+        <p>
+          Vos données ne sont ni vendues, ni louées, ni utilisées à des fins publicitaires. Seul l'éditeur y a accès,
+          ainsi que les prestataires techniques ci-dessous, chacun pour ce qui le concerne :
+        </p>
+        <LegalTable
+          head={['Prestataire', 'Rôle', 'Localisation et garanties']}
+          rows={[
+            ['Vercel Inc.', 'Hébergement du site et de l\'API, stockage des documents (Vercel Blob), mesure d\'audience (Vercel Web Analytics)', 'États-Unis — certifié Data Privacy Framework UE–États-Unis'],
+            ['Neon', 'Base de données', 'Serveurs à Londres (Royaume-Uni) — pays reconnu adéquat par la Commission européenne'],
+            ['Google LLC', 'Envoi des emails (Gmail) et IA de simulation d\'entretien (API Gemini, offre payante)', 'États-Unis — certifié Data Privacy Framework UE–États-Unis'],
+            ['Clearbit (HubSpot)', 'Recherche du site web d\'une entreprise à partir de son nom, lors de la création d\'une candidature', 'Seul le nom de l\'entreprise est transmis, aucune donnée vous concernant'],
+          ]}
+        />
+        <p>Vos données peuvent enfin être communiquées aux autorités sur demande légalement fondée.</p>
+      </>
+    ),
+  },
+  {
+    id: 'transferts',
+    title: 'Transferts hors de l\'Union européenne',
+    content: (
+      <p>
+        Certains prestataires sont situés hors de l'Union européenne. Les transferts vers le Royaume-Uni reposent sur
+        la décision d'adéquation de la Commission européenne. Les transferts vers les États-Unis reposent sur la
+        certification des prestataires concernés au Data Privacy Framework UE–États-Unis (décision d'adéquation du 10
+        juillet 2023) et, à défaut, sur les clauses contractuelles types de la Commission européenne.
+      </p>
+    ),
+  },
+  {
+    id: 'conservation',
+    title: 'Durées de conservation',
+    content: (
+      <LegalTable
+        head={['Données', 'Durée']}
+        rows={[
+          ['Compte, candidatures, documents, rappels, simulations', 'Tant que votre compte existe. La suppression du compte efface immédiatement et définitivement toutes ces données, documents compris.'],
+          ['Lien de vérification de l\'adresse email', '24 heures'],
+          ['Lien de réinitialisation du mot de passe', '1 heure, utilisable une seule fois'],
+          ['Session de connexion', '7 jours'],
+          ['Choix concernant la mesure d\'audience', '6 mois, puis la question vous est reposée'],
+          ['Journaux techniques de l\'hébergeur', 'Quelques jours au maximum'],
+          ['Données envoyées à l\'API Gemini', 'Durée limitée fixée par Google, pour la seule détection des abus'],
+        ]}
+      />
+    ),
+  },
+  {
+    id: 'droits',
+    title: 'Vos droits',
+    content: (
+      <>
+        <p>Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits suivants :</p>
+        <ul>
+          <li>
+            <strong>Accès et portabilité :</strong> téléchargez toutes vos données en JSON ou CSV dans Paramètres →
+            Compte & Sécurité.
+          </li>
+          <li>
+            <strong>Rectification :</strong> modifiez vos informations dans Paramètres → Profil personnel.
+          </li>
+          <li>
+            <strong>Effacement :</strong> supprimez votre compte et toutes vos données dans Paramètres → Compte &
+            Sécurité.
+          </li>
+          <li>
+            <strong>Opposition et limitation :</strong> désactivez les emails de rappel dans Paramètres →
+            Notifications, ou écrivez-nous.
+          </li>
+          <li>
+            <strong>Retrait du consentement :</strong> à tout moment via{' '}
+            <button type="button" onClick={openCookieSettings} className="text-primary underline underline-offset-2">
+              Gérer les cookies
+            </button>
+            , sans conséquence sur l'utilisation du service.
+          </li>
+          <li>
+            <strong>Directives post-mortem :</strong> vous pouvez définir le sort de vos données après votre décès.
+          </li>
+        </ul>
+        <p>
+          Pour toute demande : {mail}. Une réponse vous sera apportée dans un délai d'un mois. Si vous estimez que vos
+          droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la CNIL (
+          <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener noreferrer">cnil.fr/fr/plaintes</a>
+          ).
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'cookies',
+    title: 'Cookies et stockage local',
+    content: (
+      <>
+        <p>
+          Le site ne dépose aucun cookie publicitaire. Il utilise uniquement les éléments suivants, stockés dans votre
+          navigateur :
+        </p>
+        <LegalTable
+          head={['Élément', 'Utilité', 'Consentement']}
+          rows={[
+            ['Cookie « token »', 'Maintenir votre connexion (7 jours)', 'Non requis (indispensable)'],
+            ['Stockage local « auth-storage »', 'Mémoriser votre session et votre profil', 'Non requis (indispensable)'],
+            ['Stockage local « ui-storage », « notifiedReminders »', 'Thème, état du menu, rappels déjà notifiés', 'Non requis (préférences demandées par vous)'],
+            ['Stockage local « cookie-consent »', 'Mémoriser votre choix sur la mesure d\'audience', 'Non requis'],
+            ['Vercel Web Analytics', 'Mesure d\'audience anonyme, sans cookie ni suivi d\'un site à l\'autre', 'Requis : activé seulement si vous acceptez'],
+          ]}
+        />
+        <p>
+          La police de caractères est hébergée sur le site lui-même : aucune requête n'est envoyée à un service tiers
+          comme Google Fonts. Vous pouvez modifier votre choix à tout moment avec le lien « Gérer les cookies » en bas
+          de page.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'securite',
+    title: 'Sécurité',
+    content: (
+      <>
+        <ul>
+          <li>Connexions chiffrées (HTTPS) et mots de passe chiffrés de façon irréversible (bcrypt).</li>
+          <li>Liens de vérification et de réinitialisation à durée limitée ; ces derniers sont stockés sous forme chiffrée.</li>
+          <li>Accès aux données de chaque compte strictement limité à son titulaire ; limitation des tentatives de connexion.</li>
+        </ul>
+        <p>
+          Les documents déposés sont accessibles par une adresse longue et aléatoire, impossible à deviner : ne la
+          partagez pas, car toute personne qui la connaît peut ouvrir le fichier.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'mineurs',
+    title: 'Mineurs',
+    content: (
+      <p>
+        Le service est réservé aux personnes âgées d'au moins {LEGAL.minimumAge} ans, âge à partir duquel un mineur
+        peut consentir seul au traitement de ses données en France (article 45 de la loi Informatique et Libertés).
+      </p>
+    ),
+  },
+  {
+    id: 'modifications',
+    title: 'Modifications',
+    content: (
+      <p>
+        Cette politique peut évoluer, notamment en cas de nouvelle fonctionnalité ou de nouveau prestataire. La date
+        de mise à jour figure en haut de page ; en cas de changement important, vous en serez informé par email ou
+        dans l'application. Voir aussi les <Link to="/terms-of-service">CGU</Link> et les{' '}
+        <Link to="/legal-notice">mentions légales</Link>.
+      </p>
+    ),
+  },
+];
 
 export function PrivacyPolicyPage() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl py-8 space-y-6">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
-        </Button>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl">Politique de Confidentialité</CardTitle>
-            <p className="text-sm text-muted-foreground">Dernière mise à jour : 5 janvier 2026</p>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none space-y-6">
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">1. Introduction</h2>
-              <p>
-                TrackMyApps ("nous", "notre", "nos") s'engage à protéger votre vie privée. 
-                Cette politique de confidentialité explique comment nous collectons, utilisons, 
-                stockons et protégeons vos données personnelles conformément au Règlement Général 
-                sur la Protection des Données (RGPD).
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">2. Données Collectées</h2>
-              <h3 className="text-xl font-semibold mb-2">2.1 Données d'identification</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Nom et prénom</li>
-                <li>Adresse email</li>
-                <li>Mot de passe (crypté)</li>
-              </ul>
-
-              <h3 className="text-xl font-semibold mb-2 mt-4">2.2 Données d'utilisation</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Candidatures (poste, entreprise, statut, dates, notes)</li>
-                <li>Documents téléchargés (CV, lettres de motivation)</li>
-                <li>Rappels et notifications</li>
-                <li>Informations sur les entreprises</li>
-                <li>Sessions de simulation d'entretien</li>
-              </ul>
-
-              <h3 className="text-xl font-semibold mb-2 mt-4">2.3 Données techniques</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Adresse IP</li>
-                <li>Type de navigateur</li>
-                <li>Données de navigation (avec votre consentement)</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">3. Finalités du Traitement</h2>
-              <p>Nous utilisons vos données pour :</p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Créer et gérer votre compte</li>
-                <li>Fournir nos services de suivi de candidatures</li>
-                <li>Envoyer des rappels par email</li>
-                <li>Améliorer notre service (analytics anonymisées avec consentement)</li>
-                <li>Assurer la sécurité de la plateforme</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">4. Base Légale du Traitement</h2>
-              <ul className="list-disc pl-6 space-y-1">
-                <li><strong>Exécution du contrat :</strong> Fourniture des services TrackMyApps</li>
-                <li><strong>Consentement :</strong> Cookies analytics, emails marketing (si applicable)</li>
-                <li><strong>Intérêt légitime :</strong> Sécurité et amélioration du service</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">5. Durée de Conservation</h2>
-              <ul className="list-disc pl-6 space-y-1">
-                <li><strong>Données de compte :</strong> Jusqu'à suppression du compte</li>
-                <li><strong>Logs de sécurité :</strong> 12 mois maximum</li>
-                <li><strong>Cookies analytics :</strong> 13 mois (si consentement donné)</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">6. Vos Droits (RGPD)</h2>
-              <p>Vous disposez des droits suivants :</p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li><strong>Droit d'accès :</strong> Obtenir une copie de vos données (Paramètres → Exporter mes données)</li>
-                <li><strong>Droit de rectification :</strong> Corriger vos informations dans les Paramètres</li>
-                <li><strong>Droit à l'effacement :</strong> Supprimer votre compte (Paramètres → Supprimer mon compte)</li>
-                <li><strong>Droit à la portabilité :</strong> Exporter vos données en JSON ou CSV</li>
-                <li><strong>Droit d'opposition :</strong> S'opposer au traitement de certaines données</li>
-                <li><strong>Droit de retrait du consentement :</strong> Retirer votre consentement cookies à tout moment</li>
-              </ul>
-              <p className="mt-2">
-                Pour exercer ces droits, contactez-nous à : <strong>contact@trackmyapps.com</strong>
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">7. Sécurité des Données</h2>
-              <p>Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles :</p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Chiffrement des mots de passe (bcrypt)</li>
-                <li>Transmission sécurisée (HTTPS/TLS)</li>
-                <li>Authentification par JWT</li>
-                <li>Protection contre les attaques (rate limiting, validation des entrées)</li>
-                <li>Sauvegardes régulières de la base de données</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">8. Partage des Données</h2>
-              <p>
-                Nous ne vendons ni ne louons vos données personnelles. 
-                Vos données peuvent être partagées uniquement avec :
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li><strong>Hébergeurs :</strong> Vercel (hébergement), Neon/Supabase (base de données)</li>
-                <li><strong>Services tiers :</strong> Resend/SendGrid (emails transactionnels)</li>
-                <li><strong>Obligations légales :</strong> Autorités judiciaires sur demande légale</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">9. Cookies</h2>
-              <p>Nous utilisons deux types de cookies :</p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li><strong>Cookies essentiels :</strong> Authentification (JWT) - obligatoires pour le fonctionnement</li>
-                <li><strong>Cookies analytics :</strong> Vercel Analytics - nécessitent votre consentement</li>
-              </ul>
-              <p className="mt-2">
-                Vous pouvez gérer vos préférences cookies à tout moment via la bannière ou vos paramètres navigateur.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">10. Transferts Internationaux</h2>
-              <p>
-                Vos données peuvent être stockées sur des serveurs situés dans l'Union Européenne ou aux États-Unis. 
-                Nous nous assurons que ces transferts respectent les garanties appropriées du RGPD 
-                (clauses contractuelles types, Privacy Shield, etc.).
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">11. Modifications de cette Politique</h2>
-              <p>
-                Nous nous réservons le droit de modifier cette politique. 
-                Toute modification sera publiée sur cette page avec une nouvelle date de mise à jour. 
-                Nous vous notifierons par email en cas de changement majeur.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-3">12. Contact & Réclamations</h2>
-              <p>
-                Pour toute question concernant cette politique ou vos données personnelles :
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li><strong>Email :</strong> contact@trackmyapps.com</li>
-              </ul>
-              <p className="mt-2">
-                Vous avez également le droit de déposer une réclamation auprès de la CNIL 
-                (Commission Nationale de l'Informatique et des Libertés) si vous estimez que 
-                vos droits ne sont pas respectés.
-              </p>
-            </section>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <LegalPage
+      title="Politique de confidentialité"
+      intro={
+        <p>
+          Cette page explique quelles données {LEGAL.siteName} traite, pourquoi, avec qui elles sont partagées et
+          comment exercer vos droits, conformément au Règlement général sur la protection des données (RGPD).
+        </p>
+      }
+      sections={sections}
+    />
   );
 }
