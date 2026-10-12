@@ -1,17 +1,40 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database.js';
 import { emailService } from '../services/email.service.js';
+import jwt from 'jsonwebtoken';
+
+function getUserIdFromToken(token: string): string | undefined {
+  if (!process.env.JWT_SECRET) return undefined;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as { userId?: string };
+    return decoded.userId;
+  } catch {
+    return undefined;
+  }
+}
 
 export const cronController = {
   async processReminders(req: Request, res: Response) {
-    // Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` when CRON_SECRET is set
+    // Two callers: Vercel Cron (`Authorization: Bearer <CRON_SECRET>`, processes everyone)
+    // and the logged-in frontend (user JWT, processes only that user's reminders)
     const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret) {
-      if (req.headers.authorization !== `Bearer ${cronSecret}`) {
-        return res.status(401).json({ success: false, message: 'Non autorisé' });
-      }
+    const bearer = req.headers.authorization?.startsWith('Bearer ')
+      ? req.headers.authorization.slice('Bearer '.length)
+      : undefined;
+    let scopedUserId: string | undefined;
+
+    if (cronSecret && bearer === cronSecret) {
+      // Trusted scheduler call
     } else {
-      console.warn('[CRON] CRON_SECRET is not set: /cron/reminders is publicly callable');
+      const userToken = bearer || req.cookies?.token;
+      const userId = userToken ? getUserIdFromToken(userToken) : undefined;
+      if (userId) {
+        scopedUserId = userId;
+      } else if (cronSecret) {
+        return res.status(401).json({ success: false, message: 'Non autorisé' });
+      } else {
+        console.warn('[CRON] CRON_SECRET is not set: /cron/reminders is publicly callable');
+      }
     }
 
     console.log('[CRON] Starting reminder check...');
@@ -31,6 +54,7 @@ export const cronController = {
           },
           isCompleted: false,
           emailSent: false,
+          ...(scopedUserId ? { userId: scopedUserId } : {}),
           user: {
             emailNotifications: true,
           },

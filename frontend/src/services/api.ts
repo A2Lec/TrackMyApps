@@ -44,8 +44,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Don't logout on auth endpoints (login/register failures are expected)
+      // nor on the background cron trigger, whose 401 says nothing about the user session
       const url = error.config?.url || '';
-      if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+      if (!url.includes('/auth/login') && !url.includes('/auth/register') && !url.includes('/cron/')) {
         useAuthStore.getState().logout();
       }
     }
