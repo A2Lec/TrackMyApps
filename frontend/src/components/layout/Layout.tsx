@@ -6,7 +6,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { BottomNav } from './BottomNav';
-import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { RouteFallback } from '@/components/loading/RouteFallback';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import { cn } from '@/lib/utils';
 
@@ -31,7 +31,7 @@ export function Layout() {
       >
         <EmailVerificationBanner />
         <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full min-w-0">
-          <Suspense fallback={<LoadingSkeleton type="grid" count={6} />}>
+          <Suspense fallback={<RouteFallback />}>
             <Outlet />
           </Suspense>
         </div>

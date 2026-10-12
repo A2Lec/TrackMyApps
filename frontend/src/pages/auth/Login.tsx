@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,6 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { useDelayedFlag } from '@/hooks/useDelayedFlag';
+import { SlowServerHint, SLOW_LOADING_DELAY_MS } from '@/components/loading/SlowServerHint';
+import { prefetchPages } from '@/lib/pageLoaders';
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -48,6 +51,13 @@ export function LoginPage() {
       setError(error.response?.data?.message || 'Identifiants invalides');
     },
   });
+
+  // The dashboard is the next screen: download it while the user types
+  useEffect(() => {
+    prefetchPages(['dashboard']);
+  }, []);
+
+  const isSlow = useDelayedFlag(loginMutation.isPending, SLOW_LOADING_DELAY_MS);
 
   const onSubmit = (data: LoginForm) => {
     setError('');
@@ -141,8 +151,9 @@ export function LoginPage() {
               {loginMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Se connecter
+              {loginMutation.isPending ? 'Connexion…' : 'Se connecter'}
             </Button>
+            {isSlow && <SlowServerHint />}
             
             <Button
               type="button"
