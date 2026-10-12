@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { DashboardSkeleton } from '@/components/loading/DashboardSkeleton';
 import { EmailVerifiedGuard, useEmailVerified } from '@/components/EmailVerifiedGuard';
 import {
   Dialog,
@@ -644,33 +644,6 @@ export function DashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-6 max-w-7xl mx-auto w-full min-w-0">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border/40">
-        <div className="space-y-2 flex-1">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <Skeleton className="h-9 w-36" />
-      </div>
-
-      <div className="h-28 w-full rounded-xl border border-border bg-card p-4">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-full">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-full rounded-lg" />
-          ))}
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-12">
-        <Skeleton className="h-80 rounded-xl lg:col-span-5" />
-        <Skeleton className="h-80 rounded-xl lg:col-span-7" />
-      </div>
     </div>
   );
 }

@@ -1,18 +1,26 @@
-import { Outlet, Navigate } from 'react-router-dom';
-import { Suspense } from 'react';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
+import { Suspense, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { useUIStore } from '@/store/uiStore';
+import { useUIStore, isDesktopViewport } from '@/store/uiStore';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { BottomNav } from './BottomNav';
-import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { RouteFallback } from '@/components/loading/RouteFallback';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import { cn } from '@/lib/utils';
 
 export function Layout() {
   const { isAuthenticated } = useAuthStore();
-  const { sidebarOpen } = useUIStore();
+  const { sidebarOpen, setSidebarOpen } = useUIStore();
+  const { pathname } = useLocation();
+
+  // On mobile the sidebar overlays the page: close it whenever the user navigates
+  useEffect(() => {
+    if (!isDesktopViewport()) {
+      setSidebarOpen(false);
+    }
+  }, [pathname, setSidebarOpen]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -31,7 +39,7 @@ export function Layout() {
       >
         <EmailVerificationBanner />
         <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full min-w-0">
-          <Suspense fallback={<LoadingSkeleton type="grid" count={6} />}>
+          <Suspense fallback={<RouteFallback />}>
             <Outlet />
           </Suspense>
         </div>

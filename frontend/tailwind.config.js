@@ -85,11 +85,29 @@ export default {
   				to: {
   					height: 0
   				}
+  			},
+  			'progress-grow': {
+  				from: {
+  					transform: 'scaleX(0)'
+  				},
+  				to: {
+  					transform: 'scaleX(0.9)'
+  				}
+  			},
+  			'loader-float': {
+  				'0%, 100%': {
+  					transform: 'translateY(0)'
+  				},
+  				'50%': {
+  					transform: 'translateY(-6px)'
+  				}
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'progress-grow': 'progress-grow 8s cubic-bezier(0.1, 0.6, 0.3, 1) forwards',
+  			'loader-float': 'loader-float 2s ease-in-out infinite'
   		}
   	}
   },

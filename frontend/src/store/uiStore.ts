@@ -3,6 +3,14 @@ import { persist } from 'zustand/middleware';
 
 export type Theme = 'light' | 'dark' | 'system';
 
+// Matches Tailwind's `lg` breakpoint, where the sidebar becomes a permanent column
+export const DESKTOP_SIDEBAR_QUERY = '(min-width: 1024px)';
+
+export const isDesktopViewport = () =>
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia(DESKTOP_SIDEBAR_QUERY).matches;
+
 interface UIState {
   sidebarOpen: boolean;
   theme: Theme;
@@ -39,7 +47,8 @@ if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
 export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
-      sidebarOpen: true,
+      // On mobile the sidebar is an overlay: it must start closed
+      sidebarOpen: isDesktopViewport(),
       theme: 'system',
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
@@ -50,6 +59,15 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: 'ui-storage',
+      // The persisted value is the desktop expanded/collapsed preference; never reopen the mobile overlay from it
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<UIState>;
+        return {
+          ...current,
+          ...saved,
+          sidebarOpen: isDesktopViewport() ? saved.sidebarOpen ?? current.sidebarOpen : false,
+        };
+      },
       onRehydrateStorage: () => (state) => {
         // Appliquer le thème au chargement
         if (state) {

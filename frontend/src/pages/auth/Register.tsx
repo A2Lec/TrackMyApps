@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,6 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, Loader2, Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { useDelayedFlag } from '@/hooks/useDelayedFlag';
+import { SlowServerHint, SLOW_LOADING_DELAY_MS } from '@/components/loading/SlowServerHint';
+import { prefetchPages } from '@/lib/pageLoaders';
 
 const registerSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -54,6 +57,13 @@ export function RegisterPage() {
       setError(error.response?.data?.message || "Erreur lors de l'inscription");
     },
   });
+
+  // The dashboard is the next screen: download it while the user fills the form
+  useEffect(() => {
+    prefetchPages(['dashboard']);
+  }, []);
+
+  const isSlow = useDelayedFlag(registerMutation.isPending, SLOW_LOADING_DELAY_MS);
 
   const onSubmit = (data: RegisterForm) => {
     setError('');
@@ -240,8 +250,9 @@ export function RegisterPage() {
               {registerMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Créer mon compte gratuitement
+              {registerMutation.isPending ? 'Création du compte…' : 'Créer mon compte gratuitement'}
             </Button>
+            {isSlow && <SlowServerHint />}
 
             <p className="text-xs sm:text-sm text-muted-foreground text-center mt-1">
               Vous avez déjà un compte ?{' '}

@@ -4,7 +4,9 @@ import { useEffect, Suspense, lazy, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster, toast } from 'sonner';
 import { Layout } from '@/components/layout/Layout';
-import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { AppLoader } from '@/components/loading/AppLoader';
+import { TopProgressBar } from '@/components/loading/TopProgressBar';
+import { pageLoaders, PROTECTED_PAGES, prefetchPagesWhenIdle } from '@/lib/pageLoaders';
 import { CookieConsent } from '@/components/CookieConsent';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/store/authStore';
@@ -12,26 +14,26 @@ import { setupNotificationChecker, showBrowserNotification, getNotificationPermi
 import { remindersService } from '@/services/reminders.service';
 
 // Lazy load pages
-const LoginPage = lazy(() => import('@/pages/auth/Login').then(module => ({ default: module.LoginPage })));
-const RegisterPage = lazy(() => import('@/pages/auth/Register').then(module => ({ default: module.RegisterPage })));
-const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPassword').then(module => ({ default: module.ForgotPasswordPage })));
-const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPassword').then(module => ({ default: module.ResetPasswordPage })));
-const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmail').then(module => ({ default: module.VerifyEmailPage })));
-const DashboardPage = lazy(() => import('@/pages/Dashboard').then(module => ({ default: module.DashboardPage })));
-const ApplicationsPage = lazy(() => import('@/pages/Applications').then(module => ({ default: module.ApplicationsPage })));
-const ApplicationDetailPage = lazy(() => import('@/pages/ApplicationDetail').then(module => ({ default: module.ApplicationDetailPage })));
-const DocumentsPage = lazy(() => import('@/pages/Documents').then(module => ({ default: module.DocumentsPage })));
-const RemindersPage = lazy(() => import('@/pages/Reminders').then(module => ({ default: module.RemindersPage })));
-const AnalyticsPage = lazy(() => import('@/pages/Analytics').then(module => ({ default: module.AnalyticsPage })));
-const CalendarPage = lazy(() => import('@/pages/Calendar').then(module => ({ default: module.CalendarPage })));
-const CompaniesPage = lazy(() => import('@/pages/Companies').then(module => ({ default: module.CompaniesPage })));
-const InterviewPrepPage = lazy(() => import('@/pages/InterviewPrep').then(module => ({ default: module.InterviewPrepPage })));
-const SettingsPage = lazy(() => import('@/pages/Settings').then(module => ({ default: module.SettingsPage })));
+const LoginPage = lazy(() => pageLoaders.login().then(module => ({ default: module.LoginPage })));
+const RegisterPage = lazy(() => pageLoaders.register().then(module => ({ default: module.RegisterPage })));
+const ForgotPasswordPage = lazy(() => pageLoaders.forgotPassword().then(module => ({ default: module.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => pageLoaders.resetPassword().then(module => ({ default: module.ResetPasswordPage })));
+const VerifyEmailPage = lazy(() => pageLoaders.verifyEmail().then(module => ({ default: module.VerifyEmailPage })));
+const DashboardPage = lazy(() => pageLoaders.dashboard().then(module => ({ default: module.DashboardPage })));
+const ApplicationsPage = lazy(() => pageLoaders.applications().then(module => ({ default: module.ApplicationsPage })));
+const ApplicationDetailPage = lazy(() => pageLoaders.applicationDetail().then(module => ({ default: module.ApplicationDetailPage })));
+const DocumentsPage = lazy(() => pageLoaders.documents().then(module => ({ default: module.DocumentsPage })));
+const RemindersPage = lazy(() => pageLoaders.reminders().then(module => ({ default: module.RemindersPage })));
+const AnalyticsPage = lazy(() => pageLoaders.analytics().then(module => ({ default: module.AnalyticsPage })));
+const CalendarPage = lazy(() => pageLoaders.calendar().then(module => ({ default: module.CalendarPage })));
+const CompaniesPage = lazy(() => pageLoaders.companies().then(module => ({ default: module.CompaniesPage })));
+const InterviewPrepPage = lazy(() => pageLoaders.interviewPrep().then(module => ({ default: module.InterviewPrepPage })));
+const SettingsPage = lazy(() => pageLoaders.settings().then(module => ({ default: module.SettingsPage })));
 
 // Legal pages
-const PrivacyPolicyPage = lazy(() => import('@/pages/legal/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicyPage })));
-const TermsOfServicePage = lazy(() => import('@/pages/legal/TermsOfService').then(module => ({ default: module.TermsOfServicePage })));
-const LegalNoticePage = lazy(() => import('@/pages/legal/LegalNotice').then(module => ({ default: module.LegalNoticePage })));
+const PrivacyPolicyPage = lazy(() => pageLoaders.privacyPolicy().then(module => ({ default: module.PrivacyPolicyPage })));
+const TermsOfServicePage = lazy(() => pageLoaders.termsOfService().then(module => ({ default: module.TermsOfServicePage })));
+const LegalNoticePage = lazy(() => pageLoaders.legalNotice().then(module => ({ default: module.LegalNoticePage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -88,6 +90,12 @@ function App() {
   const handleCookieDecline = () => {
     setAnalyticsEnabled(false);
   };
+
+  // Once logged in, download the other pages in the background so their first visit is instant
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    return prefetchPagesWhenIdle(PROTECTED_PAGES);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -148,7 +156,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={150}>
         <BrowserRouter>
-          <Suspense fallback={<div className="flex items-center justify-center h-screen"><LoadingSkeleton type="grid" count={1} className="w-full max-w-md" /></div>}>
+          <TopProgressBar />
+          <Suspense fallback={<AppLoader />}>
             <Routes>
               {/* Public routes */}
               <Route
