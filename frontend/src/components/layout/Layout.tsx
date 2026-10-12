@@ -1,7 +1,7 @@
-import { Outlet, Navigate } from 'react-router-dom';
-import { Suspense } from 'react';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
+import { Suspense, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { useUIStore } from '@/store/uiStore';
+import { useUIStore, isDesktopViewport } from '@/store/uiStore';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { Footer } from './Footer';
@@ -12,7 +12,15 @@ import { cn } from '@/lib/utils';
 
 export function Layout() {
   const { isAuthenticated } = useAuthStore();
-  const { sidebarOpen } = useUIStore();
+  const { sidebarOpen, setSidebarOpen } = useUIStore();
+  const { pathname } = useLocation();
+
+  // On mobile the sidebar overlays the page: close it whenever the user navigates
+  useEffect(() => {
+    if (!isDesktopViewport()) {
+      setSidebarOpen(false);
+    }
+  }, [pathname, setSidebarOpen]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useUIStore } from '@/store/uiStore';
+import { useUIStore, isDesktopViewport } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 import {
   LayoutDashboard,
@@ -24,7 +24,7 @@ const navigation = [
 
 export function Sidebar() {
   const location = useLocation();
-  const { sidebarOpen, toggleSidebar } = useUIStore();
+  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
   const { user } = useAuthStore();
 
   return (
@@ -89,8 +89,8 @@ export function Sidebar() {
                 key={item.name}
                 to={item.href}
                 onClick={() => {
-                  if (window.innerWidth < 1024) {
-                    toggleSidebar();
+                  if (!isDesktopViewport()) {
+                    setSidebarOpen(false);
                   }
                 }}
                 className={cn(
