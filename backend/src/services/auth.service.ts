@@ -142,6 +142,7 @@ export const authService = {
         avatarUrl: true,
         emailNotifications: true,
         relanceFrequency: true,
+        emailVerified: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -240,8 +241,9 @@ export const authService = {
       throw createError('Utilisateur non trouvé', 404);
     }
 
+    // Already verified: nothing to send, but report it so the client can resync its state
     if (user.emailVerified) {
-      throw createError('Email déjà vérifié', 400);
+      return { message: 'Votre email est déjà vérifié', alreadyVerified: true };
     }
 
     // Generate new verification token
@@ -260,7 +262,7 @@ export const authService = {
     // Send verification email
     await emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
 
-    return { message: 'Email de vérification renvoyé' };
+    return { message: 'Email de vérification renvoyé', alreadyVerified: false };
   },
 
   generateToken(userId: string): string {

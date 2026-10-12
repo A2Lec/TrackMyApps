@@ -10,6 +10,7 @@ import type { User } from '@/types';
 vi.mock('@/services/auth.service', () => ({
   authService: {
     resendVerification: vi.fn(),
+    getProfile: vi.fn(),
   },
 }));
 
@@ -82,6 +83,7 @@ describe('Component: EmailVerifiedGuard', () => {
 describe('Component: EmailVerificationBanner', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(authService.getProfile).mockResolvedValue({ ...mockUser, emailVerified: false });
     useAuthStore.getState().logout();
   });
 
@@ -127,6 +129,35 @@ describe('Component: EmailVerificationBanner', () => {
     await waitFor(() => {
       expect(authService.resendVerification).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('hides the banner when the server says the stored verified flag is stale', async () => {
+    vi.mocked(authService.getProfile).mockResolvedValueOnce({ ...mockUser, emailVerified: true });
+    // Simulates a persisted user that lost emailVerified after a profile update
+    useAuthStore.getState().setAuth({ ...mockUser, emailVerified: undefined as any }, 'fake-token');
+
+    render(<EmailVerificationBanner />);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Vérification requise/i)).not.toBeInTheDocument();
+    });
+    expect(useAuthStore.getState().user?.emailVerified).toBe(true);
+  });
+
+  it('marks the user verified when resend reports the email is already verified', async () => {
+    vi.mocked(authService.resendVerification).mockResolvedValueOnce({
+      message: 'Votre email est déjà vérifié',
+      alreadyVerified: true,
+    });
+    useAuthStore.getState().setAuth({ ...mockUser, emailVerified: false }, 'fake-token');
+
+    render(<EmailVerificationBanner />);
+    fireEvent.click(screen.getByText('Renvoyer le lien'));
+
+    await waitFor(() => {
+      expect(useAuthStore.getState().user?.emailVerified).toBe(true);
+    });
+    expect(screen.queryByText(/Vérification requise/i)).not.toBeInTheDocument();
   });
 });
 

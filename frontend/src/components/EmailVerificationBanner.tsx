@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Mail, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { authService } from '@/services/auth.service';
@@ -6,9 +6,23 @@ import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 
 export function EmailVerificationBanner() {
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [dismissed, setDismissed] = useState(false);
   const [isResending, setIsResending] = useState(false);
+
+  const needsCheck = !!user && !user.emailVerified;
+
+  // The persisted user can be stale (e.g. emailVerified lost after a profile update):
+  // confirm the real status with the server before asking for verification.
+  useEffect(() => {
+    if (!needsCheck) return;
+    authService
+      .getProfile()
+      .then((profile) => {
+        if (profile.emailVerified) updateUser({ emailVerified: true });
+      })
+      .catch(() => {});
+  }, [needsCheck, updateUser]);
 
   // Don't show if no user, email is verified, or banner is dismissed
   if (!user || user?.emailVerified || dismissed) {
@@ -19,7 +33,12 @@ export function EmailVerificationBanner() {
     setIsResending(true);
 
     try {
-      await authService.resendVerification();
+      const result = await authService.resendVerification();
+      if (result?.alreadyVerified) {
+        updateUser({ emailVerified: true });
+        toast.success('Votre email est déjà vérifié.');
+        return;
+      }
       toast.success('Email de vérification envoyé ! Pensez à vérifier vos spams.', {
         icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />
       });
