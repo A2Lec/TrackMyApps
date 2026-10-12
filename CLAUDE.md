@@ -59,7 +59,7 @@ French labels for all enums are in `src/constants/labels.ts` (both frontend and 
 
 ## Environment Variables
 
-Backend (`.env`): `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `NODE_ENV`, `FRONTEND_URL`
+Backend (`.env`): `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `NODE_ENV`, `FRONTEND_URL`, `CRON_SECRET` (protects `/api/cron/reminders`; Vercel Cron sends it automatically)
 
 Frontend (`.env`): `VITE_API_URL` (empty in dev to use Vite proxy, set to backend URL in production)
 

@@ -4,9 +4,15 @@ import { emailService } from '../services/email.service.js';
 
 export const cronController = {
   async processReminders(req: Request, res: Response) {
-    // Security check: Verify Vercel Cron signature or a secret key if needed
-    // For simplicity, we'll assume the route is protected or public for now
-    // Ideally, check req.headers['authorization'] === `Bearer ${process.env.CRON_SECRET}`
+    // Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` when CRON_SECRET is set
+    const cronSecret = process.env.CRON_SECRET;
+    if (cronSecret) {
+      if (req.headers.authorization !== `Bearer ${cronSecret}`) {
+        return res.status(401).json({ success: false, message: 'Non autorisé' });
+      }
+    } else {
+      console.warn('[CRON] CRON_SECRET is not set: /cron/reminders is publicly callable');
+    }
 
     console.log('[CRON] Starting reminder check...');
 

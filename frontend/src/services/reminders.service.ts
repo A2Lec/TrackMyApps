@@ -35,7 +35,10 @@ export const remindersService = {
     return response.data;
   },
 
-  async update(id: string, data: Partial<CreateReminderData & { isCompleted: boolean }>): Promise<Reminder> {
+  async update(
+    id: string,
+    data: Partial<Omit<CreateReminderData, 'applicationId'> & { applicationId: string | null; isCompleted: boolean }>
+  ): Promise<Reminder> {
     const response = await api.put<Reminder>(`/reminders/${id}`, data);
     return response.data;
   },

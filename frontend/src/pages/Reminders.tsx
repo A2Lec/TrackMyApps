@@ -116,7 +116,7 @@ export function RemindersPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Reminder> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof remindersService.update>[1] }) =>
       remindersService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
@@ -266,7 +266,11 @@ export function RemindersPage() {
     };
 
     if (editingReminder) {
-      updateMutation.mutate({ id: editingReminder.id, data });
+      // null (not undefined, which JSON drops) so choosing "none" actually detaches the reminder
+      updateMutation.mutate({
+        id: editingReminder.id,
+        data: { ...data, applicationId: data.applicationId ?? null },
+      });
     } else {
       createMutation.mutate(data);
     }

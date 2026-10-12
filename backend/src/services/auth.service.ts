@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 import { emailService } from './email.service.js';
+import { storageService } from './storage.service.js';
 
 interface RegisterData {
   email: string;
@@ -199,9 +200,17 @@ export const authService = {
       throw createError('Utilisateur non trouvé', 404);
     }
 
+    const documents = await prisma.document.findMany({
+      where: { userId },
+      select: { fileUrl: true },
+    });
+
     await prisma.user.delete({
       where: { id: userId },
     });
+
+    // Remove stored files too (public Blob URLs would otherwise outlive the account)
+    await storageService.deleteFiles(documents.map((d) => d.fileUrl));
 
     return { message: 'Compte supprimé avec succès' };
   },

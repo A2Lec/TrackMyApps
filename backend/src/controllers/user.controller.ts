@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-import path from 'path';
-import fs from 'fs/promises';
-
-const prisma = new PrismaClient();
+import prisma from '../config/database.js';
+import { storageService } from '../services/storage.service.js';
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -167,16 +164,8 @@ export async function deleteUserAccount(req: AuthenticatedRequest, res: Response
       await tx.user.delete({ where: { id: userId } });
     });
 
-    // Delete uploaded files
-    for (const doc of documents) {
-      try {
-        const filePath = path.join(process.cwd(), doc.fileUrl);
-        await fs.unlink(filePath);
-      } catch (error) {
-        console.error(`Failed to delete file ${doc.fileUrl}:`, error);
-        // Continue even if file deletion fails
-      }
-    }
+    // Delete uploaded files (Vercel Blob in production, local disk in dev)
+    await storageService.deleteFiles(documents.map((doc) => doc.fileUrl));
 
     return res.json({ 
       message: 'Compte supprimé avec succès',

@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { authService } from '@/services/auth.service';
+import { useAuthStore } from '@/store/authStore';
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const verifiedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -20,12 +22,20 @@ export function VerifyEmailPage() {
       return;
     }
 
+    // The token is single-use: avoid a second call (e.g. StrictMode double effect) turning success into an error
+    if (verifiedTokenRef.current === token) return;
+    verifiedTokenRef.current = token;
+
     verifyEmail(token);
   }, [searchParams]);
 
   const verifyEmail = async (token: string) => {
     try {
       await authService.verifyEmail(token);
+      // Update the persisted user so the banner and guards unlock immediately
+      if (useAuthStore.getState().user) {
+        useAuthStore.getState().updateUser({ emailVerified: true });
+      }
       setStatus('success');
       setMessage('Votre email a été vérifié avec succès !');
       

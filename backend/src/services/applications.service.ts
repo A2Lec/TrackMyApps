@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 import type { ApplicationStatus, JobType, EventType } from '../types/index.js';
+import { excludePracticeMode } from '../utils/practiceMode.js';
 
 interface CreateApplicationData {
   companyName: string;
@@ -16,6 +17,8 @@ interface CreateApplicationData {
   notes?: string;
   jobDescription?: string;
   jobDescriptionFileUrl?: string;
+  contactName?: string;
+  contactEmail?: string;
   cvUsedId?: string;
   lmUsedId?: string;
   interviewDate?: Date;
@@ -24,6 +27,40 @@ interface CreateApplicationData {
 interface UpdateApplicationData extends Partial<CreateApplicationData> {
   lastRelanceDate?: Date;
   decisionDate?: Date;
+}
+
+// Fields a client may set on update; anything else in the body (userId, relations...) is ignored
+const UPDATABLE_FIELDS = [
+  'companyName', 'companyId', 'position', 'jobType', 'location', 'status', 'applicationDate',
+  'jobUrl', 'salary', 'notes', 'jobDescription', 'jobDescriptionFileUrl', 'contactName',
+  'contactEmail', 'cvUsedId', 'lmUsedId', 'lastRelanceDate', 'interviewDate', 'decisionDate',
+] as const;
+
+function pickUpdatableFields(data: Record<string, unknown>): UpdateApplicationData {
+  const picked: Record<string, unknown> = {};
+  for (const key of UPDATABLE_FIELDS) {
+    if (data[key] !== undefined) picked[key] = data[key];
+  }
+  return picked as UpdateApplicationData;
+}
+
+/**
+ * Ensure linked company / documents belong to the user, so an application
+ * cannot reference another user's records.
+ */
+async function assertLinkedRecordsOwned(
+  userId: string,
+  data: { companyId?: string | null; cvUsedId?: string | null; lmUsedId?: string | null }
+) {
+  if (data.companyId) {
+    const company = await prisma.company.findFirst({ where: { id: data.companyId, userId }, select: { id: true } });
+    if (!company) throw createError('Entreprise non trouvée', 404);
+  }
+  for (const docId of [data.cvUsedId, data.lmUsedId]) {
+    if (!docId) continue;
+    const doc = await prisma.document.findFirst({ where: { id: docId, userId }, select: { id: true } });
+    if (!doc) throw createError('Document non trouvé', 404);
+  }
 }
 
 interface ApplicationFilters {
@@ -36,7 +73,7 @@ export const applicationService = {
   async getAll(userId: string, filters: ApplicationFilters = {}, page: number = 1, limit: number = 20) {
     const where: Prisma.ApplicationWhereInput = {
       userId,
-      NOT: { notes: { contains: '[PRACTICE_MODE]' } },
+      AND: [excludePracticeMode],
     };
 
     if (filters.status) {
@@ -111,6 +148,8 @@ export const applicationService = {
   },
 
   async create(userId: string, data: CreateApplicationData) {
+    await assertLinkedRecordsOwned(userId, data);
+
     // Pre-compute website outside the transaction to avoid blocking DB with external HTTP calls
     let companyId = data.companyId || undefined;
     const normalizedCompanyName = data.companyName?.trim();
@@ -235,6 +274,10 @@ export const applicationService = {
           jobUrl: data.jobUrl,
           salary: data.salary,
           notes: data.notes,
+          jobDescription: data.jobDescription,
+          jobDescriptionFileUrl: data.jobDescriptionFileUrl,
+          contactName: data.contactName,
+          contactEmail: data.contactEmail,
           cvUsedId: data.cvUsedId,
           lmUsedId: data.lmUsedId,
           interviewDate: data.interviewDate,
@@ -268,7 +311,10 @@ export const applicationService = {
     });
   },
 
-  async update(userId: string, id: string, data: UpdateApplicationData) {
+  async update(userId: string, id: string, rawData: UpdateApplicationData) {
+    const data = pickUpdatableFields(rawData as Record<string, unknown>);
+    await assertLinkedRecordsOwned(userId, data);
+
     const existing = await prisma.application.findFirst({
       where: { id, userId },
     });
@@ -385,6 +431,7 @@ export const applicationService = {
   },
 
   async getStats(userId: string) {
+    const base: Prisma.ApplicationWhereInput = { userId, AND: [excludePracticeMode] };
     const [
       total,
       thisMonth,
@@ -392,10 +439,10 @@ export const applicationService = {
       byJobType,
       interviews,
     ] = await Promise.all([
-      prisma.application.count({ where: { userId } }),
+      prisma.application.count({ where: base }),
       prisma.application.count({
         where: {
-          userId,
+          ...base,
           applicationDate: {
             gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
@@ -403,17 +450,17 @@ export const applicationService = {
       }),
       prisma.application.groupBy({
         by: ['status'],
-        where: { userId },
+        where: base,
         _count: true,
       }),
       prisma.application.groupBy({
         by: ['jobType'],
-        where: { userId },
+        where: base,
         _count: true,
       }),
       prisma.application.count({
         where: {
-          userId,
+          ...base,
           status: 'INTERVIEW_SCHEDULED',
         },
       }),
@@ -451,7 +498,7 @@ export const applicationService = {
     const applications = await prisma.application.findMany({
       where: {
         userId,
-        NOT: { notes: { contains: '[PRACTICE_MODE]' } },
+        AND: [excludePracticeMode],
       },
       include: {
         company: true,
