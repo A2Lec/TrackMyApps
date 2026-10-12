@@ -16,6 +16,13 @@ interface RegisterData {
   field?: string;
 }
 
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1h
+const RESET_RESEND_DELAY_MS = 60 * 1000;
+
+function hashResetToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
 interface LoginData {
   email: string;
   password: string;
@@ -272,6 +279,72 @@ export const authService = {
     await emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
 
     return { message: 'Email de vérification renvoyé', alreadyVerified: false };
+  },
+
+  async requestPasswordReset(email: string) {
+    // Same answer whether or not the account exists, so the form cannot be used to probe emails
+    const genericResponse = {
+      message: 'Si un compte existe pour cette adresse, un email de réinitialisation vient d\'être envoyé.',
+    };
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      return genericResponse;
+    }
+
+    // Anti-spam: at most one email per minute per account
+    const now = Date.now();
+    if (user.resetTokenExpiry && user.resetTokenExpiry.getTime() - RESET_TOKEN_TTL_MS + RESET_RESEND_DELAY_MS > now) {
+      return genericResponse;
+    }
+
+    // Only a hash is stored: a database leak does not expose usable reset links
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken: hashResetToken(resetToken),
+        resetTokenExpiry: new Date(now + RESET_TOKEN_TTL_MS),
+      },
+    });
+
+    await emailService.sendPasswordResetEmail(user.email, user.firstName, resetToken);
+
+    return genericResponse;
+  },
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: hashResetToken(token),
+        resetTokenExpiry: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      throw createError('Lien de réinitialisation invalide ou expiré', 400);
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null,
+        // Opening the link sent by email proves ownership of the address
+        emailVerified: true,
+        verificationToken: null,
+        verificationTokenExpiry: null,
+      },
+    });
+
+    return { message: 'Mot de passe réinitialisé avec succès' };
   },
 
   generateToken(userId: string): string {

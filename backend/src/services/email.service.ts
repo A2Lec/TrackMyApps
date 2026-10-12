@@ -13,6 +13,12 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// FRONTEND_URL may hold a comma-separated list (see CORS config): links use the first entry
+function getFrontendUrl(): string {
+  const first = (process.env.FRONTEND_URL || '').split(',')[0].trim().replace(/^['"]|['"]$/g, '').replace(/\/+$/, '');
+  return first || 'http://localhost:5173';
+}
+
 export const emailService = {
   async sendEmail(to: string, subject: string, html: string) {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
@@ -48,7 +54,7 @@ export const emailService = {
           <p><strong>Date :</strong> ${new Date(dueDate).toLocaleDateString('fr-FR')}</p>
           ${description ? `<p><strong>Note :</strong> ${description}</p>` : ''}
         </div>
-        <p>Connectez-vous à <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}">TrackMyApps</a> pour voir les détails.</p>
+        <p>Connectez-vous à <a href="${getFrontendUrl()}">TrackMyApps</a> pour voir les détails.</p>
         <p style="color: #6b7280; font-size: 12px; margin-top: 40px;">
           Vous recevez cet email car vous avez activé les notifications pour TrackMyApps.
         </p>
@@ -58,7 +64,7 @@ export const emailService = {
   },
 
   async sendVerificationEmail(to: string, userName: string, verificationToken: string) {
-    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${getFrontendUrl()}/verify-email?token=${verificationToken}`;
     const subject = 'Vérifiez votre adresse email - TrackMyApps';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -77,6 +83,32 @@ export const emailService = {
         </p>
         <p style="color: #6b7280; font-size: 12px; margin-top: 40px;">
           Ce lien expire dans 24 heures. Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.
+        </p>
+      </div>
+    `;
+    return this.sendEmail(to, subject, html);
+  },
+
+  async sendPasswordResetEmail(to: string, userName: string, resetToken: string) {
+    const resetUrl = `${getFrontendUrl()}/reset-password?token=${resetToken}`;
+    const subject = 'Réinitialisation de votre mot de passe - TrackMyApps';
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">Bonjour ${userName},</h2>
+        <p>Vous avez demandé à réinitialiser le mot de passe de votre compte TrackMyApps.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+            Choisir un nouveau mot de passe
+          </a>
+        </div>
+        <p style="color: #6b7280; font-size: 14px;">
+          Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :
+        </p>
+        <p style="color: #2563eb; font-size: 12px; word-break: break-all;">
+          ${resetUrl}
+        </p>
+        <p style="color: #6b7280; font-size: 12px; margin-top: 40px;">
+          Ce lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email : votre mot de passe reste inchangé.
         </p>
       </div>
     `;

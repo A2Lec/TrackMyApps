@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { strongPasswordSchema } from '@/schemas/password';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
@@ -14,12 +15,7 @@ import { Briefcase, Loader2, Eye, EyeOff, GraduationCap } from 'lucide-react';
 
 const registerSchema = z.object({
   email: z.string().email('Email invalide'),
-  password: z.string()
-    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
-    .regex(/[A-Z]/, 'Au moins une lettre majuscule')
-    .regex(/[a-z]/, 'Au moins une lettre minuscule')
-    .regex(/[0-9]/, 'Au moins un chiffre')
-    .regex(/[^A-Za-z0-9]/, 'Au moins un caractère spécial'),
+  password: strongPasswordSchema,
   confirmPassword: z.string(),
   firstName: z.string().min(1, 'Prénom requis'),
   lastName: z.string().min(1, 'Nom requis'),

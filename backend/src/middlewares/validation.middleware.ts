@@ -1,11 +1,7 @@
 import { body, param, query } from 'express-validator';
 
-export const registerValidation = [
-  body('email')
-    .isEmail()
-    .withMessage('Email invalide')
-    .normalizeEmail(),
-  body('password')
+const strongPassword = (field: string) =>
+  body(field)
     .isLength({ min: 8 })
     .withMessage('Le mot de passe doit contenir au moins 8 caractères')
     .matches(/[A-Z]/)
@@ -15,7 +11,14 @@ export const registerValidation = [
     .matches(/[0-9]/)
     .withMessage('Le mot de passe doit contenir au moins un chiffre')
     .matches(/[^A-Za-z0-9]/)
-    .withMessage('Le mot de passe doit contenir au moins un caractère spécial'),
+    .withMessage('Le mot de passe doit contenir au moins un caractère spécial');
+
+export const registerValidation = [
+  body('email')
+    .isEmail()
+    .withMessage('Email invalide')
+    .normalizeEmail(),
+  strongPassword('password'),
   body('firstName')
     .trim()
     .notEmpty()
@@ -106,4 +109,20 @@ export const uuidValidation = [
   param('id')
     .isUUID()
     .withMessage('ID invalide'),
+];
+
+// Same email normalization as register/login so the lookup matches the stored address
+export const forgotPasswordValidation = [
+  body('email')
+    .isEmail()
+    .withMessage('Email invalide')
+    .normalizeEmail(),
+];
+
+export const resetPasswordValidation = [
+  body('token')
+    .isString()
+    .notEmpty()
+    .withMessage('Lien de réinitialisation invalide'),
+  strongPassword('password'),
 ];

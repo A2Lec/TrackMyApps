@@ -14,6 +14,8 @@ import { remindersService } from '@/services/reminders.service';
 // Lazy load pages
 const LoginPage = lazy(() => import('@/pages/auth/Login').then(module => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import('@/pages/auth/Register').then(module => ({ default: module.RegisterPage })));
+const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPassword').then(module => ({ default: module.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPassword').then(module => ({ default: module.ResetPasswordPage })));
 const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmail').then(module => ({ default: module.VerifyEmailPage })));
 const DashboardPage = lazy(() => import('@/pages/Dashboard').then(module => ({ default: module.DashboardPage })));
 const ApplicationsPage = lazy(() => import('@/pages/Applications').then(module => ({ default: module.ApplicationsPage })));
@@ -165,6 +167,16 @@ function App() {
                   </PublicRoute>
                 }
               />
+              <Route
+                path="/forgot-password"
+                element={
+                  <PublicRoute>
+                    <ForgotPasswordPage />
+                  </PublicRoute>
+                }
+              />
+              {/* Not wrapped in PublicRoute: the emailed link must work even in a logged-in browser */}
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               
               {/* Legal pages */}
