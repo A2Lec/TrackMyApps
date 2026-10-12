@@ -1,6 +1,6 @@
-import { Briefcase } from 'lucide-react';
 import { useDelayedFlag } from '@/hooks/useDelayedFlag';
 import { SlowServerHint, SLOW_LOADING_DELAY_MS } from './SlowServerHint';
+import { BrandLogo } from '@/components/BrandLogo';
 
 /**
  * Full-screen branded loader, shown while the first page of the app is downloading.
@@ -17,9 +17,7 @@ export function AppLoader() {
     >
       <div className="relative">
         <div className="absolute inset-0 rounded-2xl bg-primary/30 blur-xl animate-pulse motion-reduce:animate-none" />
-        <div className="relative h-14 w-14 rounded-2xl bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/25 animate-loader-float motion-reduce:animate-none">
-          <Briefcase className="h-7 w-7 text-white" />
-        </div>
+        <BrandLogo title="" className="relative h-14 w-14 drop-shadow-lg animate-loader-float motion-reduce:animate-none" />
       </div>
       <div className="flex flex-col items-center gap-3">
         <span className="text-lg font-bold tracking-tight">TrackMyApps</span>
