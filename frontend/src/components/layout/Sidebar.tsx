@@ -4,15 +4,16 @@ import { useUIStore, isDesktopViewport } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 import {
   LayoutDashboard,
+  Briefcase,
   FileText,
   Bell,
   ChevronLeft,
   ChevronRight,
-  Briefcase,
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { BrandLogo } from '@/components/BrandLogo';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -51,9 +52,7 @@ export function Sidebar() {
             onClick={toggleSidebar}
             className="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus:outline-hidden flex-1 lg:flex-none"
           >
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-md shadow-primary/20 flex-shrink-0">
-              <Briefcase className="h-5 w-5 text-white" />
-            </div>
+            <BrandLogo title={sidebarOpen ? '' : 'TrackMyApps'} className="h-9 w-9 drop-shadow-md" />
             <span className={cn(
               "font-bold text-lg tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text",
               !sidebarOpen && "hidden lg:hidden"

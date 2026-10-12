@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Briefcase, ShieldCheck, Mail, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Mail, ExternalLink } from 'lucide-react';
+import { BrandLogo } from '@/components/BrandLogo';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,9 +13,7 @@ export function Footer() {
           {/* Brand & Status Column */}
           <div className="lg:col-span-4 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                <Briefcase className="h-3.5 w-3.5" />
-              </div>
+              <BrandLogo title="" className="h-6 w-6" />
               <span className="font-semibold text-sm text-foreground tracking-tight">TrackMyApps</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted font-mono text-muted-foreground border border-border/60">
                 v1.2

@@ -19,6 +19,11 @@ function getFrontendUrl(): string {
   return first || 'http://localhost:5173';
 }
 
+// PNG (not SVG): most email clients do not render SVG images
+function emailLogo(): string {
+  return `<div style="margin-bottom: 24px;"><img src="${getFrontendUrl()}/icon-192.png" width="48" height="48" alt="TrackMyApps" style="display: block; border: 0; border-radius: 11px;"></div>`;
+}
+
 export const emailService = {
   async sendEmail(to: string, subject: string, html: string) {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
@@ -47,6 +52,7 @@ export const emailService = {
     const subject = `Rappel : ${reminderTitle}`;
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        ${emailLogo()}
         <h2 style="color: #2563eb;">Bonjour ${userName},</h2>
         <p>Vous avez un rappel prévu pour aujourd'hui :</p>
         <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -68,6 +74,7 @@ export const emailService = {
     const subject = 'Vérifiez votre adresse email - TrackMyApps';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        ${emailLogo()}
         <h2 style="color: #2563eb;">Bienvenue sur TrackMyApps, ${userName} ! 🎉</h2>
         <p>Merci de vous être inscrit. Pour activer votre compte et accéder à toutes les fonctionnalités, veuillez vérifier votre adresse email.</p>
         <div style="text-align: center; margin: 30px 0;">
@@ -94,6 +101,7 @@ export const emailService = {
     const subject = 'Réinitialisation de votre mot de passe - TrackMyApps';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        ${emailLogo()}
         <h2 style="color: #2563eb;">Bonjour ${userName},</h2>
         <p>Vous avez demandé à réinitialiser le mot de passe de votre compte TrackMyApps.</p>
         <div style="text-align: center; margin: 30px 0;">

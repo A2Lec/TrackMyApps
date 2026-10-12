@@ -42,8 +42,8 @@ export const showBrowserNotification = (
 
   try {
     return new Notification(title, {
-      icon: '/logo.svg',
-      badge: '/logo.svg',
+      icon: '/icon-192.png',
+      badge: '/badge-96.png', // monochrome: Android only keeps the alpha channel
       ...options,
     });
   } catch (error) {
