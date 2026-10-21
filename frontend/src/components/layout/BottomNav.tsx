@@ -75,7 +75,7 @@ export function BottomNav() {
                   )}
                 />
                 {item.badge && (
-                  <span className="absolute -top-1 -right-1 px-1 py-0.2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-full text-[9px] font-bold shadow-xs">
+                  <span className="absolute -top-1 -right-1 px-1 py-0.2 bg-highlight text-highlight-foreground rounded-full text-[9px] font-bold shadow-xs">
                     {item.badge}
                   </span>
                 )}

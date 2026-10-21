@@ -21,7 +21,7 @@ function getFrontendUrl(): string {
 
 // PNG (not SVG): most email clients do not render SVG images
 function emailLogo(): string {
-  return `<div style="margin-bottom: 24px;"><img src="${getFrontendUrl()}/icon-192.png" width="48" height="48" alt="TrackMyApps" style="display: block; border: 0; border-radius: 11px;"></div>`;
+  return `<div style="margin-bottom: 24px;"><img src="${getFrontendUrl()}/icon-192.png" width="48" height="48" alt="TrackMyApps" style="display: block; border: 0; border-radius: 10px;"></div>`;
 }
 
 export const emailService = {
@@ -53,15 +53,15 @@ export const emailService = {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         ${emailLogo()}
-        <h2 style="color: #2563eb;">Bonjour ${userName},</h2>
+        <h2 style="color: #0F6E66;">Bonjour ${userName},</h2>
         <p>Vous avez un rappel prévu pour aujourd'hui :</p>
-        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <div style="background-color: #EEF4F2; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0;">${reminderTitle}</h3>
           <p><strong>Date :</strong> ${new Date(dueDate).toLocaleDateString('fr-FR')}</p>
           ${description ? `<p><strong>Note :</strong> ${description}</p>` : ''}
         </div>
         <p>Connectez-vous à <a href="${getFrontendUrl()}">TrackMyApps</a> pour voir les détails.</p>
-        <p style="color: #6b7280; font-size: 12px; margin-top: 40px;">
+        <p style="color: #5A6B69; font-size: 12px; margin-top: 40px;">
           Vous recevez cet email car vous avez activé les notifications pour TrackMyApps.
         </p>
       </div>
@@ -75,20 +75,20 @@ export const emailService = {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         ${emailLogo()}
-        <h2 style="color: #2563eb;">Bienvenue sur TrackMyApps, ${userName} ! 🎉</h2>
+        <h2 style="color: #0F6E66;">Bienvenue sur TrackMyApps, ${userName} ! 🎉</h2>
         <p>Merci de vous être inscrit. Pour activer votre compte et accéder à toutes les fonctionnalités, veuillez vérifier votre adresse email.</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${verificationUrl}" style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+          <a href="${verificationUrl}" style="background-color: #0F6E66; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
             Vérifier mon email
           </a>
         </div>
-        <p style="color: #6b7280; font-size: 14px;">
+        <p style="color: #5A6B69; font-size: 14px;">
           Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :
         </p>
-        <p style="color: #2563eb; font-size: 12px; word-break: break-all;">
+        <p style="color: #0F6E66; font-size: 12px; word-break: break-all;">
           ${verificationUrl}
         </p>
-        <p style="color: #6b7280; font-size: 12px; margin-top: 40px;">
+        <p style="color: #5A6B69; font-size: 12px; margin-top: 40px;">
           Ce lien expire dans 24 heures. Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.
         </p>
       </div>
@@ -102,20 +102,20 @@ export const emailService = {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         ${emailLogo()}
-        <h2 style="color: #2563eb;">Bonjour ${userName},</h2>
+        <h2 style="color: #0F6E66;">Bonjour ${userName},</h2>
         <p>Vous avez demandé à réinitialiser le mot de passe de votre compte TrackMyApps.</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+          <a href="${resetUrl}" style="background-color: #0F6E66; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
             Choisir un nouveau mot de passe
           </a>
         </div>
-        <p style="color: #6b7280; font-size: 14px;">
+        <p style="color: #5A6B69; font-size: 14px;">
           Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :
         </p>
-        <p style="color: #2563eb; font-size: 12px; word-break: break-all;">
+        <p style="color: #0F6E66; font-size: 12px; word-break: break-all;">
           ${resetUrl}
         </p>
-        <p style="color: #6b7280; font-size: 12px; margin-top: 40px;">
+        <p style="color: #5A6B69; font-size: 12px; margin-top: 40px;">
           Ce lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email : votre mot de passe reste inchangé.
         </p>
       </div>

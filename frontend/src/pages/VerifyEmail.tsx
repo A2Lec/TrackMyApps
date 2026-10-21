@@ -55,7 +55,7 @@ export function VerifyEmailPage() {
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
             {status === 'loading' && (
-              <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
+              <Loader2 className="h-16 w-16 text-primary animate-spin" />
             )}
             {status === 'success' && (
               <CheckCircle className="h-16 w-16 text-green-600" />

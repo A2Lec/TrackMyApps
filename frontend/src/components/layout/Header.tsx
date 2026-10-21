@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Bell, Menu, LogOut, User, Settings, Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { BrandLogo } from '@/components/BrandLogo';
+import { BrandLogo, BrandName } from '@/components/BrandLogo';
 
 export function Header() {
   const navigate = useNavigate();
@@ -69,7 +69,7 @@ export function Header() {
           </Button>
           <div className="flex items-center gap-2 lg:hidden">
             <BrandLogo title="" className="h-7 w-7" />
-            <span className="font-bold text-lg">TrackMyApps</span>
+            <BrandName className="text-lg" />
           </div>
         </div>
 

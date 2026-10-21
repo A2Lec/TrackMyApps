@@ -136,8 +136,8 @@ export function AnalyticsPage() {
 
       {/* Bannière valorisante pour petits volumes (TICK-402) */}
       {totalApplications < 10 && (
-        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-500/10 via-primary/5 to-transparent border border-blue-500/20 flex items-start sm:items-center gap-3 animate-in fade-in duration-300">
-          <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+        <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-start sm:items-center gap-3 animate-in fade-in duration-300">
+          <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <Sparkles className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
@@ -208,10 +208,10 @@ export function AnalyticsPage() {
           <CardContent className="p-3.5 sm:p-4">
             <div className="flex items-center justify-between text-muted-foreground mb-2">
               <span className="text-xs font-medium">Taux de réponse</span>
-              <Target className="h-4 w-4 text-indigo-500" />
+              <Target className="h-4 w-4 text-primary" />
             </div>
             <div className="flex items-baseline justify-between">
-              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
+              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">
                 {responseRate}%
               </p>
               <span className="text-xs text-muted-foreground">
@@ -281,9 +281,9 @@ export function AnalyticsPage() {
                     <Line
                       type="monotone"
                       dataKey="count"
-                      stroke="#2563eb"
+                      stroke="hsl(var(--primary))"
                       strokeWidth={2}
-                      dot={{ fill: '#2563eb', r: 3 }}
+                      dot={{ fill: 'hsl(var(--primary))', r: 3 }}
                       activeDot={{ r: 5 }}
                     />
                   </LineChart>
@@ -476,11 +476,11 @@ export function AnalyticsPage() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium text-foreground">Réactivité des recruteurs</span>
-                <span className="font-semibold text-indigo-600 dark:text-indigo-400">{responseRate}%</span>
+                <span className="font-semibold text-primary">{responseRate}%</span>
               </div>
               <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-500 rounded-full transition-all duration-300"
+                  className="h-full bg-primary rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(responseRate, 100)}%` }}
                 />
               </div>

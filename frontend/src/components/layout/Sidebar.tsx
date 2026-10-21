@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { BrandLogo } from '@/components/BrandLogo';
+import { BrandLogo, BrandName } from '@/components/BrandLogo';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -53,12 +53,7 @@ export function Sidebar() {
             className="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus:outline-hidden flex-1 lg:flex-none"
           >
             <BrandLogo title={sidebarOpen ? '' : 'TrackMyApps'} className="h-9 w-9 drop-shadow-md" />
-            <span className={cn(
-              "font-bold text-lg tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text",
-              !sidebarOpen && "hidden lg:hidden"
-            )}>
-              TrackMyApps
-            </span>
+            <BrandName className={cn("text-lg", !sidebarOpen && "hidden lg:hidden")} />
           </button>
           
           {sidebarOpen && (

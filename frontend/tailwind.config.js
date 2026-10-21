@@ -14,6 +14,9 @@ export default {
   		}
   	},
   	extend: {
+  		fontFamily: {
+  			sans: ['"Instrument Sans Variable"', '"Instrument Sans"', 'system-ui', 'sans-serif']
+  		},
   		colors: {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
@@ -51,6 +54,10 @@ export default {
   			success: {
   				DEFAULT: 'hsl(var(--success))',
   				foreground: 'hsl(var(--success-foreground))'
+  			},
+  			highlight: {
+  				DEFAULT: 'hsl(var(--highlight))',
+  				foreground: 'hsl(var(--highlight-foreground))'
   			},
   			warning: {
   				DEFAULT: 'hsl(var(--warning))',

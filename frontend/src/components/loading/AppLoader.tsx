@@ -1,6 +1,6 @@
 import { useDelayedFlag } from '@/hooks/useDelayedFlag';
 import { SlowServerHint, SLOW_LOADING_DELAY_MS } from './SlowServerHint';
-import { BrandLogo } from '@/components/BrandLogo';
+import { BrandLogo, BrandName } from '@/components/BrandLogo';
 
 /**
  * Full-screen branded loader, shown while the first page of the app is downloading.
@@ -11,7 +11,7 @@ export function AppLoader() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-gradient-to-br from-slate-50 via-background to-blue-50/40 dark:from-neutral-950 dark:via-background dark:to-blue-950/20"
+      className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-gradient-to-br from-accent/60 via-background to-highlight/10"
       aria-busy="true"
       aria-label="Chargement de TrackMyApps"
     >
@@ -20,7 +20,7 @@ export function AppLoader() {
         <BrandLogo title="" className="relative h-14 w-14 drop-shadow-lg animate-loader-float motion-reduce:animate-none" />
       </div>
       <div className="flex flex-col items-center gap-3">
-        <span className="text-lg font-bold tracking-tight">TrackMyApps</span>
+        <BrandName className="text-lg" />
         <div className="flex gap-1.5" aria-hidden="true">
           {[0, 150, 300].map((delay) => (
             <span

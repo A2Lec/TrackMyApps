@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Mail, ExternalLink } from 'lucide-react';
-import { BrandLogo } from '@/components/BrandLogo';
+import { BrandLogo, BrandName } from '@/components/BrandLogo';
 import { openCookieSettings } from '@/lib/cookieConsent';
 
 export function Footer() {
@@ -15,7 +15,7 @@ export function Footer() {
           <div className="lg:col-span-4 space-y-3">
             <div className="flex items-center gap-2">
               <BrandLogo title="" className="h-6 w-6" />
-              <span className="font-semibold text-sm text-foreground tracking-tight">TrackMyApps</span>
+              <BrandName className="text-sm text-foreground" />
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted font-mono text-muted-foreground border border-border/60">
                 v1.2
               </span>

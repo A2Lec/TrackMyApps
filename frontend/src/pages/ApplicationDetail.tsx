@@ -294,7 +294,7 @@ export function ApplicationDetailPage() {
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             {/* Title & Info */}
             <div className="flex items-start gap-4">
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-primary/10 to-blue-500/10 border border-primary/20 flex items-center justify-center font-bold text-lg text-primary shadow-xs flex-shrink-0">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-primary/10 to-highlight/10 border border-primary/20 flex items-center justify-center font-bold text-lg text-primary shadow-xs flex-shrink-0">
                 {application.companyName.slice(0, 2).toUpperCase()}
               </div>
 
@@ -809,7 +809,7 @@ export function ApplicationDetailPage() {
           </Card>
 
           {/* AI Prep Banner Card */}
-          <Card className="bg-gradient-to-br from-primary/10 via-blue-500/5 to-purple-500/10 border-primary/20 shadow-xs">
+          <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-highlight/10 border-primary/20 shadow-xs">
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2 text-primary font-bold text-sm">
                 <Sparkles className="h-4 w-4" />
