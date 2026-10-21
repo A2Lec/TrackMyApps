@@ -51,9 +51,9 @@ export function Header() {
   return (
     <header
       className={cn(
-        'fixed top-0 right-0 z-30 h-16 bg-background/95 backdrop-blur border-b transition-all duration-300',
+        'fixed top-0 right-0 z-30 h-16 bg-card border-b border-border transition-all duration-300',
         'left-0 lg:left-20',
-        sidebarOpen && 'lg:left-64'
+        sidebarOpen && 'lg:left-[232px]'
       )}
     >
       <div className="flex h-full items-center justify-between px-4 md:px-6">
@@ -64,8 +64,9 @@ export function Header() {
             size="icon"
             onClick={toggleSidebar}
             className="lg:hidden"
+            aria-label="Ouvrir le menu"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-[18px] w-[18px]" strokeWidth={1.8} />
           </Button>
           <div className="flex items-center gap-2 lg:hidden">
             <BrandLogo title="" className="h-7 w-7" />
@@ -113,11 +114,10 @@ export function Header() {
                 onClick={() => navigate('/reminders')}
                 aria-label="Rappels"
               >
-                <Bell className={cn("h-5 w-5", reminderCount > 0 && "text-primary")} />
+                <Bell className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                {/* Sillage: amber = "to do"; an 8px square, no longer a red bubble */}
                 {reminderCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center animate-in zoom-in font-medium">
-                    {reminderCount > 9 ? '9+' : reminderCount}
-                  </span>
+                  <span aria-hidden="true" className="absolute top-2 right-2 h-2 w-2 rounded-[2px] bg-warning ring-2 ring-card" />
                 )}
               </Button>
             </TooltipTrigger>

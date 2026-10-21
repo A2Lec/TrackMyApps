@@ -12,7 +12,7 @@ export function DashboardSkeleton() {
         <Skeleton className="h-9 w-36" />
       </div>
 
-      <div className="h-28 w-full rounded-xl border border-border bg-card p-4">
+      <div className="h-28 w-full rounded-lg border border-border bg-card p-4">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-full">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-full rounded-lg" />
@@ -21,8 +21,8 @@ export function DashboardSkeleton() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12">
-        <Skeleton className="h-80 rounded-xl lg:col-span-5" />
-        <Skeleton className="h-80 rounded-xl lg:col-span-7" />
+        <Skeleton className="h-80 rounded-lg lg:col-span-5" />
+        <Skeleton className="h-80 rounded-lg lg:col-span-7" />
       </div>
     </div>
   );

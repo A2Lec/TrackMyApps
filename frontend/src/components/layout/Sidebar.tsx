@@ -1,4 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { remindersService } from '@/services/reminders.service';
 import { cn } from '@/lib/utils';
 import { useUIStore, isDesktopViewport } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
@@ -9,17 +11,17 @@ import {
   Bell,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
+  Mic,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { BrandLogo, BrandName } from '@/components/BrandLogo';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
   { name: 'Candidatures', href: '/applications', icon: Briefcase },
   { name: 'Rappels', href: '/reminders', icon: Bell },
-  { name: 'Entraînement IA', href: '/interview-prep', icon: Sparkles },
+  { name: 'Entraînement IA', href: '/interview-prep', icon: Mic },
   { name: 'Documents', href: '/documents', icon: FileText },
 ];
 
@@ -27,6 +29,12 @@ export function Sidebar() {
   const location = useLocation();
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
   const { user } = useAuthStore();
+  // Same query as the header bell: shared cache
+  const { data: reminderCount = 0 } = useQuery({
+    queryKey: ['reminderCount'],
+    queryFn: () => remindersService.getCount(),
+    refetchInterval: 60000,
+  });
 
   return (
     <>
@@ -41,18 +49,18 @@ export function Sidebar() {
       
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen bg-card/95 backdrop-blur-md border-r border-border/80 transition-all duration-300 flex flex-col',
+          'fixed left-0 top-0 z-40 h-screen bg-card border-r border-border transition-all duration-300 flex flex-col',
           'lg:translate-x-0',
-          sidebarOpen ? 'w-64 translate-x-0 shadow-xl lg:shadow-none' : 'w-64 -translate-x-full lg:w-20 lg:translate-x-0'
+          sidebarOpen ? 'w-[232px] translate-x-0 shadow-popover lg:shadow-none' : 'w-[232px] -translate-x-full lg:w-20 lg:translate-x-0'
         )}
       >
         {/* Header / Brand */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-border/70 flex-shrink-0">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-border flex-shrink-0">
           <button
             onClick={toggleSidebar}
             className="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus:outline-hidden flex-1 lg:flex-none"
           >
-            <BrandLogo title={sidebarOpen ? '' : 'TrackMyApps'} className="h-9 w-9 drop-shadow-md" />
+            <BrandLogo title={sidebarOpen ? '' : 'TrackMyApps'} className="h-[30px] w-[30px]" />
             <BrandName className={cn("text-lg", !sidebarOpen && "hidden lg:hidden")} />
           </button>
           
@@ -74,7 +82,7 @@ export function Sidebar() {
         </div>
 
         {/* Navigation list */}
-        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto scrollbar-none">
+        <nav className="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto scrollbar-none">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             
@@ -88,23 +96,30 @@ export function Sidebar() {
                   }
                 }}
                 className={cn(
-                  'group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
+                  'group relative flex h-10 items-center gap-3 px-3 rounded-md text-sm transition-colors duration-150',
                   !sidebarOpen && 'lg:justify-center lg:px-2.5',
                   isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25'
-                    : 'text-muted-foreground hover:bg-accent/80 hover:text-foreground'
+                    ? 'bg-primary-soft text-primary font-semibold'
+                    : 'text-muted-foreground font-medium hover:bg-accent hover:text-foreground'
                 )}
+                aria-current={isActive ? 'page' : undefined}
               >
-                <item.icon className={cn(
-                  'h-5 w-5 flex-shrink-0 transition-transform duration-150 group-hover:scale-105',
-                  isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
-                )} />
+                <item.icon className="h-[18px] w-[18px] flex-shrink-0" strokeWidth={1.8} />
                 <span className={cn(
                   'truncate tracking-tight',
                   !sidebarOpen && 'hidden lg:hidden'
                 )}>
                   {item.name}
                 </span>
+                {item.href === '/reminders' && reminderCount > 0 && (
+                  sidebarOpen ? (
+                    <span className="ml-auto rounded-sm bg-warning px-1.5 font-mono text-xs font-semibold text-warning-foreground">
+                      {String(reminderCount).padStart(2, '0')}
+                    </span>
+                  ) : (
+                    <span aria-hidden="true" className="absolute right-2 top-2 h-2 w-2 rounded-[2px] bg-warning" />
+                  )
+                )}
               </Link>
             );
 
@@ -136,7 +151,7 @@ export function Sidebar() {
                     to="/settings"
                     className="flex justify-center p-2 rounded-lg hover:bg-accent/80 transition-colors"
                   >
-                    <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                       <span className="text-xs font-semibold text-primary">
                         {user.firstName?.[0]}{user.lastName?.[0]}
                       </span>
@@ -155,7 +170,7 @@ export function Sidebar() {
                 to="/settings"
                 className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/80 transition-colors group"
               >
-                <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:ring-2 group-hover:ring-primary/20 transition-all">
+                <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0 group-hover:ring-2 group-hover:ring-primary/20 transition-all">
                   <span className="text-xs font-semibold text-primary">
                     {user.firstName?.[0]}{user.lastName?.[0]}
                   </span>

@@ -25,27 +25,13 @@ import {
   Send,
   CalendarCheck,
   Building,
-  Sparkles,
+  Lightbulb,
+  Mic,
 } from 'lucide-react';
-import { statusLabels, jobTypeLabels, cn } from '@/lib/utils';
+import { statusLabels, jobTypeLabels, cn, STATUS_HEX_VARS, twoDigits } from '@/lib/utils';
 
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: '#94a3b8',
-  SENT: '#3b82f6',
-  VIEWED: '#8b5cf6',
-  INTERVIEW_SCHEDULED: '#f59e0b',
-  AWAITING_RESPONSE: '#6366f1',
-  REJECTED: '#ef4444',
-  ACCEPTED: '#10b981',
-  GHOSTED: '#71717a',
-};
-
-const JOB_TYPE_COLORS: Record<string, string> = {
-  STAGE: '#3b82f6',
-  ALTERNANCE: '#8b5cf6',
-  CDI: '#10b981',
-  JOB_ETUDIANT: '#f59e0b',
-};
+// Status colors come from the Sillage tokens; contracts have no color (single primary bar)
+const STATUS_COLORS: Record<string, string> = STATUS_HEX_VARS;
 
 export function AnalyticsPage() {
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
@@ -102,7 +88,7 @@ export function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Statistiques & Performance</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Statistiques & Performance</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Tableau de bord décisionnel pour optimiser vos candidatures et taux de conversion
           </p>
@@ -124,7 +110,7 @@ export function AnalyticsPage() {
               className={cn(
                 'px-3 py-1.5 rounded-md font-medium transition-all',
                 period === item.id
-                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  ? 'bg-background text-foreground font-semibold'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -136,9 +122,9 @@ export function AnalyticsPage() {
 
       {/* Bannière valorisante pour petits volumes (TICK-402) */}
       {totalApplications < 10 && (
-        <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-start sm:items-center gap-3 animate-in fade-in duration-300">
-          <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Sparkles className="h-5 w-5" />
+        <div className="p-4 rounded-lg bg-card border border-border flex items-start sm:items-center gap-3 animate-in fade-in duration-300">
+          <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Lightbulb className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs sm:text-sm font-semibold text-foreground">
@@ -155,14 +141,14 @@ export function AnalyticsPage() {
 
       {/* 4 Sober Metric Cockpit Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full min-w-0">
-        <Card className="border border-border/70 shadow-xs hover:border-border transition-all">
+        <Card className="border border-border/70 hover:border-border transition-all">
           <CardContent className="p-3.5 sm:p-4">
             <div className="flex items-center justify-between text-muted-foreground mb-2">
               <span className="text-xs font-medium">Total candidatures</span>
-              <Send className="h-4 w-4 text-blue-500" />
+              <Send className="h-4 w-4 text-status-sent" />
             </div>
             <div className="flex items-baseline justify-between">
-              <p className="text-2xl sm:text-3xl font-bold tracking-tight">{totalApplications}</p>
+              <p className="font-mono text-2xl sm:text-3xl font-semibold tracking-tight">{twoDigits(totalApplications)}</p>
               <span className="text-xs text-muted-foreground">
                 {dashboard?.sentThisMonth || 0} ce mois
               </span>
@@ -170,48 +156,48 @@ export function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/70 shadow-xs hover:border-border transition-all">
+        <Card className="border border-border/70 hover:border-border transition-all">
           <CardContent className="p-3.5 sm:p-4">
             <div className="flex items-center justify-between text-muted-foreground mb-2">
               <span className="text-xs font-medium">Entretiens obtenus</span>
-              <CalendarCheck className="h-4 w-4 text-amber-500" />
+              <CalendarCheck className="h-4 w-4 text-warning-strong" />
             </div>
             <div className="flex items-baseline justify-between">
-              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
-                {interviewCount}
+              <p className="font-mono text-2xl sm:text-3xl font-semibold tracking-tight text-warning-strong ">
+                {twoDigits(interviewCount)}
               </p>
-              <span className="text-xs font-medium text-amber-600/90 dark:text-amber-400/90">
+              <span className="text-xs font-medium text-warning-strong ">
                 {interviewRate}% ratio
               </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-border/70 shadow-xs hover:border-border transition-all">
+        <Card className="border border-border/70 hover:border-border transition-all">
           <CardContent className="p-3.5 sm:p-4">
             <div className="flex items-center justify-between text-muted-foreground mb-2">
               <span className="text-xs font-medium">Offres acceptées</span>
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
             </div>
             <div className="flex items-baseline justify-between">
-              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
-                {acceptedCount}
+              <p className="font-mono text-2xl sm:text-3xl font-semibold tracking-tight text-success ">
+                {twoDigits(acceptedCount)}
               </p>
-              <span className="text-xs font-medium text-emerald-600/90 dark:text-emerald-400/90">
+              <span className="text-xs font-medium text-success ">
                 {conversionRate}% succès
               </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-border/70 shadow-xs hover:border-border transition-all">
+        <Card className="border border-border/70 hover:border-border transition-all">
           <CardContent className="p-3.5 sm:p-4">
             <div className="flex items-center justify-between text-muted-foreground mb-2">
               <span className="text-xs font-medium">Taux de réponse</span>
               <Target className="h-4 w-4 text-primary" />
             </div>
             <div className="flex items-baseline justify-between">
-              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">
+              <p className="font-mono text-2xl sm:text-3xl font-semibold tracking-tight text-primary">
                 {responseRate}%
               </p>
               <span className="text-xs text-muted-foreground">
@@ -225,7 +211,7 @@ export function AnalyticsPage() {
       {/* Row 1: Timeline & Status breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full min-w-0">
         {/* Timeline Chart */}
-        <Card className="lg:col-span-7 border border-border/70 shadow-xs w-full min-w-0 overflow-hidden">
+        <Card className="lg:col-span-7 border border-border/70 w-full min-w-0 overflow-hidden">
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-base font-semibold">Rythme des envois</CardTitle>
             <CardDescription className="text-xs">
@@ -294,7 +280,7 @@ export function AnalyticsPage() {
         </Card>
 
         {/* Status Distribution Pie */}
-        <Card className="lg:col-span-5 border border-border/70 shadow-xs w-full min-w-0 overflow-hidden">
+        <Card className="lg:col-span-5 border border-border/70 w-full min-w-0 overflow-hidden">
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-base font-semibold">Répartition par statut</CardTitle>
             <CardDescription className="text-xs">
@@ -318,7 +304,7 @@ export function AnalyticsPage() {
                       {statusData.map((entry) => (
                         <Cell
                           key={entry.status}
-                          fill={STATUS_COLORS[entry.status] || '#94a3b8'}
+                          fill={STATUS_COLORS[entry.status] || 'var(--status-draft)'}
                         />
                       ))}
                     </Pie>
@@ -340,7 +326,7 @@ export function AnalyticsPage() {
                     <div key={item.status} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       <span
                         className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: STATUS_COLORS[item.status] || '#94a3b8' }}
+                        style={{ backgroundColor: STATUS_COLORS[item.status] || 'var(--status-draft)' }}
                       />
                       <span>{item.name} ({item.value})</span>
                     </div>
@@ -359,7 +345,7 @@ export function AnalyticsPage() {
       {/* Row 2: Contract Types & Conversion Indicators */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full min-w-0">
         {/* Job Type Horizontal Bars */}
-        <Card className="lg:col-span-6 border border-border/70 shadow-xs w-full min-w-0 overflow-hidden">
+        <Card className="lg:col-span-6 border border-border/70 w-full min-w-0 overflow-hidden">
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-base font-semibold">Types de contrats</CardTitle>
             <CardDescription className="text-xs">
@@ -394,7 +380,7 @@ export function AnalyticsPage() {
                       {jobTypeData.map((entry) => (
                         <Cell
                           key={entry.type}
-                          fill={JOB_TYPE_COLORS[entry.type] || '#3b82f6'}
+                          fill="hsl(var(--primary))"
                         />
                       ))}
                     </Bar>
@@ -410,7 +396,7 @@ export function AnalyticsPage() {
         </Card>
 
         {/* Funnel & Efficiency Diagnostics */}
-        <Card className="lg:col-span-6 border border-border/70 shadow-xs w-full min-w-0 overflow-hidden">
+        <Card className="lg:col-span-6 border border-border/70 w-full min-w-0 overflow-hidden">
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-base font-semibold">Efficacité du Funnel</CardTitle>
             <CardDescription className="text-xs">
@@ -422,22 +408,22 @@ export function AnalyticsPage() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium text-foreground">Étape 1 : Accès aux entretiens</span>
-                <span className="font-semibold text-amber-600 dark:text-amber-400">{interviewRate}%</span>
+                <span className="font-semibold text-warning-strong ">{interviewRate}%</span>
               </div>
               <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-amber-500 rounded-full transition-all duration-300"
+                  className="h-full bg-warning rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(interviewRate, 100)}%` }}
                 />
               </div>
               <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                 {interviewRate >= 20 ? (
-                  <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                  <span className="text-success flex items-center gap-1">
                     <TrendingUp className="h-3 w-3" /> Excellent ratio (moyenne du secteur : 15%)
                   </span>
                 ) : totalApplications < 10 ? (
                   <span className="text-muted-foreground flex items-center gap-1">
-                    <Sparkles className="h-3 w-3 text-primary" /> Volume initial : chaque entretien supplémentaire fera grimper ce ratio
+                    <Lightbulb className="h-3 w-3 text-primary" /> Volume initial : chaque entretien supplémentaire fera grimper ce ratio
                   </span>
                 ) : (
                   <span className="text-muted-foreground flex items-center gap-1">
@@ -451,22 +437,22 @@ export function AnalyticsPage() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium text-foreground">Étape 2 : Transformation en offre</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{conversionRate}%</span>
+                <span className="font-semibold text-success ">{conversionRate}%</span>
               </div>
               <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                  className="h-full bg-success rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(conversionRate, 100)}%` }}
                 />
               </div>
               <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                 {conversionRate >= 10 ? (
-                  <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                  <span className="text-success flex items-center gap-1">
                     <TrendingUp className="h-3 w-3" /> Très bonne performance d'acceptation
                   </span>
                 ) : (
                   <span className="text-muted-foreground flex items-center gap-1">
-                    <Sparkles className="h-3 w-3 text-primary" /> Entraînez-vous avec le simulateur d'entretien IA
+                    <Mic className="h-3 w-3 text-primary" /> Entraînez-vous avec le simulateur d'entretien IA
                   </span>
                 )}
               </p>

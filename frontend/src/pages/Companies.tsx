@@ -154,7 +154,7 @@ export function CompaniesPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Entreprises</h1>
+          <h1 className="text-2xl md:text-3xl font-semibold">Entreprises</h1>
           <p className="text-sm md:text-base text-muted-foreground">
             Gérez votre répertoire d'entreprises et suivez vos candidatures
           </p>
@@ -270,7 +270,7 @@ export function CompaniesPage() {
                       className={cn(
                         'h-4 w-4',
                         i < Math.round(company.reviews!.reduce((acc: number, r) => acc + r.rating, 0) / company.reviews!.length)
-                          ? 'text-yellow-500 fill-yellow-500'
+                          ? 'text-warning-strong fill-warning'
                           : 'text-muted-foreground'
                       )}
                     />

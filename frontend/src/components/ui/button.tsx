@@ -8,19 +8,21 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        default: "bg-primary text-primary-foreground font-semibold hover:bg-primary/90",
+        // Sillage: amber = "to do now" (Relancer, Planifier, Marquer comme fait)
+        attention: "bg-warning text-warning-foreground font-semibold hover:bg-warning/90",
+        destructive: "bg-destructive text-destructive-foreground font-semibold hover:bg-destructive/90",
+        outline: "border border-border bg-card hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         success: "bg-success text-success-foreground hover:bg-success/90",
       },
       size: {
-        default: "h-10 px-4 py-2",
+        default: "h-11 sm:h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        icon: "h-11 w-11 sm:h-10 sm:w-10",
       },
     },
     defaultVariants: {

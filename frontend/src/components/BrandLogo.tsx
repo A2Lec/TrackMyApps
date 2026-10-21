@@ -31,11 +31,14 @@ export function BrandLogo({ className, title = 'TrackMyApps' }: BrandLogoProps) 
   );
 }
 
-/** "TrackMyApps" wordmark, with "My" in the brand color as in public/logo-horizontal.svg */
+/** "TrackMyApps" wordmark, Instrument Sans 600 with "My" in primary (composed in HTML so the web font applies) */
 export function BrandName({ className }: { className?: string }) {
   return (
     <span className={cn('font-semibold tracking-tight', className)}>
-      Track<span className="text-primary">My</span>Apps
+      <span className="sr-only">TrackMyApps</span>
+      <span aria-hidden="true">
+        Track<span className="text-primary">My</span>Apps
+      </span>
     </span>
   );
 }

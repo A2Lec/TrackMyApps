@@ -36,7 +36,7 @@ import {
   Trash2,
   Edit2,
   CheckCircle2,
-  Sparkles,
+  Lightbulb,
 } from 'lucide-react';
 import {
   type ExchangeDebrief,
@@ -46,6 +46,8 @@ import {
   EXCHANGE_FEELING_CONFIG,
 } from '@/lib/journal';
 import { formatDate, formatDateTime, EVENT_TYPE_LABELS, cn } from '@/lib/utils';
+import { EVENT_TYPE_STATUS } from '@/constants/labels';
+import { StatusDot } from '@/components/StatusBadge';
 import type { Application, EventType } from '@/types';
 import { remindersService } from '@/services/reminders.service';
 import { useQueryClient } from '@tanstack/react-query';
@@ -217,10 +219,10 @@ export function ApplicationJournal({
   return (
     <div className="space-y-6">
       {/* Journal Cockpit Card */}
-      <Card className="border-border/80 shadow-xs">
+      <Card className="border-border/80">
         <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 space-y-0">
           <div>
-            <CardTitle className="text-base font-bold flex items-center gap-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-primary" />
               Journal de bord des échanges ({exchanges.length})
             </CardTitle>
@@ -231,7 +233,7 @@ export function ApplicationJournal({
           <Button
             size="sm"
             onClick={handleOpenCreate}
-            className="h-8 text-xs font-semibold shadow-xs"
+            className="h-8 text-xs font-semibold"
           >
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             Noter un échange
@@ -240,7 +242,7 @@ export function ApplicationJournal({
 
         <CardContent className="space-y-4 pt-2">
           {sortedExchanges.length === 0 ? (
-            <div className="py-10 px-4 text-center border border-dashed border-border/80 rounded-2xl bg-muted/20 space-y-3">
+            <div className="py-10 px-4 text-center border border-dashed border-border/80 rounded-lg bg-muted/20 space-y-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
                 <MessageSquare className="h-5 w-5" />
               </div>
@@ -270,7 +272,7 @@ export function ApplicationJournal({
                 return (
                   <div
                     key={exchange.id}
-                    className="p-4 rounded-xl border border-border/70 bg-card hover:border-border transition-all shadow-2xs space-y-3"
+                    className="p-4 rounded-lg border border-border/70 bg-card hover:border-border transition-all space-y-3"
                   >
                     {/* Top Row: Type, Date, Feeling, Actions */}
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -402,12 +404,23 @@ export function ApplicationJournal({
                   {application.events.map((event) => (
                     <div key={event.id} className="text-xs py-1 text-muted-foreground">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-foreground">
+                        <span className="flex items-center gap-2 font-medium text-foreground">
+                          {(() => {
+                            const eventType = event.eventType || (event.type as EventType);
+                            const status = EVENT_TYPE_STATUS[eventType];
+                            if (!status) return null;
+                            // A finished interview is the interview square, hollow
+                            return eventType === 'INTERVIEW_DONE' ? (
+                              <span aria-hidden="true" className="h-[9px] w-[9px] shrink-0 rounded-[2px] border-[1.5px] border-status-interview" />
+                            ) : (
+                              <StatusDot status={status} />
+                            );
+                          })()}
                           {EVENT_TYPE_LABELS[event.eventType || (event.type as EventType)] ||
                             event.eventType ||
                             event.type}
                         </span>
-                        <span className="text-[11px]">{formatDateTime(event.createdAt)}</span>
+                        <span className="font-mono text-[11px]">{formatDateTime(event.createdAt)}</span>
                       </div>
                       {(event.notes || event.description) && (
                         <p className="text-[11px] text-muted-foreground/80 mt-0.5">
@@ -427,8 +440,8 @@ export function ApplicationJournal({
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
+            <DialogTitle className="text-base font-semibold flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-primary" />
               {editingId ? "Modifier l'échange" : 'Noter un nouvel échange'}
             </DialogTitle>
             <DialogDescription className="text-xs">

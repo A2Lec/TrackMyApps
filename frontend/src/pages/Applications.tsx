@@ -78,14 +78,13 @@ import {
 import {
   formatDate,
   statusLabels,
-  statusColors,
-  statusDotColors,
-  jobTypeLabels,
-  jobTypeColors,
   STATUS_ORDER,
   KANBAN_STATUS_ORDER,
   cn,
+  twoDigits,
 } from '@/lib/utils';
+import { StatusBadge, StatusDot, ContractTag } from '@/components/StatusBadge';
+import { JOB_TYPE_TAGS } from '@/constants/labels';
 import {
   mapStatusToKanbanColumn,
   groupApplicationsForKanban,
@@ -411,7 +410,7 @@ export function ApplicationsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Candidatures</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Candidatures</h1>
             <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs font-semibold">
               {totalCount}
             </Badge>
@@ -424,7 +423,7 @@ export function ApplicationsPage() {
         <EmailVerifiedGuard>
           <Button
             onClick={() => openCreateForStatus('SENT')}
-            className="w-full sm:w-auto shadow-sm shadow-primary/20"
+            className="w-full sm:w-auto"
             disabled={!isEmailVerified}
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -434,7 +433,7 @@ export function ApplicationsPage() {
       </div>
 
       {/* Filter & Toolbar */}
-      <div className="flex flex-col gap-3.5 bg-card/60 backdrop-blur-xs p-3 sm:p-4 rounded-xl border border-border/80 shadow-xs">
+      <div className="flex flex-col gap-3.5 bg-card/60 backdrop-blur-xs p-3 sm:p-4 rounded-lg border border-border/80">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Search bar */}
           <div className="relative flex-1 max-w-full md:max-w-md">
@@ -511,7 +510,7 @@ export function ApplicationsPage() {
             className={cn(
               'px-2.5 py-1 rounded-full font-medium transition-all flex-shrink-0',
               jobTypeFilter === 'ALL'
-                ? 'bg-primary text-primary-foreground shadow-xs'
+                ? 'bg-primary text-primary-foreground'
                 : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
           >
@@ -522,13 +521,14 @@ export function ApplicationsPage() {
               key={type}
               onClick={() => setJobTypeFilter(jobTypeFilter === type ? 'ALL' : type)}
               className={cn(
-                'px-2.5 py-1 rounded-full font-medium transition-all flex-shrink-0',
+                'px-2.5 py-1 rounded-md border font-mono text-[11px] font-semibold uppercase tracking-wider transition-colors flex-shrink-0',
                 jobTypeFilter === type
-                  ? cn(jobTypeColors[type], 'ring-2 ring-primary/30 font-semibold')
-                  : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'border-primary bg-primary-soft text-primary'
+                  : 'border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground'
               )}
             >
-              {jobTypeLabels[type]}
+              {JOB_TYPE_TAGS[type]}
+              {jobTypeFilter === type && <span aria-hidden="true"> ×</span>}
             </button>
           ))}
         </div>
@@ -574,13 +574,13 @@ export function ApplicationsPage() {
                       className={cn(
                         'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0',
                         isActive
-                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                          ? 'bg-foreground text-background font-semibold'
                           : 'bg-muted/60 text-muted-foreground hover:bg-muted'
                       )}
                     >
-                      <span className={cn('w-2 h-2 rounded-full', statusDotColors[status])} />
+                      <StatusDot status={status} />
                       <span>{statusLabels[status]}</span>
-                      <span className="opacity-80">({count})</span>
+                      <span className="font-mono opacity-80">{twoDigits(count)}</span>
                     </button>
                   );
                 })}
@@ -620,7 +620,7 @@ export function ApplicationsPage() {
             <span>{allListItems.length} candidature(s) affichée(s)</span>
           </div>
 
-          <Card className="overflow-hidden border-border/80 shadow-xs">
+          <Card className="overflow-hidden border-border/80">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[650px] text-sm text-left">
@@ -644,7 +644,7 @@ export function ApplicationsPage() {
                         >
                           <td className="p-3.5">
                             <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-xs text-primary flex-shrink-0">
+                              <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center font-semibold text-xs text-primary flex-shrink-0">
                                 {app.companyName.slice(0, 2).toUpperCase()}
                               </div>
                               <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
@@ -656,16 +656,12 @@ export function ApplicationsPage() {
                             {app.position}
                           </td>
                           <td className="p-3.5">
-                            <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium', jobTypeColors[app.jobType])}>
-                              {jobTypeLabels[app.jobType]}
-                            </span>
+                            <ContractTag jobType={app.jobType} />
                           </td>
                           <td className="p-3.5">
-                            <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap', statusColors[app.status])}>
-                              {statusLabels[app.status]}
-                            </span>
+                            <StatusBadge status={app.status} />
                           </td>
-                          <td className="p-3.5 text-muted-foreground text-xs">
+                          <td className="p-3.5 text-muted-foreground font-mono text-xs">
                             {formatDate(app.applicationDate)}
                           </td>
                           <td className="p-3.5 text-right" onClick={(e) => e.stopPropagation()}>
@@ -741,11 +737,11 @@ export function ApplicationsPage() {
             <div className="flex flex-col h-full space-y-6">
               <SheetHeader className="text-left space-y-2 pb-4 border-b border-border/70">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-sm text-primary flex-shrink-0">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center font-semibold text-sm text-primary flex-shrink-0">
                     {selectedApplication.companyName.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <SheetTitle className="text-xl font-bold truncate">
+                    <SheetTitle className="text-xl font-semibold truncate">
                       {selectedApplication.position}
                     </SheetTitle>
                     <SheetDescription className="text-sm font-medium text-foreground/80 truncate">
@@ -755,17 +751,13 @@ export function ApplicationsPage() {
                 </div>
 
                 <div className="flex items-center gap-2 pt-1 flex-wrap">
-                  <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-semibold', statusColors[selectedApplication.status])}>
-                    {statusLabels[selectedApplication.status]}
-                  </span>
-                  <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium', jobTypeColors[selectedApplication.jobType])}>
-                    {jobTypeLabels[selectedApplication.jobType]}
-                  </span>
+                  <StatusBadge status={selectedApplication.status} variant="chip" />
+                  <ContractTag jobType={selectedApplication.jobType} />
                 </div>
               </SheetHeader>
 
               {/* Status Fast Switcher */}
-              <div className="space-y-2 bg-muted/40 p-3 rounded-xl border border-border/70">
+              <div className="space-y-2 bg-muted/40 p-3 rounded-lg border border-border/70">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
                   Changer le statut
                 </label>
@@ -775,13 +767,13 @@ export function ApplicationsPage() {
                       key={st}
                       onClick={() => updateStatusMutation.mutate({ id: selectedApplication.id, status: st })}
                       className={cn(
-                        'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all text-left',
+                        'flex items-center gap-2 px-2.5 py-1.5 rounded-md border text-xs font-medium transition-colors text-left',
                         selectedApplication.status === st
-                          ? cn(statusColors[st], 'ring-1 ring-primary/40 font-semibold')
-                          : 'hover:bg-muted text-muted-foreground'
+                          ? 'border-primary bg-primary-soft text-foreground font-semibold'
+                          : 'border-transparent hover:bg-accent text-muted-foreground'
                       )}
                     >
-                      <span className={cn('w-2 h-2 rounded-full flex-shrink-0', statusDotColors[st])} />
+                      <StatusDot status={st} />
                       <span className="truncate">{statusLabels[st]}</span>
                     </button>
                   ))}
@@ -860,7 +852,7 @@ export function ApplicationsPage() {
                     )}
                     {selectedApplication.lmUsed && (
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-xs">
-                        <FileText className="h-3.5 w-3.5 text-purple-600" />
+                        <FileText className="h-3.5 w-3.5 text-status-interview" />
                         <span className="font-medium truncate">{selectedApplication.lmUsed.name}</span>
                         <Badge variant="outline" className="ml-auto text-[10px]">LM</Badge>
                       </div>
@@ -1007,10 +999,10 @@ function KanbanColumn({
       {/* Column Header */}
       <div className="flex items-center justify-between mb-2.5 px-1">
         <div className="flex items-center gap-2">
-          <span className={cn('w-2.5 h-2.5 rounded-full ring-2 ring-background', statusDotColors[status])} />
+          <StatusDot status={status} className="h-2.5 w-2.5" />
           <h3 className="font-semibold text-sm text-foreground tracking-tight">{statusLabels[status]}</h3>
-          <span className="text-xs font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-            {filteredApps.length}
+          <span className="font-mono text-xs font-medium text-muted-foreground">
+            {twoDigits(filteredApps.length)}
           </span>
         </div>
 
@@ -1029,7 +1021,7 @@ function KanbanColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          'bg-muted/35 dark:bg-muted/20 rounded-xl p-2 min-h-[450px] flex-1 border border-border/50 flex flex-col gap-2 transition-all duration-150',
+          'bg-muted/35 dark:bg-muted/20 rounded-lg p-2 min-h-[450px] flex-1 border border-border/50 flex flex-col gap-2 transition-all duration-150',
           isOver && 'ring-2 ring-primary/50 bg-primary/10 border-primary/40'
         )}
       >
@@ -1120,9 +1112,9 @@ function ApplicationCard({ application, isGhost, isOverlay, onClick, onDelete }:
     <Card
       onClick={onClick}
       className={cn(
-        'cursor-grab active:cursor-grabbing bg-card/95 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 border-border/80 rounded-xl group relative overflow-hidden select-none w-full',
+        'cursor-grab active:cursor-grabbing bg-card/95 hover:border-primary/50 hover:-translate-y-0.5 transition-all duration-150 border-border/80 rounded-lg group relative overflow-hidden select-none w-full',
         isGhost && 'opacity-25 border-dashed border-primary/40 bg-muted/20',
-        isOverlay && 'w-72 sm:w-80 shadow-2xl rotate-1 scale-102 ring-2 ring-primary/60 border-primary bg-card z-50 cursor-grabbing pointer-events-none'
+        isOverlay && 'w-72 sm:w-80 shadow-drag rotate-[3deg] motion-reduce:rotate-0 border-primary bg-card z-50 cursor-grabbing pointer-events-none'
       )}
     >
       <CardContent className="p-3.5 space-y-2.5">
@@ -1178,13 +1170,9 @@ function ApplicationCard({ application, isGhost, isOverlay, onClick, onDelete }:
 
         {/* Metadata Badges */}
         <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-          <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-medium', jobTypeColors[application.jobType])}>
-            {jobTypeLabels[application.jobType]}
-          </span>
+          <ContractTag jobType={application.jobType} />
           {['VIEWED', 'AWAITING_RESPONSE', 'GHOSTED'].includes(application.status) && (
-            <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-medium', statusColors[application.status])}>
-              {statusLabels[application.status]}
-            </span>
+            <StatusBadge status={application.status} className="text-xs" />
           )}
           {application.location && (
             <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
@@ -1198,7 +1186,7 @@ function ApplicationCard({ application, isGhost, isOverlay, onClick, onDelete }:
         <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>{formatDate(application.applicationDate)}</span>
+            <span className="font-mono">{formatDate(application.applicationDate)}</span>
           </div>
 
           {application.salary && (
@@ -1224,7 +1212,7 @@ function ApplicationsSkeleton() {
         <Skeleton className="h-10 w-40" />
       </div>
 
-      <div className="h-14 w-full bg-card rounded-xl border border-border/80 p-3 flex gap-3">
+      <div className="h-14 w-full bg-card rounded-lg border border-border/80 p-3 flex gap-3">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-8 w-32" />
       </div>
@@ -1236,7 +1224,7 @@ function ApplicationsSkeleton() {
               <Skeleton className="h-5 w-28" />
               <Skeleton className="h-6 w-6 rounded-full" />
             </div>
-            <div className="bg-muted/40 rounded-xl p-2 min-h-[300px] space-y-2">
+            <div className="bg-muted/40 rounded-lg p-2 min-h-[300px] space-y-2">
               <Skeleton className="h-24 w-full rounded-lg" />
               <Skeleton className="h-24 w-full rounded-lg" />
             </div>

@@ -58,10 +58,10 @@ export function VerifyEmailPage() {
               <Loader2 className="h-16 w-16 text-primary animate-spin" />
             )}
             {status === 'success' && (
-              <CheckCircle className="h-16 w-16 text-green-600" />
+              <CheckCircle className="h-16 w-16 text-success" />
             )}
             {status === 'error' && (
-              <XCircle className="h-16 w-16 text-red-600" />
+              <XCircle className="h-16 w-16 text-destructive" />
             )}
           </div>
           <CardTitle className="text-2xl">

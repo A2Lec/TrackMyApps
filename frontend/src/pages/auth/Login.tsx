@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Play } from 'lucide-react';
 import { useDelayedFlag } from '@/hooks/useDelayedFlag';
 import { SlowServerHint, SLOW_LOADING_DELAY_MS } from '@/components/loading/SlowServerHint';
 import { prefetchPages } from '@/lib/pageLoaders';
@@ -72,17 +72,14 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-gradient-to-br from-accent/60 via-background to-highlight/10 relative overflow-hidden">
-      {/* Decorative ambient gradients */}
-      <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-highlight/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-background relative overflow-hidden">
 
-      <Card className="w-full max-w-md border-border/80 bg-card/95 backdrop-blur-md shadow-2xl shadow-primary/5 rounded-2xl relative z-10">
+      <Card className="w-full max-w-md border-0 bg-background sm:border sm:bg-card rounded-lg relative z-10">
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-3">
-            <BrandLogo className="h-12 w-12 drop-shadow-lg" />
+            <BrandLogo className="h-12 w-12" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Connexion</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Connexion</CardTitle>
           <CardDescription className="text-sm">
             Ravi de vous revoir ! Accédez à vos candidatures en cours
           </CardDescription>
@@ -90,7 +87,7 @@ export function LoginPage() {
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             {error && (
-              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium animate-in fade-in-50">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium animate-in fade-in-50">
                 {error}
               </div>
             )}
@@ -145,7 +142,7 @@ export function LoginPage() {
           <CardFooter className="flex flex-col gap-3 pt-2">
             <Button
               type="submit"
-              className="w-full h-10 rounded-lg font-medium shadow-sm shadow-primary/20"
+              className="w-full h-10 rounded-lg font-medium"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending && (
@@ -162,7 +159,7 @@ export function LoginPage() {
               onClick={handleDemoLogin}
               disabled={loginMutation.isPending}
             >
-              <Sparkles className="h-4 w-4 mr-2 text-primary" />
+              <Play className="h-4 w-4 mr-2 text-primary" />
               Tester avec le compte démo (1 clic)
             </Button>
 

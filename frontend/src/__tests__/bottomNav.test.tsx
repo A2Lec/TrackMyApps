@@ -21,7 +21,7 @@ describe('Component: BottomNav', () => {
     expect(screen.getByText('Rappels')).toBeInTheDocument();
     expect(screen.getByText('Entretiens')).toBeInTheDocument();
     expect(screen.getByText('Menu')).toBeInTheDocument();
-    expect(screen.getByText('IA')).toBeInTheDocument(); // Badge IA on Entretiens
+    expect(screen.queryByText('IA')).not.toBeInTheDocument(); // Sillage: no decorative badge
   });
 
   it('highlights the active tab corresponding to the current URL', () => {

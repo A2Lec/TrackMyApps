@@ -32,7 +32,6 @@ import {
   Minimize2,
   History,
   Trash2,
-  Sparkles,
   Briefcase,
   Users,
   Code2,
@@ -70,28 +69,28 @@ const INTERVIEWER_TYPES = [
     label: 'Recruteur RH',
     desc: 'Soft skills, motivation et parcours',
     icon: Users,
-    color: 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20',
+    color: 'text-status-sent  bg-secondary border-border',
   },
   {
     id: 'MANAGER',
     label: "Manager d'équipe",
     desc: 'Expérience, méthode et intégration',
     icon: Briefcase,
-    color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
+    color: 'text-status-interview  bg-secondary border-border',
   },
   {
     id: 'TECHNICAL',
     label: 'Lead Technique',
     desc: 'Compétences dures, architecture et code',
     icon: Code2,
-    color: 'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20',
+    color: 'text-status-interview  bg-secondary border-border',
   },
   {
     id: 'CTO',
     label: 'Directeur Technique',
     desc: 'Vision globale et choix stratégiques',
-    icon: Sparkles,
-    color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
+    icon: Mic,
+    color: 'text-warning-strong  bg-warning-soft border-warning/40',
   },
 ];
 
@@ -472,7 +471,7 @@ export function InterviewSimulation({
     const validPastSessions = existingSessions?.filter((s) => (s._count?.messages || 0) > 1) || [];
 
     return (
-      <Card className="border-border/80 shadow-xs overflow-hidden w-full min-w-0">
+      <Card className="border-border/80 overflow-hidden w-full min-w-0">
         <CardHeader className="p-4 sm:p-6 border-b border-border/40">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="space-y-1 min-w-0">
@@ -517,7 +516,7 @@ export function InterviewSimulation({
                   <div
                     key={sess.id}
                     onClick={() => setSessionId(sess.id)}
-                    className="flex items-center justify-between p-3.5 rounded-xl border border-border/80 hover:border-primary/40 bg-card hover:bg-muted/30 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-3.5 rounded-lg border border-border/80 hover:border-primary/40 bg-card hover:bg-muted/30 transition-all cursor-pointer group"
                   >
                     <div className="min-w-0 flex-1 pr-3">
                       <div className="font-medium text-sm text-foreground truncate group-hover:text-primary transition-colors">
@@ -529,8 +528,8 @@ export function InterviewSimulation({
                         <span>{sess._count?.messages || 0} messages</span>
                         <span>•</span>
                         {sess.status === 'COMPLETED' ? (
-                          <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/20 py-0 h-4 flex items-center gap-1">
-                            <Award className="h-2.5 w-2.5 text-amber-500" />
+                          <Badge variant="outline" className="text-[10px] bg-warning-soft text-warning-strong border-warning/40 py-0 h-4 flex items-center gap-1">
+                            <Award className="h-2.5 w-2.5 text-warning-strong" />
                             <span>Bilan dispo</span>
                           </Badge>
                         ) : (
@@ -560,7 +559,7 @@ export function InterviewSimulation({
           ) : (
             <>
               {error && (
-                <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-start gap-2.5">
+                <div className="p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-start gap-2.5">
                   <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </div>
@@ -581,9 +580,9 @@ export function InterviewSimulation({
                         type="button"
                         onClick={() => setConfig({ ...config, interviewerType: type.id })}
                         className={cn(
-                          'flex items-start gap-3 p-3 rounded-xl border text-left transition-all duration-150',
+                          'flex items-start gap-3 p-3 rounded-lg border text-left transition-all duration-150',
                           isSelected
-                            ? 'border-primary bg-primary/5 shadow-xs ring-1 ring-primary/20'
+                            ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
                             : 'border-border/80 hover:border-border hover:bg-muted/30'
                         )}
                       >
@@ -624,7 +623,7 @@ export function InterviewSimulation({
                         type="button"
                         onClick={() => setConfig({ ...config, difficulty: lvl.id })}
                         className={cn(
-                          'p-2.5 sm:p-3 rounded-xl border text-center transition-all',
+                          'p-2.5 sm:p-3 rounded-lg border text-center transition-all',
                           isSelected
                             ? 'border-primary bg-primary/5 text-primary font-medium'
                             : 'border-border/80 text-muted-foreground hover:bg-muted/30'
@@ -684,7 +683,7 @@ export function InterviewSimulation({
               </div>
 
               {/* Note d'information sobre */}
-              <div className="p-3 rounded-xl bg-muted/40 border border-border/60 text-xs text-muted-foreground flex items-center gap-2.5">
+              <div className="p-3 rounded-lg bg-muted/40 border border-border/60 text-xs text-muted-foreground flex items-center gap-2.5">
                 <ShieldCheck className="h-4 w-4 text-primary flex-shrink-0" />
                 <span className="leading-relaxed">
                   L'IA personnalisera ses questions selon vos documents et vous permet de répondre par écrit ou à la voix.
@@ -693,7 +692,7 @@ export function InterviewSimulation({
 
               {/* Bouton de démarrage */}
               <Button
-                className="w-full h-10 text-xs font-semibold shadow-xs"
+                className="w-full h-10 text-xs font-semibold"
                 onClick={handleStart}
                 disabled={startMutation.isPending}
               >
@@ -704,7 +703,7 @@ export function InterviewSimulation({
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-4 w-4" />
+                    <Mic className="mr-2 h-4 w-4" />
                     Commencer la simulation
                   </>
                 )}
@@ -727,7 +726,7 @@ export function InterviewSimulation({
   // 2. ACTIVE SESSION STREAM VIEW
   return (
     <>
-      <Card className="flex flex-col border-border/80 shadow-xs overflow-hidden w-full min-w-0">
+      <Card className="flex flex-col border-border/80 overflow-hidden w-full min-w-0">
         {/* Header with Mode Switcher & Audio Controls */}
         <CardHeader className="p-3 sm:px-5 sm:py-3 border-b border-border/40 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -763,7 +762,7 @@ export function InterviewSimulation({
                 className={cn(
                   'flex items-center gap-1 px-2.5 py-1 rounded-md font-medium transition-all',
                   inputMode === 'chat'
-                    ? 'bg-background text-foreground shadow-xs'
+                    ? 'bg-background text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 title="Mode texte classique"
@@ -777,7 +776,7 @@ export function InterviewSimulation({
                 className={cn(
                   'flex items-center gap-1 px-2.5 py-1 rounded-md font-medium transition-all',
                   inputMode === 'vocal'
-                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    ? 'bg-primary text-primary-foreground font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 title="Mode vocal avec transcription"
@@ -792,8 +791,8 @@ export function InterviewSimulation({
               variant={parsedFeedback ? "outline" : "default"}
               size="sm"
               className={cn(
-                "h-8 text-xs font-semibold px-2.5 gap-1.5 shadow-xs",
-                parsedFeedback ? "border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20" : ""
+                "h-8 text-xs font-semibold px-2.5 gap-1.5",
+                parsedFeedback ? "border-warning/40 text-warning-strong  bg-warning-soft hover:bg-warning-soft" : ""
               )}
               onClick={() => {
                 if (parsedFeedback) {
@@ -811,7 +810,7 @@ export function InterviewSimulation({
                 </>
               ) : parsedFeedback ? (
                 <>
-                  <Award className="h-3.5 w-3.5 text-amber-500" />
+                  <Award className="h-3.5 w-3.5 text-warning-strong" />
                   <span>Mon Bilan ({parsedFeedback.score}/100)</span>
                 </>
               ) : (
@@ -900,7 +899,7 @@ export function InterviewSimulation({
               <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
                 <Bot className="h-3.5 w-3.5" />
               </div>
-              <div className="rounded-2xl rounded-tl-sm bg-muted/60 border border-border/40 p-3.5 text-xs text-muted-foreground flex items-center gap-2">
+              <div className="rounded-lg rounded-tl-sm bg-muted/60 border border-border/40 p-3.5 text-xs text-muted-foreground flex items-center gap-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
                 <span>Le recruteur prépare la première question...</span>
               </div>
@@ -927,7 +926,7 @@ export function InterviewSimulation({
                 <div className={cn('relative max-w-[85%] sm:max-w-[78%]', isUser ? 'text-right' : 'text-left')}>
                   <div
                     className={cn(
-                      'p-3.5 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap rounded-2xl shadow-2xs transition-all',
+                      'p-3.5 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap rounded-lg transition-all',
                       isUser
                         ? 'bg-primary text-primary-foreground rounded-tr-xs'
                         : isMessageSpeaking
@@ -964,7 +963,7 @@ export function InterviewSimulation({
                         className={cn(
                           'inline-flex items-center gap-0.5 transition-colors',
                           isMessageSpeaking
-                            ? 'text-primary font-bold'
+                            ? 'text-primary font-semibold'
                             : 'opacity-70 group-hover:opacity-100 hover:text-foreground'
                         )}
                         title={isMessageSpeaking ? 'Arrêter la lecture' : 'Écouter cette question'}
@@ -988,10 +987,10 @@ export function InterviewSimulation({
                       <button
                         type="button"
                         onClick={() => handleSaveToQuestionBank(msg.content, index)}
-                        className="opacity-70 group-hover:opacity-100 hover:text-amber-500 inline-flex items-center gap-1 transition-colors text-[9px] text-muted-foreground ml-1"
+                        className="opacity-70 group-hover:opacity-100 hover:text-warning-strong inline-flex items-center gap-1 transition-colors text-[9px] text-muted-foreground ml-1"
                         title="Sauvegarder cette question dans ma banque"
                       >
-                        <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
+                        <Star className="h-2.5 w-2.5 text-warning-strong fill-warning" />
                         <span>Sauvegarder</span>
                       </button>
                     )}
@@ -1013,7 +1012,7 @@ export function InterviewSimulation({
               <div className="h-7 w-7 rounded-full bg-muted border border-border/60 flex items-center justify-center flex-shrink-0 text-foreground/80">
                 <Bot className="h-3.5 w-3.5" />
               </div>
-              <div className="rounded-2xl rounded-tl-xs bg-muted/60 border border-border/40 px-4 py-3 flex items-center gap-1.5">
+              <div className="rounded-lg rounded-tl-xs bg-muted/60 border border-border/40 px-4 py-3 flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-delay:0ms]" />
                 <span className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-delay:150ms]" />
                 <span className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-delay:300ms]" />
@@ -1044,7 +1043,7 @@ export function InterviewSimulation({
                     disabled={sendMutation.isPending}
                     rows={1}
                     className={cn(
-                      'min-h-[44px] max-h-[160px] resize-none text-xs sm:text-sm py-2.5 pr-10 rounded-xl border-border/80 focus-visible:ring-primary/30 transition-all',
+                      'min-h-[44px] max-h-[160px] resize-none text-xs sm:text-sm py-2.5 pr-10 rounded-lg border-border/80 focus-visible:ring-primary/30 transition-all',
                       isListening && 'border-primary ring-2 ring-primary/20 bg-primary/5'
                     )}
                     onKeyDown={(e) => {
@@ -1065,7 +1064,7 @@ export function InterviewSimulation({
                     className={cn(
                       'absolute right-1.5 bottom-1.5 h-8 w-8 rounded-lg transition-all',
                       isListening
-                        ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse'
+                        ? 'bg-destructive text-white hover:bg-destructive animate-pulse'
                         : 'text-muted-foreground hover:text-foreground'
                     )}
                     title={isListening ? 'Arrêter la dictée' : 'Dicter vocalement'}
@@ -1079,7 +1078,7 @@ export function InterviewSimulation({
                   type="submit"
                   size="icon"
                   disabled={sendMutation.isPending || !message.trim()}
-                  className="h-11 w-11 rounded-xl flex-shrink-0 shadow-xs"
+                  className="h-11 w-11 rounded-lg flex-shrink-0"
                 >
                   {sendMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1093,8 +1092,8 @@ export function InterviewSimulation({
               <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
                 <span className="hidden sm:inline">
                   {isListening ? (
-                    <span className="text-red-500 font-medium flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                    <span className="text-destructive font-medium flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-[2px] bg-destructive animate-ping" />
                       Enregistrement vocal en cours...
                     </span>
                   ) : (
@@ -1109,7 +1108,7 @@ export function InterviewSimulation({
             /* 2. Vocal Mode: Instant Voice Input & Live Transcription */
             <div className="space-y-3">
               {sendMutation.isPending ? (
-                <div className="py-5 px-4 bg-muted/40 border border-border/60 rounded-2xl flex items-center justify-center gap-3 text-center animate-in fade-in duration-150">
+                <div className="py-5 px-4 bg-muted/40 border border-border/60 rounded-lg flex items-center justify-center gap-3 text-center animate-in fade-in duration-150">
                   <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   <span className="text-xs sm:text-sm font-medium text-foreground">
                     Le recruteur analyse votre réponse et prépare sa réplique...
@@ -1118,19 +1117,19 @@ export function InterviewSimulation({
               ) : isListening ? (
                 <div className="space-y-3 animate-in fade-in duration-200">
                   {/* Live recording card with waveform */}
-                  <div className="bg-red-500/5 border-2 border-red-500/30 rounded-2xl p-3.5 space-y-2">
+                  <div className="bg-destructive/10 border-2 border-destructive/40 rounded-lg p-3.5 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-red-600 dark:text-red-400 font-semibold flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                      <span className="text-destructive font-semibold flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-[2px] bg-destructive animate-ping" />
                         Microphone actif — parlez distinctement
                       </span>
                       {/* Bouncing audio equalizer bars */}
                       <div className="flex items-end gap-0.5 h-4">
-                        <span className="w-1 h-2 bg-red-500 rounded-full animate-pulse [animation-delay:0ms]" />
-                        <span className="w-1 h-3.5 bg-red-500 rounded-full animate-pulse [animation-delay:150ms]" />
-                        <span className="w-1 h-4 bg-red-500 rounded-full animate-pulse [animation-delay:300ms]" />
-                        <span className="w-1 h-3 bg-red-500 rounded-full animate-pulse [animation-delay:450ms]" />
-                        <span className="w-1 h-2 bg-red-500 rounded-full animate-pulse [animation-delay:200ms]" />
+                        <span className="w-1 h-2 bg-destructive rounded-[2px] animate-pulse [animation-delay:0ms]" />
+                        <span className="w-1 h-3.5 bg-destructive rounded-full animate-pulse [animation-delay:150ms]" />
+                        <span className="w-1 h-4 bg-destructive rounded-full animate-pulse [animation-delay:300ms]" />
+                        <span className="w-1 h-3 bg-destructive rounded-full animate-pulse [animation-delay:450ms]" />
+                        <span className="w-1 h-2 bg-destructive rounded-[2px] animate-pulse [animation-delay:200ms]" />
                       </div>
                     </div>
 
@@ -1153,7 +1152,7 @@ export function InterviewSimulation({
                     <button
                       type="button"
                       onClick={handleStopAndSendVocal}
-                      className="flex-1 py-3.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+                      className="flex-1 py-3.5 px-4 rounded-lg bg-destructive hover:bg-destructive text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
                     >
                       <Send className="h-4 w-4" />
                       <span>Terminer & Envoyer ma réponse</span>
@@ -1163,7 +1162,7 @@ export function InterviewSimulation({
                       type="button"
                       variant="outline"
                       onClick={handleCancelVocal}
-                      className="h-12 px-3 text-xs text-muted-foreground hover:text-foreground rounded-xl"
+                      className="h-12 px-3 text-xs text-muted-foreground hover:text-foreground rounded-lg"
                       title="Annuler sans envoyer"
                     >
                       <X className="h-4 w-4 mr-1" />
@@ -1178,7 +1177,7 @@ export function InterviewSimulation({
                     type="button"
                     onClick={handleStartVocal}
                     disabled={sendMutation.isPending}
-                    className="w-full py-4 px-5 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/95 transition-all shadow-xs hover:shadow-md flex items-center justify-center gap-3.5 group active:scale-[0.99]"
+                    className="w-full py-4 px-5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-3.5 group active:scale-[0.99]"
                   >
                     <div className="h-10 w-10 rounded-full bg-primary-foreground/15 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
                       <Mic className="h-5 w-5 text-primary-foreground" />
@@ -1208,7 +1207,7 @@ export function InterviewSimulation({
                             className={cn(
                               'px-2 py-0.5 rounded-md font-medium transition-colors',
                               speechRate === r
-                                ? 'bg-background text-foreground shadow-2xs font-semibold'
+                                ? 'bg-background text-foreground font-semibold'
                                 : 'hover:text-foreground'
                             )}
                           >
@@ -1242,7 +1241,7 @@ export function InterviewSimulation({
                     ) : (
                       activeVoice && (
                         <span className="truncate max-w-[210px] text-[11px] text-muted-foreground flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span className="w-1.5 h-1.5 rounded-[2px] bg-success" />
                           <span className="truncate font-medium">
                             {activeVoice.name.replace(/Online \(Natural\) - French \(France\)|Microsoft |Google /gi, '').trim() || 'Voix française'}
                           </span>
@@ -1259,7 +1258,7 @@ export function InterviewSimulation({
 
       {/* Modal Fullscreen with Full Voice & Text capability */}
       <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
-        <DialogContent className="max-w-[96vw] w-full h-[92vh] p-0 gap-0 flex flex-col rounded-2xl overflow-hidden">
+        <DialogContent className="max-w-[96vw] w-full h-[92vh] p-0 gap-0 flex flex-col rounded-lg overflow-hidden">
           <DialogHeader className="p-4 border-b border-border/40 flex-row items-center justify-between space-y-0 shrink-0">
             <DialogTitle className="text-base font-semibold flex items-center gap-2">
               <Bot className="h-4 w-4 text-primary" />
@@ -1287,7 +1286,7 @@ export function InterviewSimulation({
                     <div className={cn('max-w-[80%]', isUser ? 'text-right' : 'text-left')}>
                       <div
                         className={cn(
-                          'p-4 text-sm leading-relaxed whitespace-pre-wrap rounded-2xl',
+                          'p-4 text-sm leading-relaxed whitespace-pre-wrap rounded-lg',
                           isUser
                             ? 'bg-primary text-primary-foreground rounded-tr-xs'
                             : 'bg-muted/70 text-foreground border border-border/40 rounded-tl-xs'
@@ -1315,7 +1314,7 @@ export function InterviewSimulation({
                 placeholder="Rédigez ou dictez votre réponse..."
                 disabled={sendMutation.isPending}
                 rows={1}
-                className="min-h-[44px] max-h-[160px] resize-none text-sm py-2.5 rounded-xl border-border/80"
+                className="min-h-[44px] max-h-[160px] resize-none text-sm py-2.5 rounded-lg border-border/80"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -1328,11 +1327,11 @@ export function InterviewSimulation({
                 variant="outline"
                 size="icon"
                 onClick={handleToggleListening}
-                className={cn('h-11 w-11 rounded-xl shrink-0', isListening && 'bg-red-500 text-white')}
+                className={cn('h-11 w-11 rounded-lg shrink-0', isListening && 'bg-destructive text-white')}
               >
                 {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
-              <Button type="submit" size="icon" disabled={sendMutation.isPending || !message.trim()} className="h-11 w-11 rounded-xl shrink-0">
+              <Button type="submit" size="icon" disabled={sendMutation.isPending || !message.trim()} className="h-11 w-11 rounded-lg shrink-0">
                 <Send className="h-4 w-4" />
               </Button>
             </form>
@@ -1345,7 +1344,7 @@ export function InterviewSimulation({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
-              <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+              <Star className="h-4 w-4 text-warning-strong fill-warning" />
               Ajouter à ma banque de questions
             </DialogTitle>
             <DialogDescription className="text-xs">
@@ -1437,7 +1436,7 @@ export function InterviewSimulation({
           <DialogHeader className="p-5 border-b border-border/40 shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-lg bg-warning-soft text-warning-strong flex items-center justify-center">
                   <Award className="h-5 w-5" />
                 </div>
                 <div>
@@ -1450,18 +1449,18 @@ export function InterviewSimulation({
               {parsedFeedback && (
                 <div className="text-right">
                   <div className={cn(
-                    "text-2xl font-bold font-mono tracking-tight",
-                    parsedFeedback.score >= 75 ? "text-emerald-600 dark:text-emerald-400" :
-                    parsedFeedback.score >= 50 ? "text-amber-600 dark:text-amber-400" :
-                    "text-red-600 dark:text-red-400"
+                    "text-2xl font-semibold font-mono tracking-tight",
+                    parsedFeedback.score >= 75 ? "text-success " :
+                    parsedFeedback.score >= 50 ? "text-warning-strong " :
+                    "text-destructive "
                   )}>
                     {parsedFeedback.score}<span className="text-xs font-normal text-muted-foreground">/100</span>
                   </div>
                   <Badge variant="outline" className={cn(
                     "text-[10px] font-medium border-0",
-                    parsedFeedback.score >= 75 ? "bg-emerald-500/10 text-emerald-600" :
-                    parsedFeedback.score >= 50 ? "bg-amber-500/10 text-amber-600" :
-                    "bg-red-500/10 text-red-600"
+                    parsedFeedback.score >= 75 ? "bg-success/10 text-success" :
+                    parsedFeedback.score >= 50 ? "bg-warning-soft text-warning-strong" :
+                    "bg-destructive/10 text-destructive"
                   )}>
                     {parsedFeedback.score >= 75 ? 'Très convaincant' : parsedFeedback.score >= 50 ? 'Prometteur' : 'À perfectionner'}
                   </Badge>
@@ -1474,9 +1473,9 @@ export function InterviewSimulation({
             {parsedFeedback ? (
               <div className="space-y-5">
                 {/* Résumé global */}
-                <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 text-xs sm:text-sm leading-relaxed text-foreground">
+                <div className="p-3.5 rounded-lg bg-muted/40 border border-border/60 text-xs sm:text-sm leading-relaxed text-foreground">
                   <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" /> Synthèse générale
+                    <Mic className="h-3.5 w-3.5 text-primary" /> Synthèse générale
                   </p>
                   {parsedFeedback.summary}
                 </div>
@@ -1484,15 +1483,15 @@ export function InterviewSimulation({
                 {/* 3 Points forts & 3 Axes d'amélioration */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Points forts */}
-                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-2.5">
-                    <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 uppercase tracking-wide">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <div className="rounded-lg border border-success/40 bg-success/10 p-4 space-y-2.5">
+                    <div className="text-xs font-semibold text-success flex items-center gap-1.5 uppercase tracking-wide">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
                       Points forts observés
                     </div>
                     <ul className="space-y-2">
                       {parsedFeedback.strengths?.map((item, idx) => (
                         <li key={idx} className="text-xs text-foreground flex items-start gap-2 leading-relaxed">
-                          <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                          <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -1500,15 +1499,15 @@ export function InterviewSimulation({
                   </div>
 
                   {/* Axes d'amélioration */}
-                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-2.5">
-                    <div className="text-xs font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wide">
-                      <Target className="h-4 w-4 text-amber-500" />
+                  <div className="rounded-lg border border-warning/40 bg-warning-soft p-4 space-y-2.5">
+                    <div className="text-xs font-semibold text-warning-strong flex items-center gap-1.5 uppercase tracking-wide">
+                      <Target className="h-4 w-4 text-warning-strong" />
                       Axes d'amélioration
                     </div>
                     <ul className="space-y-2">
                       {parsedFeedback.improvements?.map((item, idx) => (
                         <li key={idx} className="text-xs text-foreground flex items-start gap-2 leading-relaxed">
-                          <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                          <AlertTriangle className="h-3.5 w-3.5 text-warning-strong shrink-0 mt-0.5" />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -1518,7 +1517,7 @@ export function InterviewSimulation({
 
                 {/* Reformulation idéale (Méthode STAR) */}
                 {parsedFeedback.idealAnswer && (
-                  <div className="rounded-xl border border-border/80 bg-card p-4 space-y-2.5">
+                  <div className="rounded-lg border border-border/80 bg-card p-4 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="text-xs font-semibold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
                         <Star className="h-4 w-4 text-primary" />

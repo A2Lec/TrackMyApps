@@ -40,6 +40,11 @@ export function formatDateTime(date: string | Date): string {
   });
 }
 
+/** Key figures are shown on two digits (03, 05) in Sillage */
+export function twoDigits(value: number): string {
+  return value >= 0 && value < 10 ? `0${value}` : String(value);
+}
+
 /**
  * Re-export standardized domain labels and theme tokens
  */
@@ -47,13 +52,17 @@ export {
   STATUS_LABELS,
   STATUS_COLORS,
   STATUS_DOT_COLORS,
+  STATUS_HEX_VARS,
   JOB_TYPE_LABELS,
   JOB_TYPE_COLORS,
+  JOB_TYPE_TAGS,
   EVENT_TYPE_LABELS,
   DOCUMENT_TYPE_LABELS,
   DOCUMENT_TYPE_COLORS,
+  DOCUMENT_TYPE_CODES,
   REMINDER_TYPE_LABELS,
   REMINDER_TYPE_COLORS,
+  REMINDER_TYPE_DOT_COLORS,
   STATUS_ORDER,
   KANBAN_STATUS_ORDER,
   ALL_STATUSES,

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Check, Mail, Sparkles } from 'lucide-react';
+import { Copy, Check, Mail } from 'lucide-react';
 
 interface Template {
   id: string;
@@ -126,7 +126,7 @@ export function FollowUpTemplatesDialog({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Sparkles className="h-4 w-4" />
+              <Mail className="h-4 w-4" />
             </div>
             <div>
               <DialogTitle className="text-lg">Modèles d'emails de relance</DialogTitle>
@@ -169,7 +169,7 @@ export function FollowUpTemplatesDialog({
                   >
                     {copiedId === tpl.id ? (
                       <>
-                        <Check className="h-3.5 w-3.5 mr-1 text-emerald-400" />
+                        <Check className="h-3.5 w-3.5 mr-1 text-success" />
                         Copié !
                       </>
                     ) : (
@@ -182,7 +182,7 @@ export function FollowUpTemplatesDialog({
                 </div>
 
                 <div className="relative">
-                  <pre className="p-4 rounded-xl bg-muted/30 border border-border/80 font-sans text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed select-text overflow-x-auto">
+                  <pre className="p-4 rounded-lg bg-muted/30 border border-border/80 font-sans text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed select-text overflow-x-auto">
                     {customized.body}
                   </pre>
                 </div>

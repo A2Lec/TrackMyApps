@@ -11,26 +11,43 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   GHOSTED: 'Sans réponse',
 };
 
+// Sillage: a status is a 9px colored square + a label in foreground, never colored text.
+// These are the "chip" variant classes (the square comes from STATUS_DOT_COLORS, see StatusBadge).
+const STATUS_CHIP = 'bg-card text-foreground border border-border';
 export const STATUS_COLORS: Record<ApplicationStatus, string> = {
-  DRAFT: 'bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800/70 dark:text-slate-300 dark:border-slate-700/80',
-  SENT: 'bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/80',
-  VIEWED: 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/80',
-  INTERVIEW_SCHEDULED: 'bg-purple-50 text-purple-700 border border-purple-200/80 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800/80',
-  AWAITING_RESPONSE: 'bg-amber-50 text-amber-800 border border-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/80',
-  REJECTED: 'bg-rose-50 text-rose-700 border border-rose-200/80 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800/80',
-  ACCEPTED: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/80',
-  GHOSTED: 'bg-zinc-100 text-zinc-600 border border-zinc-200/80 dark:bg-zinc-800/70 dark:text-zinc-400 dark:border-zinc-700/80',
+  DRAFT: STATUS_CHIP,
+  SENT: STATUS_CHIP,
+  VIEWED: STATUS_CHIP,
+  INTERVIEW_SCHEDULED: STATUS_CHIP,
+  // The only status that calls for an action
+  AWAITING_RESPONSE: 'bg-warning-soft text-foreground border border-warning',
+  REJECTED: STATUS_CHIP,
+  ACCEPTED: STATUS_CHIP,
+  GHOSTED: 'bg-card text-muted-foreground border border-dashed border-input',
 };
 
 export const STATUS_DOT_COLORS: Record<ApplicationStatus, string> = {
-  DRAFT: 'bg-slate-400 dark:bg-slate-500',
-  SENT: 'bg-blue-500',
-  VIEWED: 'bg-indigo-500',
-  INTERVIEW_SCHEDULED: 'bg-purple-500',
-  AWAITING_RESPONSE: 'bg-amber-500',
-  REJECTED: 'bg-rose-500',
-  ACCEPTED: 'bg-emerald-500',
-  GHOSTED: 'bg-zinc-400 dark:bg-zinc-500',
+  DRAFT: 'bg-status-draft',
+  SENT: 'bg-status-sent',
+  VIEWED: 'bg-status-viewed',
+  INTERVIEW_SCHEDULED: 'bg-status-interview',
+  AWAITING_RESPONSE: 'bg-status-waiting',
+  REJECTED: 'bg-status-rejected',
+  ACCEPTED: 'bg-status-accepted',
+  // Hollow square: tells Sans réponse apart from Brouillon without relying on hue
+  GHOSTED: 'bg-transparent border-[1.5px] border-status-ghosted',
+};
+
+/** Raw status colors (CSS variables), for charts and inline styles */
+export const STATUS_HEX_VARS: Record<ApplicationStatus, string> = {
+  DRAFT: 'var(--status-draft)',
+  SENT: 'var(--status-sent)',
+  VIEWED: 'var(--status-viewed)',
+  INTERVIEW_SCHEDULED: 'var(--status-interview)',
+  AWAITING_RESPONSE: 'var(--status-waiting)',
+  REJECTED: 'var(--status-rejected)',
+  ACCEPTED: 'var(--status-accepted)',
+  GHOSTED: 'var(--status-ghosted)',
 };
 
 export const JOB_TYPE_LABELS: Record<JobType, string> = {
@@ -40,11 +57,21 @@ export const JOB_TYPE_LABELS: Record<JobType, string> = {
   JOB_ETUDIANT: 'Job étudiant',
 };
 
+// Contracts have no color in Sillage: neutral mono uppercase tag
+const MONO_TAG = 'bg-secondary text-secondary-foreground font-mono text-[11px] font-semibold uppercase tracking-wider';
 export const JOB_TYPE_COLORS: Record<JobType, string> = {
-  STAGE: 'bg-sky-50 text-sky-700 border border-sky-200/80 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800/80',
-  ALTERNANCE: 'bg-violet-50 text-violet-700 border border-violet-200/80 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/80',
-  CDI: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/80',
-  JOB_ETUDIANT: 'bg-amber-50 text-amber-800 border border-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/80',
+  STAGE: MONO_TAG,
+  ALTERNANCE: MONO_TAG,
+  CDI: MONO_TAG,
+  JOB_ETUDIANT: MONO_TAG,
+};
+
+/** Text of the contract tag */
+export const JOB_TYPE_TAGS: Record<JobType, string> = {
+  STAGE: 'STAGE',
+  ALTERNANCE: 'ALTERNANCE',
+  CDI: 'CDI',
+  JOB_ETUDIANT: 'JOB ÉTUDIANT',
 };
 
 export const EVENT_TYPE_LABELS: Record<EventType, string> = {
@@ -59,6 +86,19 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   STATUS_CHANGED: 'Changement de statut',
 };
 
+/** Journal: each event takes the square of the status it produces (null: no known status) */
+export const EVENT_TYPE_STATUS: Record<EventType, ApplicationStatus | null> = {
+  CREATED: 'DRAFT',
+  SENT: 'SENT',
+  VIEWED: 'VIEWED',
+  RELANCE_SENT: 'AWAITING_RESPONSE',
+  INTERVIEW_SCHEDULED: 'INTERVIEW_SCHEDULED',
+  INTERVIEW_DONE: 'INTERVIEW_SCHEDULED',
+  REJECTED: 'REJECTED',
+  ACCEPTED: 'ACCEPTED',
+  STATUS_CHANGED: null,
+};
+
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   CV: 'CV',
   COVER_LETTER: 'Lettre de motivation',
@@ -67,12 +107,22 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   OTHER: 'Autre',
 };
 
+// Documents have no color either: the CV (main document) is on primary-soft, the rest on secondary
 export const DOCUMENT_TYPE_COLORS: Record<DocumentType, string> = {
-  CV: 'bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/80',
-  LETTRE_MOTIVATION: 'bg-purple-50 text-purple-700 border border-purple-200/80 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800/80',
-  COVER_LETTER: 'bg-purple-50 text-purple-700 border border-purple-200/80 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800/80',
-  PORTFOLIO: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/80',
-  OTHER: 'bg-zinc-100 text-zinc-700 border border-zinc-200/80 dark:bg-zinc-800/70 dark:text-zinc-300 dark:border-zinc-700/80',
+  CV: 'bg-primary-soft text-primary',
+  LETTRE_MOTIVATION: 'bg-secondary text-secondary-foreground',
+  COVER_LETTER: 'bg-secondary text-secondary-foreground',
+  PORTFOLIO: 'bg-secondary text-secondary-foreground',
+  OTHER: 'bg-secondary text-secondary-foreground',
+};
+
+/** Mono code shown in the document square */
+export const DOCUMENT_TYPE_CODES: Record<DocumentType, string> = {
+  CV: 'CV',
+  LETTRE_MOTIVATION: 'LM',
+  COVER_LETTER: 'LM',
+  PORTFOLIO: 'PF',
+  OTHER: 'DOC',
 };
 
 export const REMINDER_TYPE_LABELS: Record<ReminderType, string> = {
@@ -88,17 +138,33 @@ export const REMINDER_TYPE_LABELS: Record<ReminderType, string> = {
   OTHER: 'Autre',
 };
 
+// A reminder takes the color of the status with the same meaning; the rest is neutral
+// and told apart by its icon (see REMINDER_TYPE_ICONS in components/StatusBadge).
+const REMINDER_CHIP = 'bg-card text-foreground border border-border';
 export const REMINDER_TYPE_COLORS: Record<ReminderType, string> = {
-  FOLLOW_UP: 'bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/80',
-  RELANCE: 'bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/80',
-  INTERVIEW: 'bg-purple-50 text-purple-700 border border-purple-200/80 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800/80',
-  DEADLINE: 'bg-rose-50 text-rose-700 border border-rose-200/80 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800/80',
-  INTERVIEW_PREP: 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/80',
-  THANK_YOU_EMAIL: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/80',
-  DECISION: 'bg-amber-50 text-amber-800 border border-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/80',
-  DOCUMENT: 'bg-teal-50 text-teal-700 border border-teal-200/80 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800/80',
-  CUSTOM: 'bg-sky-50 text-sky-700 border border-sky-200/80 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800/80',
-  OTHER: 'bg-zinc-100 text-zinc-700 border border-zinc-200/80 dark:bg-zinc-800/70 dark:text-zinc-300 dark:border-zinc-700/80',
+  FOLLOW_UP: 'bg-warning-soft text-foreground border border-warning',
+  RELANCE: 'bg-warning-soft text-foreground border border-warning',
+  INTERVIEW: REMINDER_CHIP,
+  DEADLINE: REMINDER_CHIP,
+  INTERVIEW_PREP: REMINDER_CHIP,
+  THANK_YOU_EMAIL: REMINDER_CHIP,
+  DECISION: REMINDER_CHIP,
+  DOCUMENT: REMINDER_CHIP,
+  CUSTOM: REMINDER_CHIP,
+  OTHER: REMINDER_CHIP,
+};
+
+export const REMINDER_TYPE_DOT_COLORS: Record<ReminderType, string> = {
+  FOLLOW_UP: 'bg-status-waiting',
+  RELANCE: 'bg-status-waiting',
+  INTERVIEW: 'bg-status-interview',
+  INTERVIEW_PREP: 'bg-status-interview',
+  DEADLINE: 'bg-destructive',
+  THANK_YOU_EMAIL: 'bg-status-draft',
+  DECISION: 'bg-status-draft',
+  DOCUMENT: 'bg-status-draft',
+  CUSTOM: 'bg-status-draft',
+  OTHER: 'bg-status-draft',
 };
 
 export const KANBAN_STATUS_ORDER: ApplicationStatus[] = [
