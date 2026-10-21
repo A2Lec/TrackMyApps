@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -64,10 +64,14 @@ export function Header() {
           >
             <Menu className="h-[18px] w-[18px]" strokeWidth={1.8} />
           </Button>
-          <div className="flex items-center gap-2 lg:hidden">
+          <Link
+            to="/"
+            aria-label="TrackMyApps, retour au tableau de bord"
+            className="flex items-center gap-2 rounded-md hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+          >
             <BrandLogo title="" className="h-7 w-7" />
             <BrandName className="text-lg" />
-          </div>
+          </Link>
         </div>
 
         {/* Right side */}
