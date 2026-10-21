@@ -168,7 +168,8 @@ describe('Page: DashboardPage', () => {
 
       // Offres & Réussites
       expect(screen.getByText('Offres & Réussites')).toBeInTheDocument();
-      expect(screen.getAllByText('1').length).toBeGreaterThanOrEqual(1);
+      // Sillage: key figures on two digits
+      expect(screen.getAllByText('01').length).toBeGreaterThanOrEqual(1);
     });
   });
 

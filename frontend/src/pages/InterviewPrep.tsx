@@ -42,7 +42,7 @@ import {
   BookOpen,
   Copy,
   Bot,
-  Sparkles,
+  Mic,
   ChevronDown,
   Building2,
   HelpCircle,
@@ -67,11 +67,11 @@ const categoryLabels: Record<QuestionCategory, string> = {
 };
 
 const categoryColors: Record<QuestionCategory, string> = {
-  BEHAVIORAL: 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/80',
-  TECHNICAL: 'bg-purple-50 text-purple-700 border-purple-200/80 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800/80',
-  SITUATIONAL: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/80',
-  COMPANY_SPECIFIC: 'bg-amber-50 text-amber-800 border-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/80',
-  OTHER: 'bg-zinc-100 text-zinc-700 border-zinc-200/80 dark:bg-zinc-800/70 dark:text-zinc-300 dark:border-zinc-700/80',
+  BEHAVIORAL: 'bg-secondary text-status-sent border-border   ',
+  TECHNICAL: 'bg-secondary text-status-interview border-border   ',
+  SITUATIONAL: 'bg-success/10 text-success border-success/40   ',
+  COMPANY_SPECIFIC: 'bg-warning-soft text-warning-strong border-warning/40   ',
+  OTHER: 'bg-muted text-foreground border-border   ',
 };
 
 const interviewPrepService = {
@@ -264,7 +264,7 @@ export function InterviewPrepPage() {
             <Button
               onClick={() => setShowCreateDialog(true)}
               size="sm"
-              className="w-full sm:w-auto h-9 font-medium shadow-xs"
+              className="w-full sm:w-auto h-9 font-medium"
             >
               <Plus className="mr-1.5 h-4 w-4" />
               Nouvelle question
@@ -358,7 +358,7 @@ export function InterviewPrepPage() {
           {favoriteQuestions.length > 0 && (
             <div className="space-y-3 w-full min-w-0">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                <Star className="h-3.5 w-3.5 text-warning-strong fill-warning" />
                 <span>Questions clés favorites ({favoriteQuestions.length})</span>
               </div>
               <div className="space-y-2.5 w-full min-w-0">
@@ -405,7 +405,7 @@ export function InterviewPrepPage() {
 
           {/* État vide */}
           {filteredQuestions?.length === 0 && (
-            <div className="text-center py-12 px-4 border border-dashed rounded-xl bg-card">
+            <div className="text-center py-12 px-4 border border-dashed rounded-lg bg-card">
               <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
               <h3 className="text-sm font-semibold text-foreground">Aucune question trouvée</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1 mb-4">
@@ -424,7 +424,7 @@ export function InterviewPrepPage() {
         {/* TAB 2: SIMULATION IA */}
         <TabsContent value="simulation" className="space-y-5 m-0 w-full min-w-0">
           {/* Segmented switcher: Entraînement libre vs Candidature ciblée */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-1.5 bg-muted/40 rounded-xl border border-border/60">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-1.5 bg-muted/40 rounded-lg border border-border/60">
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
@@ -432,7 +432,7 @@ export function InterviewPrepPage() {
                 className={cn(
                   'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                   simulationMode === 'free'
-                    ? 'bg-background text-foreground shadow-xs font-semibold'
+                    ? 'bg-background text-foreground font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -445,7 +445,7 @@ export function InterviewPrepPage() {
                 className={cn(
                   'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                   simulationMode === 'application'
-                    ? 'bg-background text-foreground shadow-xs font-semibold'
+                    ? 'bg-background text-foreground font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -462,7 +462,7 @@ export function InterviewPrepPage() {
 
           {simulationMode === 'free' ? (
             !isFreePracticeActive ? (
-              <Card className="border-border/80 shadow-xs w-full min-w-0 overflow-hidden">
+              <Card className="border-border/80 w-full min-w-0 overflow-hidden">
                 <CardHeader className="p-4 sm:p-5 border-b border-border/40">
                   <div className="space-y-1">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -518,14 +518,14 @@ export function InterviewPrepPage() {
                     disabled={!freeTargetRole.trim()}
                     className="w-full h-10 text-xs font-semibold"
                   >
-                    <Sparkles className="mr-2 h-4 w-4" />
+                    <Mic className="mr-2 h-4 w-4" />
                     Lancer la simulation libre
                   </Button>
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/80 text-xs">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border/80 text-xs">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="border-primary/40 text-primary font-medium">
                       Entraînement libre
@@ -553,7 +553,7 @@ export function InterviewPrepPage() {
               </div>
             )
           ) : (
-            <Card className="border-border/80 shadow-xs w-full min-w-0 overflow-hidden">
+            <Card className="border-border/80 w-full min-w-0 overflow-hidden">
               <CardHeader className="p-4 sm:p-5 border-b border-border/40">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
@@ -674,9 +674,9 @@ export function InterviewPrepPage() {
 
             {/* Méthode STAR explicative */}
             {showStarGuide && (
-              <div className="p-3.5 rounded-xl bg-muted/50 border border-border/80 text-xs space-y-1.5 text-muted-foreground animate-in fade-in-50 duration-200">
+              <div className="p-3.5 rounded-lg bg-muted/50 border border-border/80 text-xs space-y-1.5 text-muted-foreground animate-in fade-in-50 duration-200">
                 <div className="font-semibold text-foreground flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  <Mic className="h-3.5 w-3.5 text-primary" />
                   Structurez avec la méthode STAR :
                 </div>
                 <ul className="space-y-1 list-disc list-inside text-[11px] leading-relaxed">
@@ -741,7 +741,7 @@ function QuestionCardItem({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="rounded-xl border border-border/80 bg-card hover:border-border transition-all overflow-hidden w-full min-w-0">
+    <div className="rounded-lg border border-border/80 bg-card hover:border-border transition-all overflow-hidden w-full min-w-0">
       <div
         className="p-3.5 sm:p-4 flex items-start justify-between gap-3 cursor-pointer select-none"
         onClick={() => setIsOpen(!isOpen)}
@@ -776,12 +776,12 @@ function QuestionCardItem({
             variant="ghost"
             size="icon"
             onClick={onToggleFavorite}
-            className="h-8 w-8 text-muted-foreground hover:text-amber-500"
+            className="h-8 w-8 text-muted-foreground hover:text-warning-strong"
           >
             <Star
               className={cn(
                 'h-4 w-4',
-                question.isFavorite ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground/60'
+                question.isFavorite ? 'text-warning-strong fill-warning' : 'text-muted-foreground/60'
               )}
             />
           </Button>
@@ -852,7 +852,7 @@ function QuestionCardItem({
 
           {question.notes && (
             <div className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
-              <Lightbulb className="h-3.5 w-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <Lightbulb className="h-3.5 w-3.5 text-warning-strong flex-shrink-0 mt-0.5" />
               <span>Notes : {question.notes}</span>
             </div>
           )}
@@ -880,7 +880,7 @@ function InterviewPrepSkeleton() {
 
       <div className="space-y-3">
         {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-xl" />
+          <Skeleton key={i} className="h-20 w-full rounded-lg" />
         ))}
       </div>
     </div>

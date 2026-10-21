@@ -78,17 +78,14 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-gradient-to-br from-slate-50 via-background to-blue-50/40 dark:from-neutral-950 dark:via-background dark:to-blue-950/20 relative overflow-hidden py-8 sm:py-12">
-      {/* Decorative ambient gradients */}
-      <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-background relative overflow-hidden py-8 sm:py-12">
 
-      <Card className="w-full max-w-lg border-border/80 bg-card/95 backdrop-blur-md shadow-2xl shadow-primary/5 rounded-2xl relative z-10">
+      <Card className="w-full max-w-lg border-0 bg-background sm:border sm:bg-card rounded-lg relative z-10">
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-3">
-            <BrandLogo className="h-12 w-12 drop-shadow-lg" />
+            <BrandLogo className="h-12 w-12" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Créer un compte</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Créer un compte</CardTitle>
           <CardDescription className="text-sm">
             Rejoignez TrackMyApps pour gérer efficacement vos recherches de stage et d'alternance
           </CardDescription>
@@ -97,7 +94,7 @@ export function RegisterPage() {
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             {error && (
-              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium animate-in fade-in-50">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium animate-in fade-in-50">
                 {error}
               </div>
             )}
@@ -245,7 +242,7 @@ export function RegisterPage() {
           <CardFooter className="flex flex-col gap-3 pt-2">
             <Button
               type="submit"
-              className="w-full h-10 rounded-lg font-medium shadow-sm shadow-primary/20"
+              className="w-full h-10 rounded-lg font-medium"
               disabled={registerMutation.isPending}
             >
               {registerMutation.isPending && (

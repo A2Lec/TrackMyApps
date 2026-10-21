@@ -40,7 +40,7 @@ export function EmailVerificationBanner() {
         return;
       }
       toast.success('Email de vérification envoyé ! Pensez à vérifier vos spams.', {
-        icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+        icon: <CheckCircle2 className="h-4 w-4 text-success" />
       });
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Erreur lors de l'envoi de l'email");
@@ -50,11 +50,11 @@ export function EmailVerificationBanner() {
   };
 
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-900 dark:text-amber-200 text-xs sm:text-sm py-2.5 px-4 transition-all">
+    <div className="bg-warning-soft border-b border-warning/40 text-warning-strong text-xs sm:text-sm py-2.5 px-4 transition-all">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-4">
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <div className="h-7 w-7 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-            <Mail className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+          <div className="h-7 w-7 rounded-lg bg-warning-soft flex items-center justify-center flex-shrink-0">
+            <Mail className="h-3.5 w-3.5 text-warning-strong " />
           </div>
           <p className="leading-snug">
             <span className="font-semibold">Vérification requise :</span> un email a été envoyé à{' '}
@@ -71,7 +71,7 @@ export function EmailVerificationBanner() {
             size="sm"
             onClick={handleResend}
             disabled={isResending}
-            className="h-7 text-xs px-2.5 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-900 dark:text-amber-200 transition-colors font-medium"
+            className="h-7 text-xs px-2.5 bg-warning-soft hover:bg-warning-soft border-warning/40 text-warning-strong transition-colors font-medium"
           >
             {isResending ? (
               <>
@@ -87,7 +87,7 @@ export function EmailVerificationBanner() {
             variant="ghost"
             size="icon"
             onClick={() => setDismissed(true)}
-            className="h-7 w-7 text-amber-700/70 hover:text-amber-900 dark:text-amber-300/70 dark:hover:text-amber-100 hover:bg-amber-500/10"
+            className="h-7 w-7 text-warning-strong hover:text-warning-strong hover:bg-warning-soft"
             aria-label="Fermer la bannière"
           >
             <X className="h-3.5 w-3.5" />

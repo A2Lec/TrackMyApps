@@ -5,7 +5,6 @@ import { documentsService } from '@/services/documents.service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -42,7 +41,7 @@ import {
   Eye,
   FileCheck2,
 } from 'lucide-react';
-import { formatDate, cn, documentTypeLabels, documentTypeColors } from '@/lib/utils';
+import { formatDate, cn, documentTypeLabels } from '@/lib/utils';
 import type { Document as DocType, DocumentType } from '@/types';
 
 export function DocumentsPage() {
@@ -187,7 +186,7 @@ export function DocumentsPage() {
               setShowUploadDialog(true);
             }}
             size="sm"
-            className="w-full sm:w-auto h-9 font-medium shadow-xs"
+            className="w-full sm:w-auto h-9 font-medium"
           >
             <Upload className="mr-1.5 h-4 w-4" />
             Importer un document
@@ -281,7 +280,7 @@ export function DocumentsPage() {
             return (
               <div
                 key={doc.id}
-                className="group relative rounded-xl border border-border/80 bg-card hover:border-primary/40 hover:shadow-xs transition-all overflow-hidden p-4 flex flex-col justify-between space-y-3 w-full min-w-0"
+                className="group relative rounded-lg border border-border/80 bg-card hover:border-primary/40 transition-all overflow-hidden p-4 flex flex-col justify-between space-y-3 w-full min-w-0"
               >
                 <div className="space-y-2.5 min-w-0">
                   <div className="flex items-start justify-between gap-2">
@@ -370,27 +369,24 @@ export function DocumentsPage() {
 
                   {/* Badges de statut, type et traçabilité candidatures (TICK-304) */}
                   <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                    <Badge
-                      variant="secondary"
-                      className={cn('text-[10px] font-medium border-0 px-2 py-0.5', documentTypeColors[doc.type] || documentTypeColors['LETTRE_MOTIVATION'])}
-                    >
+                    <span className="inline-flex items-center rounded-sm bg-secondary px-[7px] py-[3px] font-mono text-[11px] font-semibold uppercase leading-4 tracking-wider text-secondary-foreground">
                       {documentTypeLabels[doc.type] || 'Lettre de motivation'}
-                    </Badge>
+                    </span>
 
                     {doc.isDefault && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-                        <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary-soft px-2 py-0.5 rounded-sm">
+                        <Star className="h-3 w-3 fill-current" />
                         Par défaut
                       </span>
                     )}
 
                     {doc.usageCount && doc.usageCount > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-800/80 px-2 py-0.5 rounded-full">
-                        <FileCheck2 className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground bg-card border border-border px-2 py-0.5 rounded-sm">
+                        <FileCheck2 className="h-3 w-3 text-muted-foreground" />
                         Utilisé dans {doc.usageCount} {doc.usageCount > 1 ? 'candidatures' : 'candidature'}
                       </span>
                     ) : (
-                      <span className="inline-flex items-center text-[10px] text-muted-foreground bg-muted/40 border border-border/40 px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center text-[11px] text-muted-foreground border border-dashed border-border px-2 py-0.5 rounded-sm">
                         Non utilisé
                       </span>
                     )}
@@ -441,7 +437,7 @@ export function DocumentsPage() {
           })}
         </div>
       ) : (
-        <div className="text-center py-16 px-4 border border-dashed rounded-xl bg-card space-y-3">
+        <div className="text-center py-16 px-4 border border-dashed rounded-lg bg-card space-y-3">
           <FileText className="h-8 w-8 mx-auto text-muted-foreground/50" />
           <h3 className="text-sm font-semibold text-foreground">Aucun document</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -483,7 +479,7 @@ export function DocumentsPage() {
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
               className={cn(
-                'border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-colors',
+                'border-2 border-dashed rounded-lg p-5 text-center cursor-pointer transition-colors',
                 isDraggingOver
                   ? 'border-primary bg-primary/5'
                   : 'border-border/80 hover:border-primary/50 hover:bg-muted/30'
@@ -592,7 +588,7 @@ function DocumentsSkeleton() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Skeleton key={i} className="h-36 rounded-xl" />
+          <Skeleton key={i} className="h-36 rounded-lg" />
         ))}
       </div>
     </div>

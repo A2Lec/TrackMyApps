@@ -3,103 +3,102 @@
 @tailwind utilities;
 
 @layer base {
+  /* Sillage design system: values from its tokens.json (HSL without hsl(), as shadcn expects) */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-
+    --background: 150 11% 96%;
+    --foreground: 176 33% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
+    --card-foreground: 176 33% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 219 94% 50%;
+    --popover-foreground: 176 33% 9%;
+    --primary: 175 76% 25%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 13% 96%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 220 13% 96%;
-    --muted-foreground: 220 9% 46%;
-
-    --accent: 220 13% 96%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84% 60%;
+    --primary-soft: 176 26% 89%;
+    --secondary: 156 12% 92%;
+    --secondary-foreground: 176 33% 9%;
+    --muted: 156 12% 92%;
+    --muted-foreground: 166 8% 33%;
+    --accent: 156 12% 92%; /* hover background, NOT the brand amber (that is warning) */
+    --accent-foreground: 176 33% 9%;
+    --destructive: 4 76% 40%;
     --destructive-foreground: 0 0% 100%;
-
-    --success: 142 76% 36%;
+    --success: 146 66% 30%;
     --success-foreground: 0 0% 100%;
-
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 219 94% 50%;
-
+    --warning: 37 91% 55%; /* brand amber = "to do" */
+    --warning-foreground: 37 100% 8%;
+    --warning-soft: 38 94% 93%;
+    --warning-strong: 33 100% 27%;
+    --border: 160 10% 88%;
+    --input: 171 6% 55%;
+    --ring: 175 76% 25%;
+    --surface-sunken: 150 13% 94%;
+    --inverse: 176 33% 9%;
+    --inverse-foreground: 163 19% 93%;
     --radius: 0.5rem;
 
-    --chart-1: 12 76% 61%;
+    /* Application statuses (hex: used as plain background/border colors) */
+    --status-draft: #8a9693;
+    --status-sent: #2563eb;
+    --status-viewed: #0e91a5;
+    --status-interview: #6d3fdb;
+    --status-waiting: #c27803;
+    --status-rejected: #c2362b;
+    --status-accepted: #1a7f45;
+    --status-ghosted: #6b7875;
 
-    --chart-2: 173 58% 39%;
-
-    --chart-3: 197 37% 24%;
-
-    --chart-4: 43 74% 66%;
-
-    --chart-5: 27 87% 67%;
+    --shadow-popover: 0 8px 24px rgb(16 32 31 / 0.12);
+    --shadow-drag: 0 12px 28px rgb(16 32 31 / 0.22);
   }
 
   .dark {
-    --background: 0 0% 11%;
-    --foreground: 0 0% 95%;
+    --background: 171 23% 6%;
+    --foreground: 163 19% 93%;
+    --card: 173 18% 10%;
+    --card-foreground: 163 19% 93%;
+    --popover: 173 18% 10%;
+    --popover-foreground: 163 19% 93%;
+    --primary: 173 52% 50%;
+    --primary-foreground: 171 23% 6%;
+    --primary-soft: 174 34% 16%;
+    --secondary: 170 16% 15%;
+    --secondary-foreground: 163 19% 93%;
+    --muted: 170 16% 15%;
+    --muted-foreground: 164 8% 62%;
+    --accent: 170 16% 15%;
+    --accent-foreground: 163 19% 93%;
+    --destructive: 5 82% 65%;
+    --destructive-foreground: 171 23% 6%;
+    --success: 145 51% 49%;
+    --success-foreground: 171 23% 6%;
+    --warning: 37 91% 55%;
+    --warning-foreground: 37 100% 8%;
+    --warning-soft: 48 30% 16%;
+    --warning-strong: 37 91% 55%;
+    --border: 171 17% 16%;
+    --input: 169 8% 40%;
+    --ring: 173 52% 50%;
+    --surface-sunken: 173 22% 8%;
+    --inverse: 163 19% 93%;
+    --inverse-foreground: 176 33% 9%;
 
-    --card: 0 0% 14%;
-    --card-foreground: 0 0% 95%;
+    --status-draft: #8a9693;
+    --status-sent: #5b8cf5;
+    --status-viewed: #2cc4d9;
+    --status-interview: #a585ff;
+    --status-waiting: #f5a524;
+    --status-rejected: #ef6a5e;
+    --status-accepted: #3dbe73;
+    --status-ghosted: #7f8c89;
 
-    --popover: 0 0% 14%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 217 91% 45%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 18%;
-    --secondary-foreground: 0 0% 95%;
-
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 0 0% 18%;
-    --accent-foreground: 0 0% 95%;
-
-    --destructive: 0 72% 58%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 69% 50%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 45 93% 58%;
-    --warning-foreground: 0 0% 10%;
-
-    --border: 0 0% 24%;
-    --input: 0 0% 24%;
-    --ring: 220 100% 60%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --shadow-popover: 0 8px 24px rgb(0 0 0 / 0.5);
+    --shadow-drag: 0 12px 28px rgb(0 0 0 / 0.6);
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter Variable', 'Inter', sans-serif;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 }
 
@@ -129,8 +128,15 @@
 }
 
 .kanban-card-dragging {
-  opacity: 0.5;
   transform: rotate(3deg);
+  box-shadow: var(--shadow-drag);
+  border-color: hsl(var(--primary));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kanban-card-dragging {
+    transform: none;
+  }
 }
 
 @layer components {

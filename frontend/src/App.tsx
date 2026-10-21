@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster, toast } from 'sonner';
+import { AlertTriangle, Check } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { AppLoader } from '@/components/loading/AppLoader';
 import { TopProgressBar } from '@/components/loading/TopProgressBar';
@@ -208,7 +209,29 @@ function App() {
           <CookieConsent />
         </BrowserRouter>
         {analyticsEnabled && <Analytics />}
-        <Toaster richColors position="bottom-right" />
+        <Toaster
+          position="bottom-right"
+          mobileOffset={{ bottom: 80, left: 16, right: 16 }}
+          icons={{
+            success: <Check className="h-4 w-4 text-[#3FC2B2]" strokeWidth={2} />,
+            error: <AlertTriangle className="h-4 w-4 text-[#EF6A5E]" strokeWidth={2} />,
+          }}
+          toastOptions={{
+            unstyled: true,
+            classNames: {
+              // Sillage: inverse background, no, 6px radius
+              toast:
+                'flex w-full sm:w-[340px] items-start gap-2.5 rounded-md bg-inverse text-inverse-foreground px-4 py-3.5 font-sans text-sm',
+              title: 'font-semibold',
+              description: 'opacity-80',
+              icon: 'mt-0.5',
+              actionButton:
+                'ml-auto shrink-0 rounded-md bg-warning px-3 py-1.5 text-xs font-semibold text-warning-foreground hover:bg-warning/90',
+              cancelButton: 'shrink-0 rounded-md px-3 py-1.5 text-xs font-medium text-inverse-foreground hover:bg-inverse-foreground/10',
+              closeButton: 'text-inverse-foreground',
+            },
+          }}
+        />
       </TooltipProvider>
     </QueryClientProvider>
   );

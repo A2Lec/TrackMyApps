@@ -45,7 +45,7 @@ import {
   X,
   Mail,
   ExternalLink,
-  Sparkles,
+  Lightbulb,
   Download,
   Check,
 } from 'lucide-react';
@@ -60,7 +60,8 @@ import {
   getGoogleCalendarUrl,
   getOutlookCalendarUrl,
 } from '@/lib/calendarExport';
-import { formatDateTime, cn, reminderTypeLabels, reminderTypeColors } from '@/lib/utils';
+import { formatDateTime, twoDigits, cn } from '@/lib/utils';
+import { ReminderTypeBadge } from '@/components/StatusBadge';
 import type { Reminder, ReminderType, Application } from '@/types';
 
 function getReminderCalendarEvent(reminder: Reminder) {
@@ -375,7 +376,7 @@ export function RemindersPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Rappels & Relances</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Rappels & Relances</h1>
             {overdueCount > 0 && (
               <Badge variant="destructive" className="text-xs px-2 py-0.5">
                 {overdueCount} en retard
@@ -398,7 +399,7 @@ export function RemindersPage() {
               className={cn(
                 'px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5',
                 viewMode === 'list'
-                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  ? 'bg-background text-foreground font-semibold'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -413,7 +414,7 @@ export function RemindersPage() {
               className={cn(
                 'px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5',
                 viewMode === 'calendar'
-                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  ? 'bg-background text-foreground font-semibold'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -439,11 +440,11 @@ export function RemindersPage() {
             onClick={() => setShowTemplatesDialog(true)}
             className="h-9 px-3 text-xs font-semibold"
           >
-            <Sparkles className="mr-1.5 h-3.5 w-3.5 text-primary" />
+            <Mail className="mr-1.5 h-3.5 w-3.5 text-primary" />
             Modèles d'emails
           </Button>
 
-          <Button onClick={() => openCreateDialog()} className="h-9 px-4 text-xs font-semibold shadow-xs">
+          <Button onClick={() => openCreateDialog()} className="h-9 px-4 text-xs font-semibold">
             <Plus className="mr-1.5 h-4 w-4" />
             Nouveau rappel
           </Button>
@@ -456,14 +457,14 @@ export function RemindersPage() {
         <>
           {/* Smart Follow-Up Banner (TICK-202) */}
           {suggestedFollowUps.length > 0 && (
-            <Card className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-amber-500/20 shadow-xs">
+            <Card className="bg-warning-soft border-warning/60">
               <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-start sm:items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="h-4 w-4" />
+                  <div className="h-9 w-9 rounded-lg bg-warning-soft text-warning-strong flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-foreground">
+                    <h4 className="text-xs sm:text-sm font-semibold text-foreground">
                       {suggestedFollowUps.length} relance{suggestedFollowUps.length > 1 ? 's' : ''} suggérée{suggestedFollowUps.length > 1 ? 's' : ''} cette semaine
                     </h4>
                     <p className="text-xs text-muted-foreground">
@@ -477,14 +478,14 @@ export function RemindersPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowTemplatesDialog(true)}
-                    className="h-8 text-xs font-medium border-amber-500/30 text-amber-800 dark:text-amber-300"
+                    className="h-8 text-xs font-medium border-warning/40 text-warning-strong "
                   >
                     Voir les modèles d'email
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => handleQuickFollowUp(suggestedFollowUps[0])}
-                    className="h-8 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
+                    className="h-8 text-xs font-semibold bg-warning hover:bg-warning text-white"
                   >
                     Planifier pour {suggestedFollowUps[0].companyName} (J+7)
                   </Button>
@@ -498,38 +499,38 @@ export function RemindersPage() {
         <div className="p-3.5 rounded-lg border border-border/70 bg-card/50 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Total rappels</span>
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="w-2 h-2 rounded-[2px] bg-status-sent" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold tracking-tight mt-1">{totalCount}</p>
+          <p className="font-mono text-xl sm:text-2xl font-semibold tracking-tight mt-1">{twoDigits(totalCount)}</p>
         </div>
 
         <div className="p-3.5 rounded-lg border border-border/70 bg-card/50 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>En retard</span>
-            <span className="w-2 h-2 rounded-full bg-red-500" />
+            <span className="w-2 h-2 rounded-[2px] bg-destructive" />
           </div>
-          <p className={cn('text-xl sm:text-2xl font-bold tracking-tight mt-1', overdueCount > 0 && 'text-red-600 dark:text-red-400')}>
-            {overdueCount}
+          <p className={cn('font-mono text-xl sm:text-2xl font-semibold tracking-tight mt-1', overdueCount > 0 && 'text-destructive ')}>
+            {twoDigits(overdueCount)}
           </p>
         </div>
 
         <div className="p-3.5 rounded-lg border border-border/70 bg-card/50 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Aujourd'hui</span>
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className="w-2 h-2 rounded-[2px] bg-warning" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold tracking-tight mt-1 text-amber-600 dark:text-amber-400">
-            {todayCount}
+          <p className="font-mono text-xl sm:text-2xl font-semibold tracking-tight mt-1 text-warning-strong ">
+            {twoDigits(todayCount)}
           </p>
         </div>
 
         <div className="p-3.5 rounded-lg border border-border/70 bg-card/50 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Terminés</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="w-2 h-2 rounded-[2px] bg-success" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold tracking-tight mt-1 text-emerald-600 dark:text-emerald-400">
-            {completedCount}
+          <p className="font-mono text-xl sm:text-2xl font-semibold tracking-tight mt-1 text-success ">
+            {twoDigits(completedCount)}
           </p>
         </div>
       </div>
@@ -601,7 +602,7 @@ export function RemindersPage() {
               className={cn(
                 'px-2.5 py-1 rounded-md transition-all font-medium',
                 typeFilter === 'all'
-                  ? 'bg-background text-foreground shadow-xs'
+                  ? 'bg-background text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -612,7 +613,7 @@ export function RemindersPage() {
               className={cn(
                 'px-2.5 py-1 rounded-md transition-all font-medium',
                 typeFilter === 'FOLLOW_UP'
-                  ? 'bg-background text-foreground shadow-xs'
+                  ? 'bg-background text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -623,7 +624,7 @@ export function RemindersPage() {
               className={cn(
                 'px-2.5 py-1 rounded-md transition-all font-medium',
                 typeFilter === 'INTERVIEW'
-                  ? 'bg-background text-foreground shadow-xs'
+                  ? 'bg-background text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -665,7 +666,7 @@ export function RemindersPage() {
         {/* Overdue Section */}
         {overdueReminders.length > 0 && (
           <div className="space-y-2.5">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-destructive ">
               <AlertCircle className="h-4 w-4" />
               <span>En retard ({overdueReminders.length})</span>
             </div>
@@ -694,7 +695,7 @@ export function RemindersPage() {
         {/* Today Section */}
         {todayReminders.length > 0 && (
           <div className="space-y-2.5">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-warning-strong ">
               <Clock className="h-4 w-4" />
               <span>Aujourd'hui ({todayReminders.length})</span>
             </div>
@@ -751,7 +752,7 @@ export function RemindersPage() {
         {completedReminders.length > 0 && (
           <div className="space-y-2.5 pt-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               <span>Terminés ({completedReminders.length})</span>
             </div>
             <div className="space-y-2">
@@ -959,8 +960,8 @@ function ReminderItemCard({
         reminder.isCompleted
           ? 'bg-muted/30 border-border/40 opacity-70'
           : isOverdue
-            ? 'border-red-500/30 bg-red-500/5 hover:border-red-500/50'
-            : 'border-border/70 hover:border-border hover:shadow-xs bg-card',
+            ? 'border-destructive/40 bg-destructive/10 hover:border-destructive'
+            : 'border-border/70 hover:border-border bg-card',
         isSelected && 'ring-2 ring-primary border-primary bg-primary/5'
       )}
     >
@@ -974,7 +975,7 @@ function ReminderItemCard({
             title={reminder.isCompleted ? 'Marquer comme non fait' : 'Marquer comme fait'}
           >
             {reminder.isCompleted ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              <CheckCircle2 className="h-5 w-5 text-success" />
             ) : (
               <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
             )}
@@ -993,18 +994,13 @@ function ReminderItemCard({
               </h3>
 
               {/* Type Badge */}
-              <Badge
-                variant="outline"
-                className={cn('text-[10px] py-0 px-1.5 font-normal', reminderTypeColors[reminder.type as ReminderType])}
-              >
-                {reminderTypeLabels[reminder.type as ReminderType]}
-              </Badge>
+              <ReminderTypeBadge type={reminder.type as ReminderType} />
 
               {/* Email Sent indicator */}
               {reminder.emailSent && (
                 <Badge
                   variant="secondary"
-                  className="text-[10px] py-0 px-1.5 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200/50 flex items-center gap-1"
+                  className="text-[11px] py-0 px-1.5 bg-card text-muted-foreground border-border flex items-center gap-1"
                 >
                   <Mail className="h-2.5 w-2.5" />
                   Email envoyé
@@ -1022,17 +1018,17 @@ function ReminderItemCard({
               <span
                 className={cn(
                   'flex items-center gap-1',
-                  isOverdue && !reminder.isCompleted && 'text-red-600 dark:text-red-400 font-semibold'
+                  isOverdue && !reminder.isCompleted && 'text-destructive  font-semibold'
                 )}
               >
                 <Calendar className="h-3 w-3" />
-                {formatDateTime(reminder.dueDate)}
+                <span className="font-mono">{formatDateTime(reminder.dueDate)}</span>
               </span>
             </div>
 
             {reminder.application && (
               <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/40 text-xs">
-                <div className="h-6 w-6 rounded bg-primary/10 text-primary font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+                <div className="h-6 w-6 rounded bg-primary/10 text-primary font-semibold text-[10px] flex items-center justify-center flex-shrink-0">
                   {reminder.application.companyName.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1 truncate">
@@ -1089,7 +1085,7 @@ function ReminderItemCard({
                     window.open(getGoogleCalendarUrl(event), '_blank');
                   }}
                 >
-                  <Calendar className="mr-2 h-3.5 w-3.5 text-blue-500" />
+                  <Calendar className="mr-2 h-3.5 w-3.5 text-status-sent" />
                   Google Agenda
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -1098,7 +1094,7 @@ function ReminderItemCard({
                     window.open(getOutlookCalendarUrl(event), '_blank');
                   }}
                 >
-                  <Calendar className="mr-2 h-3.5 w-3.5 text-sky-600" />
+                  <Calendar className="mr-2 h-3.5 w-3.5 text-status-sent" />
                   Outlook
                 </DropdownMenuItem>
                 <DropdownMenuItem

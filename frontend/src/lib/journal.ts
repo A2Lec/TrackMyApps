@@ -24,23 +24,23 @@ export const EXCHANGE_TYPE_CONFIG: Record<
 > = {
   CALL: {
     label: 'Appel téléphonique',
-    badgeClass: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    badgeClass: 'bg-secondary text-status-sent border-border',
   },
   VISIO: {
     label: 'Entretien Visio',
-    badgeClass: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    badgeClass: 'bg-secondary text-status-interview border-border',
   },
   TECH: {
     label: 'Test technique',
-    badgeClass: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+    badgeClass: 'bg-success/10 text-success border-success/40',
   },
   PHYSICAL: {
     label: 'Rencontre physique',
-    badgeClass: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    badgeClass: 'bg-warning-soft text-warning-strong border-warning/40',
   },
   EMAIL: {
     label: 'Échange Email',
-    badgeClass: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
+    badgeClass: 'bg-secondary text-status-sent border-border',
   },
   OTHER: {
     label: 'Autre échange',
@@ -54,17 +54,17 @@ export const EXCHANGE_FEELING_CONFIG: Record<
 > = {
   POSITIVE: {
     label: 'Positif / Confiant',
-    badgeClass: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+    badgeClass: 'bg-success/10 text-success border-success/40',
     emoji: '🟢',
   },
   NEUTRAL: {
     label: 'Mitigé / En attente',
-    badgeClass: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    badgeClass: 'bg-warning-soft text-warning-strong border-warning/40',
     emoji: '🟡',
   },
   NEGATIVE: {
     label: 'Réservé / Peu convaincu',
-    badgeClass: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+    badgeClass: 'bg-destructive/10 text-destructive border-destructive/40',
     emoji: '🔴',
   },
 };

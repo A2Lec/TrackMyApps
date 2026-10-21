@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { useUIStore } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 describe('Component: Sidebar (Sprint 1 Navigation)', () => {
@@ -28,15 +29,17 @@ describe('Component: Sidebar (Sprint 1 Navigation)', () => {
 
   it('renders exactly the 5 primary navigation links', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <TooltipProvider>
-          <Sidebar />
-        </TooltipProvider>
-      </MemoryRouter>
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter initialEntries={['/']}>
+          <TooltipProvider>
+            <Sidebar />
+          </TooltipProvider>
+        </MemoryRouter>
+      </QueryClientProvider>
     );
 
     // Primary 5 navigation items
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Tableau de bord')).toBeInTheDocument();
     expect(screen.getByText('Candidatures')).toBeInTheDocument();
     expect(screen.getByText('Rappels')).toBeInTheDocument();
     expect(screen.getByText('Entraînement IA')).toBeInTheDocument();
@@ -50,11 +53,13 @@ describe('Component: Sidebar (Sprint 1 Navigation)', () => {
 
   it('renders user profile with quick access to settings in footer', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <TooltipProvider>
-          <Sidebar />
-        </TooltipProvider>
-      </MemoryRouter>
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter initialEntries={['/']}>
+          <TooltipProvider>
+            <Sidebar />
+          </TooltipProvider>
+        </MemoryRouter>
+      </QueryClientProvider>
     );
 
     expect(screen.getByText('Alex Dupont')).toBeInTheDocument();

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Mail, ExternalLink } from 'lucide-react';
-import { BrandLogo } from '@/components/BrandLogo';
+import { BrandLogo, BrandName } from '@/components/BrandLogo';
 import { openCookieSettings } from '@/lib/cookieConsent';
 
 export function Footer() {
@@ -15,7 +15,7 @@ export function Footer() {
           <div className="lg:col-span-4 space-y-3">
             <div className="flex items-center gap-2">
               <BrandLogo title="" className="h-6 w-6" />
-              <span className="font-semibold text-sm text-foreground tracking-tight">TrackMyApps</span>
+              <BrandName className="text-sm text-foreground" />
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted font-mono text-muted-foreground border border-border/60">
                 v1.2
               </span>
@@ -27,8 +27,8 @@ export function Footer() {
 
             {/* System Status & Compliance */}
             <div className="flex flex-wrap items-center gap-3 pt-1">
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success/10 border border-success/40 text-success text-[11px] font-medium">
+                <span className="w-1.5 h-1.5 rounded-[2px] bg-success animate-pulse" />
                 <span>Systèmes opérationnels</span>
               </div>
               <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">

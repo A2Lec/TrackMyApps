@@ -34,11 +34,11 @@ export function Layout() {
         className={cn(
           'pt-16 pb-16 lg:pb-0 min-h-screen transition-all duration-300 flex-1 overflow-x-hidden w-full min-w-0',
           'pl-0 lg:pl-20',
-          sidebarOpen && 'lg:pl-64'
+          sidebarOpen && 'lg:pl-[232px]'
         )}
       >
         <EmailVerificationBanner />
-        <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full min-w-0">
+        <div className="px-5 py-5 md:p-6 lg:px-8 lg:py-8 max-w-[1400px] mx-auto w-full min-w-0">
           <Suspense fallback={<RouteFallback />}>
             <Outlet />
           </Suspense>
@@ -48,7 +48,7 @@ export function Layout() {
         className={cn(
           'pb-16 lg:pb-0 transition-all duration-300',
           'pl-0 lg:pl-20',
-          sidebarOpen && 'lg:pl-64'
+          sidebarOpen && 'lg:pl-[232px]'
         )}
       >
         <Footer />

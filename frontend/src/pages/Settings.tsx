@@ -178,7 +178,7 @@ export function SettingsPage() {
     <div className="space-y-6 w-full min-w-0 overflow-x-hidden animate-in fade-in-50 duration-200">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Paramètres</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Paramètres</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Gérez votre identité, vos préférences de notification et la sécurité de votre compte
         </p>
@@ -212,7 +212,7 @@ export function SettingsPage() {
           </div>
 
           {/* Desktop vertical sidebar navigation */}
-          <Card className="hidden lg:block border border-border/70 shadow-xs">
+          <Card className="hidden lg:block border border-border/70">
             <CardContent className="p-3">
               <nav className="space-y-1">
                 {tabs.map((tab) => {
@@ -225,7 +225,7 @@ export function SettingsPage() {
                       className={cn(
                         'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-left transition-colors',
                         isActive
-                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                          ? 'bg-primary text-primary-foreground font-semibold'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                       )}
                     >
@@ -243,7 +243,7 @@ export function SettingsPage() {
         <div className="lg:col-span-9 space-y-6 w-full min-w-0">
           {/* 1. Profile Tab */}
           {activeTab === 'profile' && (
-            <Card className="border border-border/70 shadow-xs">
+            <Card className="border border-border/70">
               <CardHeader className="pb-4 border-b">
                 <div className="flex items-center justify-between">
                   <div>
@@ -253,7 +253,7 @@ export function SettingsPage() {
                     </CardDescription>
                   </div>
                   {/* Avatar Initials Badge */}
-                  <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-sm">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-semibold text-sm">
                     {initials}
                   </div>
                 </div>
@@ -336,7 +336,7 @@ export function SettingsPage() {
 
                 <div className="flex items-center justify-between pt-4 border-t">
                   {profileSuccess ? (
-                    <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 animate-in fade-in-50">
+                    <span className="text-xs text-success flex items-center gap-1.5 animate-in fade-in-50">
                       <CheckCircle2 className="h-4 w-4" /> Modifications enregistrées !
                     </span>
                   ) : (
@@ -360,7 +360,7 @@ export function SettingsPage() {
           {activeTab === 'account' && (
             <div className="space-y-6">
               {/* Password update */}
-              <Card className="border border-border/70 shadow-xs">
+              <Card className="border border-border/70">
                 <CardHeader className="pb-4 border-b">
                   <CardTitle className="text-base font-semibold">Mot de passe de connexion</CardTitle>
                   <CardDescription className="text-xs">
@@ -403,14 +403,14 @@ export function SettingsPage() {
                   {passwordData.newPassword &&
                     passwordData.confirmPassword &&
                     passwordData.newPassword !== passwordData.confirmPassword && (
-                      <p className="text-xs text-red-600 dark:text-red-400">
+                      <p className="text-xs text-destructive ">
                         Les mots de passe saisis ne correspondent pas.
                       </p>
                     )}
 
                   <div className="flex items-center justify-between pt-3">
                     {passwordSuccess && (
-                      <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="text-xs text-success flex items-center gap-1">
                         <CheckCircle2 className="h-4 w-4" /> Mot de passe mis à jour !
                       </span>
                     )}
@@ -432,7 +432,7 @@ export function SettingsPage() {
               </Card>
 
               {/* RGPD Export */}
-              <Card className="border border-border/70 shadow-xs">
+              <Card className="border border-border/70">
                 <CardHeader className="pb-3 border-b">
                   <CardTitle className="text-base font-semibold">Portabilité des données (RGPD)</CardTitle>
                   <CardDescription className="text-xs">
@@ -473,7 +473,7 @@ export function SettingsPage() {
               </Card>
 
               {/* Synchronisation Calendrier (TICK-403) */}
-              <Card className="border border-border/70 shadow-xs">
+              <Card className="border border-border/70">
                 <CardHeader className="pb-3 border-b">
                   <div className="flex items-center justify-between">
                     <div>
@@ -515,9 +515,9 @@ export function SettingsPage() {
               </Card>
 
               {/* Danger Zone */}
-              <Card className="border border-red-500/30 bg-red-500/5 shadow-xs">
+              <Card className="border border-destructive/40 bg-destructive/10">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
+                  <CardTitle className="text-base font-semibold text-destructive flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
                     Zone de danger
                   </CardTitle>
@@ -546,7 +546,7 @@ export function SettingsPage() {
 
           {/* 3. Notifications Tab */}
           {activeTab === 'notifications' && (
-            <Card className="border border-border/70 shadow-xs">
+            <Card className="border border-border/70">
               <CardHeader className="pb-4 border-b">
                 <CardTitle className="text-base font-semibold">Préférences de notification</CardTitle>
                 <CardDescription className="text-xs">
@@ -629,7 +629,7 @@ export function SettingsPage() {
                 </div>
 
                 {updateNotificationsMutation.isSuccess && (
-                  <Badge variant="outline" className="text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/30 text-xs">
+                  <Badge variant="outline" className="text-success bg-success/10 text-xs">
                     Préférences de notification mises à jour
                   </Badge>
                 )}
@@ -639,7 +639,7 @@ export function SettingsPage() {
 
           {/* 4. Appearance Tab */}
           {activeTab === 'appearance' && (
-            <Card className="border border-border/70 shadow-xs">
+            <Card className="border border-border/70">
               <CardHeader className="pb-4 border-b">
                 <CardTitle className="text-base font-semibold">Thème de l'interface</CardTitle>
                 <CardDescription className="text-xs">
@@ -683,7 +683,7 @@ export function SettingsPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg text-red-600 dark:text-red-400">
+            <DialogTitle className="text-lg text-destructive ">
               Supprimer mon compte définitivement
             </DialogTitle>
             <DialogDescription className="text-xs">

@@ -42,19 +42,17 @@ import {
   Bot,
   Bell,
   CheckCircle2,
-  Sparkles,
   MessageSquare,
+  Mail,
+  Mic,
 } from 'lucide-react';
 import {
   formatDate,
   statusLabels,
-  statusColors,
-  statusDotColors,
-  jobTypeLabels,
-  jobTypeColors,
   STATUS_ORDER,
   cn,
 } from '@/lib/utils';
+import { StatusDot, ContractTag } from '@/components/StatusBadge';
 import type { Application, ApplicationStatus, JobType } from '@/types';
 import { InterviewSimulation } from '@/components/InterviewSimulation';
 import { ApplicationJournal } from '@/components/ApplicationJournal';
@@ -262,7 +260,7 @@ export function ApplicationDetailPage() {
   if (!application) {
     return (
       <div className="text-center py-16 space-y-4">
-        <h2 className="text-2xl font-bold">Candidature introuvable</h2>
+        <h2 className="text-2xl font-semibold">Candidature introuvable</h2>
         <p className="text-muted-foreground text-sm">
           Cette candidature a peut-être été supprimée ou n'existe plus.
         </p>
@@ -289,23 +287,21 @@ export function ApplicationDetailPage() {
       </div>
 
       {/* Main Header Cockpit */}
-      <Card className="border-border/80 bg-card/90 backdrop-blur-md shadow-xs overflow-hidden">
+      <Card className="border-border/80 bg-card/90 backdrop-blur-md overflow-hidden">
         <CardContent className="p-4 sm:p-6 space-y-5">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             {/* Title & Info */}
             <div className="flex items-start gap-4">
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-primary/10 to-blue-500/10 border border-primary/20 flex items-center justify-center font-bold text-lg text-primary shadow-xs flex-shrink-0">
+              <div className="h-14 w-14 rounded-lg bg-primary-soft flex items-center justify-center font-mono font-semibold text-lg text-primary flex-shrink-0">
                 {application.companyName.slice(0, 2).toUpperCase()}
               </div>
 
               <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
                     {application.position}
                   </h1>
-                  <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-semibold', jobTypeColors[application.jobType])}>
-                    {jobTypeLabels[application.jobType]}
-                  </span>
+                  <ContractTag jobType={application.jobType} />
                 </div>
 
                 <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground flex-wrap pt-0.5">
@@ -361,7 +357,7 @@ export function ApplicationDetailPage() {
                     size="sm"
                     onClick={handleSave}
                     disabled={updateMutation.isPending}
-                    className="h-8 text-xs shadow-xs"
+                    className="h-8 text-xs"
                   >
                     <Save className="h-3.5 w-3.5 mr-1.5" />
                     Enregistrer
@@ -405,13 +401,13 @@ export function ApplicationDetailPage() {
                     onClick={() => updateStatusMutation.mutate(status)}
                     disabled={updateStatusMutation.isPending}
                     className={cn(
-                      'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap flex-shrink-0',
+                      'flex items-center gap-2 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0',
                       isActive
-                        ? cn(statusColors[status], 'ring-2 ring-primary/40 font-bold shadow-xs scale-102')
-                        : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+                        ? 'border-primary bg-primary-soft text-foreground font-semibold'
+                        : 'border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground'
                     )}
                   >
-                    <span className={cn('w-2 h-2 rounded-full', statusDotColors[status])} />
+                    <StatusDot status={status} />
                     <span>{statusLabels[status]}</span>
                   </button>
                 );
@@ -426,7 +422,7 @@ export function ApplicationDetailPage() {
         {/* Main Left Workspace (8 cols on desktop) */}
         <div className="lg:col-span-8 space-y-6">
           <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
-            <TabsList className="bg-muted/60 p-1 rounded-xl h-10 w-full sm:w-auto grid grid-cols-3 sm:inline-flex">
+            <TabsList className="bg-muted/60 p-1 rounded-lg h-10 w-full sm:w-auto grid grid-cols-3 sm:inline-flex">
               <TabsTrigger value="details" className="text-xs font-semibold gap-1.5">
                 <FileText className="h-3.5 w-3.5" />
                 <span>Détails & Offre</span>
@@ -443,9 +439,9 @@ export function ApplicationDetailPage() {
 
             {/* Tab 1: Details */}
             <TabsContent value="details" className="space-y-6 mt-4">
-              <Card className="border-border/80 shadow-xs">
+              <Card className="border-border/80">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <FileText className="h-4 w-4 text-primary" />
                     Informations du poste
                   </CardTitle>
@@ -537,7 +533,7 @@ export function ApplicationDetailPage() {
                   ) : (
                     <div className="space-y-6">
                       {/* Notes Section */}
-                      <div className="p-4 rounded-xl bg-muted/40 border border-border/70">
+                      <div className="p-4 rounded-lg bg-muted/40 border border-border/70">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
                             Notes personnelles & mémo
@@ -570,13 +566,13 @@ export function ApplicationDetailPage() {
                           Description de l'offre
                         </span>
                         {application.jobDescription ? (
-                          <div className="p-4 rounded-xl bg-card border border-border/80 max-h-96 overflow-y-auto">
+                          <div className="p-4 rounded-lg bg-card border border-border/80 max-h-96 overflow-y-auto">
                             <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
                               {application.jobDescription}
                             </p>
                           </div>
                         ) : (
-                          <div className="p-6 text-center border border-dashed border-border rounded-xl text-muted-foreground text-xs">
+                          <div className="p-6 text-center border border-dashed border-border rounded-lg text-muted-foreground text-xs">
                             Aucune description collée pour cette offre.
                           </div>
                         )}
@@ -617,9 +613,9 @@ export function ApplicationDetailPage() {
         {/* Side Panel Widgets (4 cols on desktop) */}
         <div className="lg:col-span-4 space-y-6">
           {/* Documents Widget */}
-          <Card className="border-border/80 shadow-xs">
+          <Card className="border-border/80">
             <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <FileText className="h-4 w-4 text-primary" />
                 Documents liés
               </CardTitle>
@@ -637,9 +633,9 @@ export function ApplicationDetailPage() {
               {application.cvUsed || application.lmUsed ? (
                 <div className="space-y-2">
                   {application.cvUsed && (
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 border border-border/60 text-xs">
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50 border border-border/60 text-xs">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <div className="h-7 w-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center flex-shrink-0 font-bold text-[10px]">
+                        <div className="h-7 w-7 rounded-lg bg-secondary text-status-sent flex items-center justify-center flex-shrink-0 font-semibold text-[10px]">
                           CV
                         </div>
                         <a
@@ -664,9 +660,9 @@ export function ApplicationDetailPage() {
                   )}
 
                   {application.lmUsed && (
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 border border-border/60 text-xs">
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50 border border-border/60 text-xs">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <div className="h-7 w-7 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center flex-shrink-0 font-bold text-[10px]">
+                        <div className="h-7 w-7 rounded-lg bg-secondary text-status-interview flex items-center justify-center flex-shrink-0 font-semibold text-[10px]">
                           LM
                         </div>
                         <a
@@ -693,7 +689,7 @@ export function ApplicationDetailPage() {
               ) : (
                 <div
                   onClick={() => setShowDocumentsDialog(true)}
-                  className="p-5 border border-dashed border-border rounded-xl text-center cursor-pointer hover:bg-muted/40 transition-colors"
+                  className="p-5 border border-dashed border-border rounded-lg text-center cursor-pointer hover:bg-muted/40 transition-colors"
                 >
                   <p className="text-xs text-muted-foreground font-medium">
                     Aucun document attaché.
@@ -707,9 +703,9 @@ export function ApplicationDetailPage() {
           </Card>
 
           {/* Reminders Widget */}
-          <Card className="border-border/80 shadow-xs">
+          <Card className="border-border/80">
             <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Bell className="h-4 w-4 text-primary" />
                 Rappels & Actions
               </CardTitle>
@@ -734,7 +730,7 @@ export function ApplicationDetailPage() {
                   {application.reminders.map((rem) => (
                     <div
                       key={rem.id}
-                      className="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-muted/40 border border-border/60 text-xs"
+                      className="flex items-start justify-between gap-2 p-2.5 rounded-lg bg-muted/40 border border-border/60 text-xs"
                     >
                       <div className="space-y-1 min-w-0 flex-1">
                         <p className={cn('font-semibold truncate', rem.isCompleted && 'line-through text-muted-foreground')}>
@@ -751,7 +747,7 @@ export function ApplicationDetailPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => completeReminderMutation.mutate(rem.id)}
-                          className="h-6 w-6 text-muted-foreground hover:text-emerald-600"
+                          className="h-6 w-6 text-muted-foreground hover:text-success"
                           title="Marquer comme fait"
                         >
                           <CheckCircle2 className="h-4 w-4" />
@@ -776,19 +772,19 @@ export function ApplicationDetailPage() {
                       onClick={() => setShowTemplatesDialog(true)}
                       className="text-xs h-7 text-primary hover:bg-primary/10 px-2"
                     >
-                      <Sparkles className="h-3 w-3 mr-1" />
+                      <Mail className="h-3 w-3 mr-1" />
                       Modèles d'emails
                     </Button>
                   </div>
                 </>
               ) : (
-                <div className="p-4 text-center text-xs text-muted-foreground border border-dashed border-border/70 rounded-xl space-y-2.5">
+                <div className="p-4 text-center text-xs text-muted-foreground border border-dashed border-border/70 rounded-lg space-y-2.5">
                   <p>Aucun rappel actif pour cette candidature.</p>
                   <div className="flex items-center justify-center gap-2 flex-wrap">
                     <Button
                       size="sm"
                       onClick={() => handleOpenCreateReminder(7, `Relancer ${application.companyName}`)}
-                      className="h-7 text-xs font-semibold shadow-xs"
+                      className="h-7 text-xs font-semibold"
                     >
                       <Plus className="h-3 w-3 mr-1" />
                       Ajouter un rappel
@@ -799,7 +795,7 @@ export function ApplicationDetailPage() {
                       onClick={() => setShowTemplatesDialog(true)}
                       className="h-7 text-xs"
                     >
-                      <Sparkles className="h-3 w-3 mr-1 text-primary" />
+                      <Mail className="h-3 w-3 mr-1 text-primary" />
                       Modèles d'emails
                     </Button>
                   </div>
@@ -809,10 +805,10 @@ export function ApplicationDetailPage() {
           </Card>
 
           {/* AI Prep Banner Card */}
-          <Card className="bg-gradient-to-br from-primary/10 via-blue-500/5 to-purple-500/10 border-primary/20 shadow-xs">
+          <Card className="bg-card">
             <CardContent className="p-4 space-y-3">
-              <div className="flex items-center gap-2 text-primary font-bold text-sm">
-                <Sparkles className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+                <Mic className="h-4 w-4" />
                 Entraînement IA
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -820,7 +816,7 @@ export function ApplicationDetailPage() {
               </p>
               <Button
                 size="sm"
-                className="w-full text-xs font-semibold shadow-xs"
+                className="w-full text-xs font-semibold"
                 onClick={() => setActiveTab('interview')}
               >
                 Lancer un entraînement
@@ -914,7 +910,7 @@ export function ApplicationDetailPage() {
       <Dialog open={showReminderDialog} onOpenChange={setShowReminderDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
+            <DialogTitle className="text-base font-semibold flex items-center gap-2">
               <Bell className="h-4 w-4 text-primary" />
               Nouveau rappel pour {application.companyName}
             </DialogTitle>
@@ -1078,15 +1074,15 @@ function ApplicationDetailSkeleton() {
   return (
     <div className="space-y-6">
       <Skeleton className="h-4 w-32" />
-      <Skeleton className="h-36 w-full rounded-2xl" />
+      <Skeleton className="h-36 w-full rounded-lg" />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 space-y-4">
-          <Skeleton className="h-10 w-64 rounded-xl" />
-          <Skeleton className="h-80 w-full rounded-2xl" />
+          <Skeleton className="h-10 w-64 rounded-lg" />
+          <Skeleton className="h-80 w-full rounded-lg" />
         </div>
         <div className="lg:col-span-4 space-y-4">
-          <Skeleton className="h-44 w-full rounded-2xl" />
-          <Skeleton className="h-44 w-full rounded-2xl" />
+          <Skeleton className="h-44 w-full rounded-lg" />
+          <Skeleton className="h-44 w-full rounded-lg" />
         </div>
       </div>
     </div>

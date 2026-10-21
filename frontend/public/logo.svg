@@ -1,10 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#066BFC"/>
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="30">
-    <rect x="113" y="161" width="285" height="233" rx="26" stroke="#FFF"/>
-    <path d="M126 170 342 170 224 268Z" fill="#FFF" stroke="#FFF"/>
-    <path d="M139 374 205 302M372 374 306 302" stroke="#FFF"/>
-    <path d="M211 237 254 283 424 118" stroke="#066BFC" stroke-width="58"/>
-    <path d="M211 237 254 283 424 118" stroke="#10B9AB"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><title>TrackMyApps</title><rect width="64" height="64" rx="14" fill="#0F6E66"/><g fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="22" width="38" height="28" rx="4" stroke="#FFFFFF" stroke-width="3.5"/><path d="M11.5 24 L29 37 L46.5 24" stroke="#FFFFFF" stroke-width="3.5"/><path d="M37 25 L43 31 L55 14" stroke="#0F6E66" stroke-width="10"/><path d="M37 25 L43 31 L55 14" stroke="#F5A524" stroke-width="4.5"/></g></svg>

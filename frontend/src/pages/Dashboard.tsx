@@ -26,9 +26,10 @@ import {
   CheckCircle2,
   ChevronRight,
   Briefcase,
-  Sparkles,
+  Lightbulb,
   ExternalLink,
   Download,
+  Mic,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -44,11 +45,11 @@ import {
 } from '@/lib/calendarExport';
 import {
   formatDate,
-  statusLabels,
-  statusColors,
   jobTypeLabels,
   cn,
+  twoDigits,
 } from '@/lib/utils';
+import { StatusBadge } from '@/components/StatusBadge';
 import { ApplicationForm } from '@/components/ApplicationForm';
 
 export function DashboardPage() {
@@ -216,10 +217,10 @@ export function DashboardPage() {
             variant="outline"
             size="sm"
             asChild
-            className="w-full sm:w-auto h-9 font-medium border-primary/30 text-primary hover:bg-primary/5 shadow-xs"
+            className="w-full sm:w-auto h-9 font-medium border-primary/30 text-primary hover:bg-primary/5"
           >
             <Link to="/interview-prep?tab=simulation">
-              <Sparkles className="mr-1.5 h-4 w-4 text-primary" />
+              <Mic className="mr-1.5 h-4 w-4 text-primary" />
               Simulateur IA
             </Link>
           </Button>
@@ -229,7 +230,7 @@ export function DashboardPage() {
               onClick={() => setShowCreateDialog(true)}
               disabled={!isEmailVerified}
               size="sm"
-              className="w-full sm:w-auto h-9 font-medium shadow-xs"
+              className="w-full sm:w-auto h-9 font-medium"
             >
               <Plus className="mr-1.5 h-4 w-4" />
               Nouvelle candidature
@@ -239,7 +240,7 @@ export function DashboardPage() {
       </div>
 
       {/* 2. Bandeau des 4 métriques opérationnelles du plan d'action */}
-      <div className="rounded-xl border border-border bg-card shadow-xs overflow-hidden w-full min-w-0 animate-in fade-in-50 slide-in-from-bottom-2 duration-500 fill-mode-both">
+      <div className="rounded-lg border border-border bg-card overflow-hidden w-full min-w-0 animate-in fade-in-50 slide-in-from-bottom-2 duration-500 fill-mode-both">
         <div className="grid grid-cols-2 lg:grid-cols-4 divide-y divide-border/60 sm:divide-y-0 sm:divide-x w-full">
           {/* Compteur 1 : Candidatures actives */}
           <Link
@@ -250,20 +251,23 @@ export function DashboardPage() {
               <span className="text-[11px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
                 Candidatures actives
               </span>
-              <span className="h-2 w-2 rounded-full bg-blue-500/80 flex-shrink-0 group-hover:scale-110 transition-transform" />
+              <span className="h-2 w-2 rounded-[2px] bg-status-sent flex-shrink-0 group-hover:scale-110 transition-transform" />
             </div>
-            <div className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-              {activeApplicationsCount}
+            <div className="font-mono text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              {twoDigits(activeApplicationsCount)}
             </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
-              <span className="text-blue-600 dark:text-blue-400 font-medium">{sentThisMonth}</span> envoyée(s) ce mois
+              <span className="text-status-sent font-medium">{sentThisMonth}</span> envoyée(s) ce mois
             </p>
           </Link>
 
           {/* Compteur 2 : Relances du jour */}
           <Link
             to="/reminders"
-            className="p-3.5 sm:p-5 hover:bg-muted/40 transition-colors group relative overflow-hidden"
+            className={cn(
+              'p-3.5 sm:p-5 transition-colors group relative overflow-hidden',
+              dueFollowUpsCount > 0 ? 'bg-warning-soft hover:bg-warning-soft/80' : 'hover:bg-muted/40'
+            )}
           >
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[11px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
@@ -271,22 +275,22 @@ export function DashboardPage() {
               </span>
               <span
                 className={cn(
-                  'h-2 w-2 rounded-full flex-shrink-0 group-hover:scale-110 transition-transform',
-                  dueFollowUpsCount > 0 ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500/80'
+                  'h-2 w-2 rounded-[2px] flex-shrink-0',
+                  dueFollowUpsCount > 0 ? 'bg-warning' : 'bg-success'
                 )}
               />
             </div>
             <div
               className={cn(
-                'text-2xl sm:text-3xl font-semibold tracking-tight',
-                dueFollowUpsCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'
+                'font-mono text-2xl sm:text-3xl font-semibold tracking-tight',
+                dueFollowUpsCount > 0 ? 'text-warning-strong ' : 'text-foreground'
               )}
             >
-              {dueFollowUpsCount}
+              {twoDigits(dueFollowUpsCount)}
             </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
               {dueFollowUpsCount > 0 ? (
-                <span className="text-amber-600 dark:text-amber-400 font-medium">À traiter aujourd'hui</span>
+                <span className="text-warning-strong font-medium">À traiter aujourd'hui</span>
               ) : (
                 'Toutes vos relances sont à jour'
               )}
@@ -302,14 +306,14 @@ export function DashboardPage() {
               <span className="text-[11px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
                 Prochain entretien
               </span>
-              <span className="h-2 w-2 rounded-full bg-purple-500/80 flex-shrink-0 group-hover:scale-110 transition-transform" />
+              <span className="h-2 w-2 rounded-[2px] bg-status-interview flex-shrink-0 group-hover:scale-110 transition-transform" />
             </div>
             <div className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground truncate">
               {daysUntilNextInterview || (nextInterview?.interviewDate ? formatDate(nextInterview.interviewDate, 'short') : scheduledInterviews > 0 ? `${scheduledInterviews} prévu(s)` : '0')}
             </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
               {nextInterview?.interviewDate ? (
-                <span className="text-purple-600 dark:text-purple-400 font-medium">
+                <span className="text-status-interview font-medium">
                   {nextInterview.companyName} ({formatDate(nextInterview.interviewDate, 'short')})
                 </span>
               ) : (
@@ -327,10 +331,10 @@ export function DashboardPage() {
               <span className="text-[11px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
                 Offres & Réussites
               </span>
-              <span className="h-2 w-2 rounded-full bg-emerald-500/80 flex-shrink-0 group-hover:scale-110 transition-transform" />
+              <span className="h-2 w-2 rounded-[2px] bg-success flex-shrink-0 group-hover:scale-110 transition-transform" />
             </div>
-            <div className="text-2xl sm:text-3xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
-              {acceptedCount}
+            <div className="font-mono text-2xl sm:text-3xl font-semibold tracking-tight text-success ">
+              {twoDigits(acceptedCount)}
             </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
               {byStatus['AWAITING_RESPONSE'] || 0} en attente de décision
@@ -343,7 +347,7 @@ export function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-12 items-start w-full min-w-0">
         {/* Colonne Gauche : Échéances & Priorités (5 cols sur desktop) */}
         <div className="lg:col-span-5 space-y-4 w-full min-w-0 animate-in fade-in-50 slide-in-from-bottom-2 duration-500 delay-100 fill-mode-both">
-          <Card className="border-border/80 shadow-xs w-full min-w-0 overflow-hidden">
+          <Card className="border-border/80 w-full min-w-0 overflow-hidden">
             <CardHeader className="p-4 sm:p-5 border-b border-border/40 w-full min-w-0">
               <div className="flex items-center justify-between gap-2 w-full min-w-0">
                 <div className="min-w-0 flex-1">
@@ -355,7 +359,7 @@ export function DashboardPage() {
                 <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
                   {suggestedFollowUps.length > 0 && (
                     <Badge variant="outline" className="text-[11px] font-semibold bg-primary/10 text-primary border-primary/20">
-                      <Sparkles className="h-3 w-3 mr-1" />
+                      <Lightbulb className="h-3 w-3 mr-1" />
                       {suggestedFollowUps.length} relance{suggestedFollowUps.length > 1 ? 's' : ''} suggérée{suggestedFollowUps.length > 1 ? 's' : ''}
                     </Badge>
                   )}
@@ -371,10 +375,10 @@ export function DashboardPage() {
               {/* Relances recommandées à J+7 */}
               {suggestedFollowUps.length > 0 && (
                 <div className="pb-4 w-full min-w-0">
-                  <div className="p-3 rounded-xl bg-gradient-to-r from-primary/10 via-blue-500/5 to-transparent border border-primary/25 flex items-center justify-between gap-3">
+                  <div className="p-3 rounded-lg bg-warning-soft border border-warning/60 flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1 space-y-0.5">
                       <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                        <Lightbulb className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                         <span>
                           {suggestedFollowUps.length} relance{suggestedFollowUps.length > 1 ? 's' : ''} suggérée{suggestedFollowUps.length > 1 ? 's' : ''} cette semaine
                         </span>
@@ -383,7 +387,7 @@ export function DashboardPage() {
                         Candidature{suggestedFollowUps.length > 1 ? 's' : ''} sans réponse depuis plus de 5 jours.
                       </p>
                     </div>
-                    <Button size="sm" asChild className="h-7 text-xs font-semibold px-2.5 shadow-xs flex-shrink-0">
+                    <Button variant="attention" size="sm" asChild className="h-7 text-xs font-semibold px-2.5 flex-shrink-0">
                       <Link to="/reminders">Relancer</Link>
                     </Button>
                   </div>
@@ -391,10 +395,10 @@ export function DashboardPage() {
               )}
               {/* Prochain entretien avec liseré violet subtil */}
               {nextInterview && (
-                <div className="pb-4 space-y-2 w-full min-w-0 border-l-2 border-l-purple-500/70 pl-3 -ml-1">
-                  <div className="flex flex-wrap items-center justify-between gap-1 text-xs font-medium text-purple-700 dark:text-purple-400 w-full min-w-0">
+                <div className="pb-4 space-y-2 w-full min-w-0">
+                  <div className="flex flex-wrap items-center justify-between gap-1 text-xs font-medium text-status-interview w-full min-w-0">
                     <span className="inline-flex items-center gap-1.5 flex-shrink-0">
-                      <Calendar className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                      <Calendar className="h-3.5 w-3.5 text-status-interview " />
                       Entretien imminent • {daysUntilNextInterview}
                     </span>
                     <span className="text-muted-foreground font-normal text-[11px] truncate">
@@ -406,15 +410,15 @@ export function DashboardPage() {
 
                   <div className="text-sm font-semibold text-foreground truncate w-full">
                     {nextInterview.position} chez{' '}
-                    <span className="text-primary font-bold">{nextInterview.companyName}</span>
+                    <span className="text-primary font-semibold">{nextInterview.companyName}</span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1 text-xs w-full min-w-0">
                     <Link
                       to={`/interview-prep?tab=simulation`}
-                      className="text-purple-600 dark:text-purple-400 hover:underline font-medium inline-flex items-center gap-1 truncate"
+                      className="text-status-interview hover:underline font-medium inline-flex items-center gap-1 truncate"
                     >
-                      <Sparkles className="h-3 w-3 flex-shrink-0" />
+                      <Mic className="h-3 w-3 flex-shrink-0" />
                       <span>Simuler cet entretien</span>
                     </Link>
                     <span className="text-muted-foreground/60 hidden sm:inline">•</span>
@@ -443,7 +447,7 @@ export function DashboardPage() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 cursor-pointer"
                           >
-                            <ExternalLink className="h-3.5 w-3.5 text-blue-500" />
+                            <ExternalLink className="h-3.5 w-3.5 text-status-sent" />
                             <span>Google Agenda</span>
                           </a>
                         </DropdownMenuItem>
@@ -459,7 +463,7 @@ export function DashboardPage() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 cursor-pointer"
                           >
-                            <ExternalLink className="h-3.5 w-3.5 text-blue-600" />
+                            <ExternalLink className="h-3.5 w-3.5 text-status-sent" />
                             <span>Outlook / Office 365</span>
                           </a>
                         </DropdownMenuItem>
@@ -491,10 +495,10 @@ export function DashboardPage() {
                     <div key={reminder.id} className="space-y-1 w-full min-w-0">
                       <div className="flex items-center justify-between gap-2 text-xs w-full min-w-0">
                         <span className="font-medium text-foreground flex items-center gap-1.5 min-w-0 truncate">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                          <span className="h-1.5 w-1.5 rounded-[2px] bg-warning flex-shrink-0" />
                           <span className="truncate">{reminder.title}</span>
                         </span>
-                        <span className="text-muted-foreground text-[11px] flex-shrink-0">
+                        <span className="text-muted-foreground font-mono text-[11px] flex-shrink-0">
                           {formatDate(reminder.dueDate, 'short')}
                         </span>
                       </div>
@@ -520,7 +524,7 @@ export function DashboardPage() {
               {/* État apaisé si rien à signaler */}
               {!hasUrgentItems && (
                 <div className="py-8 text-center space-y-2 w-full min-w-0">
-                  <div className="h-9 w-9 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto text-emerald-600">
+                  <div className="h-9 w-9 rounded-full bg-success/10 flex items-center justify-center mx-auto text-success">
                     <CheckCircle2 className="h-5 w-5" />
                   </div>
                   <p className="text-sm font-medium text-foreground">Tout est sous contrôle !</p>
@@ -535,7 +539,7 @@ export function DashboardPage() {
 
         {/* Colonne Droite : Candidatures récentes (7 cols sur desktop, zéro overflow sur mobile) */}
         <div className="lg:col-span-7 space-y-4 w-full min-w-0 animate-in fade-in-50 slide-in-from-bottom-2 duration-500 delay-150 fill-mode-both">
-          <Card className="border-border/80 shadow-xs w-full min-w-0 overflow-hidden">
+          <Card className="border-border/80 w-full min-w-0 overflow-hidden">
             <CardHeader className="p-4 sm:p-5 border-b border-border/40 w-full min-w-0">
               <div className="flex items-center justify-between gap-2 w-full min-w-0">
                 <div className="min-w-0 flex-1">
@@ -564,7 +568,7 @@ export function DashboardPage() {
                     >
                       {/* Monogramme discret et texte avec flex-1 et min-w-0 */}
                       <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
-                        <div className="h-8 w-8 rounded-lg bg-muted/80 border border-border/60 flex items-center justify-center font-bold text-xs text-foreground/80 flex-shrink-0 group-hover:border-primary/40 group-hover:text-primary transition-colors">
+                        <div className="h-8 w-8 rounded-lg bg-muted/80 border border-border/60 flex items-center justify-center font-semibold text-xs text-foreground/80 flex-shrink-0 group-hover:border-primary/40 group-hover:text-primary transition-colors">
                           {app.companyName.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -585,15 +589,7 @@ export function DashboardPage() {
 
                       {/* Badge et chevron compacts flex-shrink-0 */}
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge
-                          variant="secondary"
-                          className={cn(
-                            'text-[10px] sm:text-[11px] font-medium border-0 px-2 py-0.5 whitespace-nowrap',
-                            statusColors[app.status]
-                          )}
-                        >
-                          {statusLabels[app.status]}
-                        </Badge>
+                        <StatusBadge status={app.status} className="text-xs sm:text-sm" />
                         <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-foreground transition-colors flex-shrink-0" />
                       </div>
                     </Link>

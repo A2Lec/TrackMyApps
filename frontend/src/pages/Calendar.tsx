@@ -17,7 +17,8 @@ import {
   Clock,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { formatDate, statusLabels, statusColors, cn } from '@/lib/utils';
+import { formatDate, cn } from '@/lib/utils';
+import { StatusBadge } from '@/components/StatusBadge';
 import type { Reminder, Application, ApplicationStatus } from '@/types';
 
 const DAYS_HEADER = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -144,7 +145,7 @@ export function CalendarPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Calendrier</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Calendrier</h1>
             {totalEventsToday > 0 && (
               <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
                 {totalEventsToday} aujourd'hui
@@ -169,7 +170,7 @@ export function CalendarPage() {
               className={cn(
                 'px-3 py-1.5 rounded-md font-medium transition-all',
                 view === 'month'
-                  ? 'bg-background text-foreground shadow-sm'
+                  ? 'bg-background text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -180,7 +181,7 @@ export function CalendarPage() {
               className={cn(
                 'px-3 py-1.5 rounded-md font-medium transition-all',
                 view === 'week'
-                  ? 'bg-background text-foreground shadow-sm'
+                  ? 'bg-background text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -192,7 +193,7 @@ export function CalendarPage() {
 
       {/* Main Grid: Calendar (3 cols) + Event Drawer/Preview (1 col) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full min-w-0">
-        <Card className="lg:col-span-8 border border-border/70 shadow-sm w-full min-w-0 overflow-hidden">
+        <Card className="lg:col-span-8 border border-border/70 w-full min-w-0 overflow-hidden">
           <CardHeader className="flex-row items-center justify-between pb-4 border-b">
             <div className="flex items-center gap-3">
               <Button
@@ -223,10 +224,10 @@ export function CalendarPage() {
             {/* Filter pills */}
             <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-blue-500" /> Candidatures
+                <span className="w-2 h-2 rounded-[2px] bg-status-sent" /> Candidatures
               </span>
               <span className="flex items-center gap-1 ml-2">
-                <span className="w-2 h-2 rounded-full bg-amber-500" /> Rappels
+                <span className="w-2 h-2 rounded-[2px] bg-warning" /> Rappels
               </span>
             </div>
           </CardHeader>
@@ -276,8 +277,8 @@ export function CalendarPage() {
                         <span
                           className={cn(
                             'text-xs sm:text-sm font-medium w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full',
-                            isCurrentDay && 'bg-primary text-primary-foreground font-bold shadow-xs',
-                            isSelected && !isCurrentDay && 'text-primary font-bold'
+                            isCurrentDay && 'bg-primary text-primary-foreground font-semibold',
+                            isSelected && !isCurrentDay && 'text-primary font-semibold'
                           )}
                         >
                           {day}
@@ -288,10 +289,10 @@ export function CalendarPage() {
                       {(hasApps || hasReminders) && (
                         <div className="flex items-center gap-1 mt-auto pt-1">
                           {hasApps && (
-                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-[2px] bg-status-sent flex-shrink-0" />
                           )}
                           {hasReminders && (
-                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 flex-shrink-0" />
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-[2px] bg-warning flex-shrink-0" />
                           )}
                           <span className="text-[10px] text-muted-foreground hidden sm:inline font-mono">
                             {events.applications.length + events.reminders.length}
@@ -326,7 +327,7 @@ export function CalendarPage() {
                       <div className="flex flex-col items-center sm:items-start">
                         <span
                           className={cn(
-                            'text-xs sm:text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full mb-1',
+                            'text-xs sm:text-sm font-semibold w-6 h-6 flex items-center justify-center rounded-full mb-1',
                             isCurrentDay ? 'bg-primary text-primary-foreground' : 'text-foreground'
                           )}
                         >
@@ -338,7 +339,7 @@ export function CalendarPage() {
                         {events.applications.slice(0, 2).map((app) => (
                           <div
                             key={app.id}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-700 dark:text-blue-300 truncate"
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-status-sent truncate"
                           >
                             {app.companyName}
                           </div>
@@ -346,7 +347,7 @@ export function CalendarPage() {
                         {events.reminders.slice(0, 2).map((rem) => (
                           <div
                             key={rem.id}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 truncate"
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-warning-soft text-warning-strong truncate"
                           >
                             {rem.title}
                           </div>
@@ -366,17 +367,17 @@ export function CalendarPage() {
             {/* Mobile Legend */}
             <div className="flex sm:hidden items-center justify-center gap-4 mt-4 pt-3 border-t text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-blue-500" /> Candidatures
+                <span className="w-2 h-2 rounded-[2px] bg-status-sent" /> Candidatures
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-500" /> Rappels
+                <span className="w-2 h-2 rounded-[2px] bg-warning" /> Rappels
               </span>
             </div>
           </CardContent>
         </Card>
 
         {/* Selected Date Agenda / Detail Sidebar */}
-        <Card className="lg:col-span-4 border border-border/70 shadow-sm w-full min-w-0 flex flex-col">
+        <Card className="lg:col-span-4 border border-border/70 w-full min-w-0 flex flex-col">
           <CardHeader className="pb-3 border-b">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -409,7 +410,7 @@ export function CalendarPage() {
                 className={cn(
                   'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
                   filterType === 'applications'
-                    ? 'bg-blue-600 text-white border-blue-600'
+                    ? 'bg-status-sent text-white border-status-sent'
                     : 'bg-muted/40 text-muted-foreground border-border hover:bg-muted'
                 )}
               >
@@ -420,7 +421,7 @@ export function CalendarPage() {
                 className={cn(
                   'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
                   filterType === 'reminders'
-                    ? 'bg-amber-600 text-white border-amber-600'
+                    ? 'bg-warning text-white border-warning'
                     : 'bg-muted/40 text-muted-foreground border-border hover:bg-muted'
                 )}
               >
@@ -444,7 +445,7 @@ export function CalendarPage() {
                 {filteredApps.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                      <Briefcase className="h-3.5 w-3.5 text-blue-500" />
+                      <Briefcase className="h-3.5 w-3.5 text-status-sent" />
                       Candidatures ({filteredApps.length})
                     </h3>
                     <div className="space-y-2">
@@ -452,24 +453,19 @@ export function CalendarPage() {
                         <Link
                           key={app.id}
                           to={`/applications/${app.id}`}
-                          className="group block p-3 rounded-lg border border-border/60 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all"
+                          className="group block p-3 rounded-lg border border-border/60 hover:border-status-sent hover:bg-secondary transition-all"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold truncate group-hover:text-blue-600 transition-colors">
+                              <p className="text-sm font-semibold truncate group-hover:text-status-sent transition-colors">
                                 {app.position}
                               </p>
                               <p className="text-xs text-muted-foreground truncate">{app.companyName}</p>
                             </div>
-                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-status-sent opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                           </div>
                           <div className="flex items-center gap-2 mt-2">
-                            <Badge
-                              variant="outline"
-                              className={cn('text-[10px] py-0 px-1.5', statusColors[app.status as ApplicationStatus])}
-                            >
-                              {statusLabels[app.status as ApplicationStatus]}
-                            </Badge>
+                            <StatusBadge status={app.status as ApplicationStatus} className="text-xs" />
                             {app.location && (
                               <span className="text-[11px] text-muted-foreground truncate">
                                 {app.location}
@@ -486,7 +482,7 @@ export function CalendarPage() {
                 {filteredReminders.length > 0 && (
                   <div className="space-y-2 pt-2">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                      <Bell className="h-3.5 w-3.5 text-amber-500" />
+                      <Bell className="h-3.5 w-3.5 text-warning-strong" />
                       Rappels ({filteredReminders.length})
                     </h3>
                     <div className="space-y-2">
@@ -497,7 +493,7 @@ export function CalendarPage() {
                             'p-3 rounded-lg border transition-all flex items-start gap-2.5',
                             reminder.isCompleted
                               ? 'bg-muted/40 border-border/40 opacity-70'
-                              : 'border-border/60 bg-card hover:border-amber-500/40'
+                              : 'border-border/60 bg-card hover:border-warning'
                           )}
                         >
                           <button
@@ -511,7 +507,7 @@ export function CalendarPage() {
                             title={reminder.isCompleted ? 'Marquer comme non fait' : 'Marquer comme fait'}
                           >
                             {reminder.isCompleted ? (
-                              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                              <CheckCircle2 className="h-4 w-4 text-success" />
                             ) : (
                               <Circle className="h-4 w-4" />
                             )}

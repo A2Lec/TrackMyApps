@@ -14,6 +14,14 @@ export default {
   		}
   	},
   	extend: {
+  		fontFamily: {
+  			sans: ['"Instrument Sans Variable"', '"Instrument Sans"', 'system-ui', '-apple-system', '"Segoe UI"', 'sans-serif'],
+  			mono: ['"JetBrains Mono Variable"', '"JetBrains Mono"', 'ui-monospace', '"SF Mono"', 'Menlo', 'monospace']
+  		},
+  		boxShadow: {
+  			popover: 'var(--shadow-popover)',
+  			drag: 'var(--shadow-drag)'
+  		},
   		colors: {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
@@ -54,15 +62,26 @@ export default {
   			},
   			warning: {
   				DEFAULT: 'hsl(var(--warning))',
-  				foreground: 'hsl(var(--warning-foreground))'
+  				foreground: 'hsl(var(--warning-foreground))',
+  				soft: 'hsl(var(--warning-soft))',
+  				strong: 'hsl(var(--warning-strong))'
   			},
-  			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
-  			}
+  			'primary-soft': 'hsl(var(--primary-soft))',
+  			'surface-sunken': 'hsl(var(--surface-sunken))',
+  			inverse: {
+  				DEFAULT: 'hsl(var(--inverse))',
+  				foreground: 'hsl(var(--inverse-foreground))'
+  			},
+  			status: {
+  				draft: 'var(--status-draft)',
+  				sent: 'var(--status-sent)',
+  				viewed: 'var(--status-viewed)',
+  				interview: 'var(--status-interview)',
+  				waiting: 'var(--status-waiting)',
+  				rejected: 'var(--status-rejected)',
+  				accepted: 'var(--status-accepted)',
+  				ghosted: 'var(--status-ghosted)'
+  			},
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

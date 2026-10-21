@@ -52,24 +52,22 @@ export function ResetPasswordPage() {
   const state = !token ? 'invalid' : resetMutation.isSuccess ? 'success' : 'form';
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-gradient-to-br from-slate-50 via-background to-blue-50/40 dark:from-neutral-950 dark:via-background dark:to-blue-950/20 relative overflow-hidden">
-      <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-background relative overflow-hidden">
 
-      <Card className="w-full max-w-md border-border/80 bg-card/95 backdrop-blur-md shadow-2xl shadow-primary/5 rounded-2xl relative z-10">
+      <Card className="w-full max-w-md border-0 bg-background sm:border sm:bg-card rounded-lg relative z-10">
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-3">
             {state === 'success' ? (
-              <CheckCircle className="h-12 w-12 text-green-500" />
+              <CheckCircle className="h-12 w-12 text-success" />
             ) : state === 'invalid' ? (
               <XCircle className="h-12 w-12 text-destructive" />
             ) : (
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/25">
+              <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
                 <KeyRound className="h-6 w-6 text-white" />
               </div>
             )}
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">
+          <CardTitle className="text-2xl font-semibold tracking-tight">
             {state === 'success' ? 'Mot de passe modifié' : 'Nouveau mot de passe'}
           </CardTitle>
           <CardDescription className="text-sm">
@@ -85,7 +83,7 @@ export function ResetPasswordPage() {
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium animate-in fade-in-50">
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium animate-in fade-in-50">
                   {error}
                   {error.includes('expiré') && (
                     <>
@@ -139,7 +137,7 @@ export function ResetPasswordPage() {
             <CardFooter className="flex flex-col gap-3 pt-2">
               <Button
                 type="submit"
-                className="w-full h-10 rounded-lg font-medium shadow-sm shadow-primary/20"
+                className="w-full h-10 rounded-lg font-medium"
                 disabled={resetMutation.isPending}
               >
                 {resetMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

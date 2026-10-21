@@ -44,14 +44,14 @@ export function TopProgressBar() {
           <div
             className={
               phase === 'loading'
-                ? 'h-full origin-left bg-primary shadow-[0_0_8px_hsl(var(--primary))] animate-progress-grow motion-reduce:animate-none motion-reduce:scale-x-50'
+                ? 'h-full origin-left bg-primary animate-progress-grow motion-reduce:animate-none motion-reduce:scale-x-50'
                 : 'h-full origin-left bg-primary scale-x-100 opacity-0 transition-[transform,opacity] duration-300 ease-out'
             }
           />
         </div>
       )}
       {isSlow && (
-        <div className="fixed inset-x-0 top-[4.5rem] z-[100] mx-auto w-fit max-w-[calc(100vw-2rem)] rounded-full border border-border bg-card/95 px-4 py-2 shadow-lg backdrop-blur-md pointer-events-none">
+        <div className="fixed inset-x-0 top-[4.5rem] z-[100] mx-auto w-fit max-w-[calc(100vw-2rem)] rounded-full border border-border bg-card/95 px-4 py-2 backdrop-blur-md pointer-events-none">
           <SlowServerHint />
         </div>
       )}

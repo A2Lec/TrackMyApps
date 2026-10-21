@@ -137,7 +137,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
   return (
     <div className="space-y-6 w-full min-w-0">
       {/* Action / View Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card/60 p-3 sm:p-4 rounded-xl border border-border/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card/60 p-3 sm:p-4 rounded-lg border border-border/80">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={goToToday} className="h-8 text-xs font-semibold">
             Aujourd'hui
@@ -177,7 +177,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
               onClick={() => setView('month')}
               className={cn(
                 'px-3 py-1 rounded-md font-medium transition-all',
-                view === 'month' ? 'bg-background text-foreground shadow-xs font-semibold' : 'text-muted-foreground hover:text-foreground'
+                view === 'month' ? 'bg-background text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'
               )}
             >
               Mois
@@ -186,7 +186,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
               onClick={() => setView('week')}
               className={cn(
                 'px-3 py-1 rounded-md font-medium transition-all',
-                view === 'week' ? 'bg-background text-foreground shadow-xs font-semibold' : 'text-muted-foreground hover:text-foreground'
+                view === 'week' ? 'bg-background text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'
               )}
             >
               Semaine
@@ -197,7 +197,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
 
       {/* Main Grid: Calendar (8 cols) + Selected Date Details (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full min-w-0">
-        <Card className="lg:col-span-8 border border-border/80 shadow-xs overflow-hidden">
+        <Card className="lg:col-span-8 border border-border/80 overflow-hidden">
           <CardHeader className="pb-3 border-b border-border/60">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -205,10 +205,10 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
               </span>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-purple-500" /> Entretiens
+                  <span className="w-2 h-2 rounded-[2px] bg-status-interview" /> Entretiens
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-500" /> Rappels & Relances
+                  <span className="w-2 h-2 rounded-[2px] bg-status-sent" /> Rappels & Relances
                 </span>
               </div>
             </div>
@@ -265,7 +265,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
                           {day}
                         </span>
                         {total > 0 && (
-                          <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 font-mono font-bold">
+                          <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 font-mono font-semibold">
                             {total}
                           </Badge>
                         )}
@@ -276,7 +276,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
                         {events.interviews.slice(0, 1).map((app) => (
                           <div
                             key={app.id}
-                            className="text-[10px] font-medium truncate px-1 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20"
+                            className="text-[10px] font-medium truncate px-1 py-0.5 rounded bg-secondary text-status-interview border border-border"
                             title={`Entretien ${app.companyName}`}
                           >
                             Entretien {app.companyName}
@@ -289,7 +289,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
                               'text-[10px] font-medium truncate px-1 py-0.5 rounded border',
                               rem.isCompleted
                                 ? 'bg-muted text-muted-foreground line-through opacity-70 border-border/50'
-                                : 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20'
+                                : 'bg-secondary text-status-sent  border-border'
                             )}
                             title={rem.title}
                           >
@@ -346,7 +346,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
                         {events.interviews.map((app) => (
                           <div
                             key={app.id}
-                            className="text-[11px] p-1.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20"
+                            className="text-[11px] p-1.5 rounded-md bg-secondary text-status-interview border border-border"
                           >
                             <span className="font-semibold block truncate">Entretien</span>
                             <span className="text-[10px] text-muted-foreground truncate block">
@@ -361,7 +361,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
                               'text-[11px] p-1.5 rounded-md border',
                               rem.isCompleted
                                 ? 'bg-muted/50 text-muted-foreground line-through opacity-70'
-                                : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20'
+                                : 'bg-secondary text-status-sent  border-border'
                             )}
                           >
                             <span className="font-medium block truncate">{rem.title}</span>
@@ -378,11 +378,11 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
 
         {/* Selected Date Details Sidebar (4 cols) */}
         <div className="lg:col-span-4 space-y-4">
-          <Card className="border border-border/80 shadow-xs">
+          <Card className="border border-border/80">
             <CardHeader className="pb-3 border-b">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-sm">
+                  <h3 className="font-semibold text-sm">
                     {formatDate(selectedDate, 'long')}
                   </h3>
                   <span className="text-xs text-muted-foreground">
@@ -409,18 +409,18 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
                   {selectedEvents.interviews.map((app) => (
                     <div
                       key={app.id}
-                      className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 space-y-1.5 text-xs"
+                      className="p-3 rounded-lg bg-secondary border border-border space-y-1.5 text-xs"
                     >
                       <div className="flex items-center justify-between">
-                        <Badge className="bg-purple-600 text-white text-[10px] px-2 py-0">Entretien</Badge>
+                        <Badge className="bg-status-interview text-white text-[10px] px-2 py-0">Entretien</Badge>
                         <Link
                           to={`/applications/${app.id}`}
-                          className="text-[11px] text-purple-700 dark:text-purple-300 hover:underline flex items-center gap-1 font-medium"
+                          className="text-[11px] text-status-interview hover:underline flex items-center gap-1 font-medium"
                         >
                           Fiche <ExternalLink className="h-3 w-3" />
                         </Link>
                       </div>
-                      <p className="font-bold text-sm text-foreground">{app.position}</p>
+                      <p className="font-semibold text-sm text-foreground">{app.position}</p>
                       <p className="text-muted-foreground font-medium">{app.companyName}</p>
                     </div>
                   ))}
@@ -430,10 +430,10 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
                     <div
                       key={rem.id}
                       className={cn(
-                        'p-3 rounded-xl border text-xs space-y-2 transition-all',
+                        'p-3 rounded-lg border text-xs space-y-2 transition-all',
                         rem.isCompleted
                           ? 'bg-muted/40 border-border/60 opacity-70'
-                          : 'bg-card border-border/80 shadow-xs'
+                          : 'bg-card border-border/80'
                       )}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -449,7 +449,7 @@ export function RemindersCalendarView({ onNewReminder }: RemindersCalendarViewPr
                             className="text-muted-foreground hover:text-primary"
                           >
                             {rem.isCompleted ? (
-                              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                              <CheckCircle2 className="h-4 w-4 text-success" />
                             ) : (
                               <Circle className="h-4 w-4" />
                             )}

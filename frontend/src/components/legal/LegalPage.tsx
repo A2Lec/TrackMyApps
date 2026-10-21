@@ -32,19 +32,19 @@ export function LegalPage({ title, intro, sections }: LegalPageProps) {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
-          <Link to="/" className="flex items-center gap-2 font-bold tracking-tight">
+          <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
             <BrandLogo title="" className="h-7 w-7" />
             {LEGAL.siteName}
           </Link>
         </div>
 
         <header className="mb-8 space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
           <p className="text-sm text-muted-foreground">Dernière mise à jour : {LEGAL.lastUpdated}</p>
           {intro && <div className="pt-2 text-muted-foreground leading-relaxed">{intro}</div>}
         </header>
 
-        <nav aria-label="Sommaire" className="mb-10 rounded-xl border border-border bg-muted/30 p-4">
+        <nav aria-label="Sommaire" className="mb-10 rounded-lg border border-border bg-muted/30 p-4">
           <p className="text-sm font-semibold mb-2">Sommaire</p>
           <ol className="grid gap-1 sm:grid-cols-2 text-sm list-decimal list-inside text-muted-foreground">
             {sections.map((section) => (
