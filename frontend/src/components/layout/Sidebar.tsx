@@ -56,13 +56,19 @@ export function Sidebar() {
       >
         {/* Header / Brand */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-border flex-shrink-0">
-          <button
-            onClick={toggleSidebar}
-            className="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus:outline-hidden flex-1 lg:flex-none"
+          <Link
+            to="/"
+            onClick={() => {
+              if (!isDesktopViewport()) {
+                setSidebarOpen(false);
+              }
+            }}
+            aria-label="TrackMyApps, retour au tableau de bord"
+            className="flex items-center gap-2.5 rounded-md hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring flex-1 lg:flex-none"
           >
-            <BrandLogo title={sidebarOpen ? '' : 'TrackMyApps'} className="h-[30px] w-[30px]" />
+            <BrandLogo title="" className="h-[30px] w-[30px]" />
             <BrandName className={cn("text-lg", !sidebarOpen && "hidden lg:hidden")} />
-          </button>
+          </Link>
           
           {sidebarOpen && (
             <Tooltip delayDuration={300}>
