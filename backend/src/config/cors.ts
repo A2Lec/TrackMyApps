@@ -1,4 +1,5 @@
 import type { CorsOptions } from 'cors';
+import type { RequestHandler } from 'express';
 import { logWarn } from '../utils/logger.js';
 
 const DEV_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
@@ -39,4 +40,21 @@ export const corsOptions: CorsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Origin'],
   optionsSuccessStatus: 200,
+};
+
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+/**
+ * CSRF guard. CORS only stops a foreign page from reading responses: a plain HTML form
+ * can still POST cross-site, and the SameSite=None auth cookie goes with it. Browsers
+ * send an Origin header on every cross-origin write, so refuse writes from unlisted ones.
+ */
+export const rejectForeignOrigins: RequestHandler = (req, res, next) => {
+  const origin = req.headers.origin;
+  if (SAFE_METHODS.has(req.method) || !origin || getAllowedOrigins().includes(normalizeOrigin(origin))) {
+    next();
+    return;
+  }
+  logWarn(`Blocked ${req.method} ${req.originalUrl} from origin: ${origin}`, { context: 'CSRF' });
+  res.status(403).json({ success: false, message: 'Origine non autorisée' });
 };

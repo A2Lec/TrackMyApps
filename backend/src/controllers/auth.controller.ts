@@ -122,12 +122,8 @@ export const authController = {
   }),
 
   verifyEmail: asyncHandler(async (req: Request, res: Response) => {
+    validateRequest(req);
     const { token } = req.body;
-
-    if (!token) {
-      throw createError('Token requis', 400);
-    }
-
     const result = await authService.verifyEmail(token);
     return sendSuccess(res, result);
   }),

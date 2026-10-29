@@ -3,7 +3,7 @@ import type { Application, ApplicationStatus } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusDot, ContractTag } from '@/components/StatusBadge';
-import { STATUS_ORDER, cn, formatDate, statusLabels } from '@/lib/utils';
+import { STATUS_ORDER, cn, formatDate, isSafeUrl, statusLabels } from '@/lib/utils';
 
 interface ApplicationHeaderProps {
   application: Application;
@@ -73,7 +73,7 @@ export function ApplicationHeader({
           </div>
 
           <div className="flex items-center gap-2 self-start flex-wrap">
-            {application.jobUrl && (
+            {isSafeUrl(application.jobUrl) && (
               <Button variant="outline" size="sm" asChild className="h-8 text-xs">
                 <a href={application.jobUrl} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-3.5 w-3.5 mr-1.5" />

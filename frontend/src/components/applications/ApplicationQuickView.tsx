@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { StatusBadge, StatusDot, ContractTag } from '@/components/StatusBadge';
-import { STATUS_ORDER, cn, formatDate, statusLabels } from '@/lib/utils';
+import { STATUS_ORDER, cn, formatDate, isSafeUrl, statusLabels } from '@/lib/utils';
 
 interface ApplicationQuickViewProps {
   application: Application | null;
@@ -91,7 +91,7 @@ export function ApplicationQuickView({ application, onClose, onStatusChange, onD
                 )}
               </div>
 
-              {application.jobUrl && (
+              {isSafeUrl(application.jobUrl) && (
                 <div className="p-3 rounded-lg border border-border/70 bg-card/50">
                   <span className="text-xs text-muted-foreground block mb-1">Annonce en ligne</span>
                   <a

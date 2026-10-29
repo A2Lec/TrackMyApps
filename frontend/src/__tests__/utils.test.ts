@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   cn,
+  isSafeUrl,
   formatDate,
   formatDateTime,
   STATUS_ORDER,
@@ -157,5 +158,21 @@ describe('Design System Tokens & Labels', () => {
     eventTypes.forEach((type) => {
       expect(eventTypeLabels[type]).toBeDefined();
     });
+  });
+});
+
+describe('isSafeUrl', () => {
+  it('accepts http(s) links', () => {
+    expect(isSafeUrl('https://careers.example.com/job/1')).toBe(true);
+    expect(isSafeUrl('http://example.com')).toBe(true);
+  });
+
+  it('rejects script and data URLs, junk and empty values', () => {
+    expect(isSafeUrl('javascript:alert(document.cookie)')).toBe(false);
+    expect(isSafeUrl(' JavaScript:alert(1)')).toBe(false);
+    expect(isSafeUrl('data:text/html,<script>alert(1)</script>')).toBe(false);
+    expect(isSafeUrl('not a url')).toBe(false);
+    expect(isSafeUrl(null)).toBe(false);
+    expect(isSafeUrl('')).toBe(false);
   });
 });

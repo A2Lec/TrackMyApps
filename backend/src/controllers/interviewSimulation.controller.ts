@@ -2,9 +2,11 @@ import { Response } from 'express';
 import { interviewSimulationService } from '../services/interviewSimulation.service.js';
 import { asyncHandler } from '../middlewares/errorHandler.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
+import { validateRequest } from '../utils/response.utils.js';
 
 export const interviewSimulationController = {
   startSession: asyncHandler(async (req: AuthRequest, res: Response) => {
+    validateRequest(req);
     const {
       applicationId,
       interviewerType,
@@ -37,6 +39,7 @@ export const interviewSimulationController = {
   }),
 
   sendMessage: asyncHandler(async (req: AuthRequest, res: Response) => {
+    validateRequest(req);
     const { sessionId } = req.params;
     const { message } = req.body;
 

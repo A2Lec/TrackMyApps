@@ -36,7 +36,7 @@ import {
   Briefcase,
   ExternalLink,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, isSafeUrl } from '@/lib/utils';
 import type { Company } from '@/types';
 
 export function CompaniesPage() {
@@ -206,7 +206,7 @@ export function CompaniesPage() {
                       <Edit className="mr-2 h-4 w-4" />
                       Modifier
                     </DropdownMenuItem>
-                    {company.website && (
+                    {isSafeUrl(company.website) && (
                       <DropdownMenuItem asChild>
                         <a href={company.website} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="mr-2 h-4 w-4" />
@@ -238,7 +238,7 @@ export function CompaniesPage() {
                     <span className="truncate">{company.size} employés</span>
                   </div>
                 )}
-                {company.website && (
+                {isSafeUrl(company.website) && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
                     <Globe className="h-4 w-4 flex-shrink-0" />
                     <a

@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { StatusBadge, ContractTag } from '@/components/StatusBadge';
-import { formatDate } from '@/lib/utils';
+import { formatDate, isSafeUrl } from '@/lib/utils';
 
 interface ApplicationsTableProps {
   applications: Application[];
@@ -70,7 +70,7 @@ export function ApplicationsTable({ applications, onOpen, onDelete }: Applicatio
                               Fiche complète
                             </Link>
                           </DropdownMenuItem>
-                          {app.jobUrl && (
+                          {isSafeUrl(app.jobUrl) && (
                             <DropdownMenuItem asChild>
                               <a href={app.jobUrl} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink className="mr-2 h-4 w-4" />

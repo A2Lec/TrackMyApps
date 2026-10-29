@@ -80,3 +80,17 @@ export {
   REMINDER_TYPE_COLORS as reminderTypeColors,
   EVENT_TYPE_LABELS as eventTypeLabels,
 } from '@/constants/labels';
+
+/**
+ * True for http(s) URLs only. User-entered links (job offers, company websites) are rendered
+ * as hrefs, and React 18 still runs `javascript:` URLs there.
+ */
+export function isSafeUrl(url: string | null | undefined): url is string {
+  if (!url) return false;
+  try {
+    const { protocol } = new URL(url);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
