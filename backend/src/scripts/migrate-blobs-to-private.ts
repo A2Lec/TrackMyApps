@@ -2,8 +2,9 @@
  * One-off migration: copy documents uploaded to the former public Vercel Blob
  * store into the private store, then point the database at the new keys.
  *
- * Usage (from backend/):
- *   DATABASE_URL=... BLOB_READ_WRITE_TOKEN=<private store> \
+ * Usage (from backend/), with the private store credentials either as
+ * BLOB_STORE_ID + VERCEL_OIDC_TOKEN (`vercel env pull`) or as BLOB_READ_WRITE_TOKEN:
+ *   DATABASE_URL=... BLOB_STORE_ID=... VERCEL_OIDC_TOKEN=... \
  *   [LEGACY_BLOB_READ_WRITE_TOKEN=<public store>] npm run blob:migrate -- [--dry-run]
  *
  * With LEGACY_BLOB_READ_WRITE_TOKEN, the public copies are deleted once migrated.
@@ -18,8 +19,9 @@ import { storageService } from '../services/storage.service.js';
 const dryRun = process.argv.includes('--dry-run');
 
 async function main() {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    throw new Error('BLOB_READ_WRITE_TOKEN (private store) is required');
+  const hasOidc = Boolean(process.env.BLOB_STORE_ID && process.env.VERCEL_OIDC_TOKEN);
+  if (!hasOidc && !process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error('Private store credentials required: BLOB_STORE_ID + VERCEL_OIDC_TOKEN, or BLOB_READ_WRITE_TOKEN');
   }
 
   const documents = await prisma.document.findMany({

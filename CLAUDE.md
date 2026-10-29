@@ -41,7 +41,7 @@ Two independent packages (`frontend/`, `backend/`), each with its own `package.j
 - **Ownership**: every query is scoped by `userId`; IDs coming from the client (company, documents, application) are checked before being linked. Keep it that way (see `__tests__/ownership.test.ts`).
 - **CORS** (`config/cors.ts`): only the comma-separated origins of `FRONTEND_URL` (+ localhost:5173 outside production). Cookies are `SameSite=None`, so never widen this.
 - **Demo account** (`DEMO_USER_EMAIL`): `blockDemoAccount` middleware refuses credential/settings changes, account deletion and document writes; `services/demo.service.ts` reseeds it (seed + daily cron).
-- **Storage** (`services/storage.service.ts`): private Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set, local `UPLOAD_DIR` otherwise. Files are streamed by `/documents/view|download/:id`.
+- **Storage** (`services/storage.service.ts`): private Vercel Blob when `BLOB_STORE_ID` (OIDC, set by connecting the store to the Vercel project) or `BLOB_READ_WRITE_TOKEN` is set, local `UPLOAD_DIR` otherwise. Files are streamed by `/documents/view|download/:id`.
 - **Errors**: throw `createError(message, status)`; wrap async handlers with `asyncHandler`. 500 messages are hidden in production.
 - **Logging**: `logInfo/logWarn/logError/logDebug` from `utils/logger.ts` (info/debug silenced in production). No `console.*` in `src/` except scripts.
 - **Deployment**: `api/index.ts` is the Vercel function; `vercel.json` rewrites everything to it and declares the cron (`/api/cron/reminders`, 9 AM, authenticated by `CRON_SECRET`). Outside Vercel, `src/server.ts` listens.
@@ -63,7 +63,7 @@ Two independent packages (`frontend/`, `backend/`), each with its own `package.j
 
 ## Environment Variables
 
-Documented in `backend/.env.example` and `frontend/.env.example` (required vs optional). Required: `DATABASE_URL`, `JWT_SECRET`; `FRONTEND_URL`, `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET` in production.
+Documented in `backend/.env.example` and `frontend/.env.example` (required vs optional). Required: `DATABASE_URL`, `JWT_SECRET`; `FRONTEND_URL`, `BLOB_STORE_ID` (or `BLOB_READ_WRITE_TOKEN`), `CRON_SECRET` in production.
 
 ## Key Conventions
 

@@ -6,12 +6,14 @@ import { Readable } from 'stream';
 import { logError } from '../utils/logger.js';
 
 /**
- * Documents are stored in a private Vercel Blob store when BLOB_READ_WRITE_TOKEN
- * is set (production), and on the local disk otherwise (development).
+ * Documents are stored in a private Vercel Blob store in production and on the
+ * local disk otherwise (development). A store connected to the Vercel project
+ * provides BLOB_STORE_ID (OIDC auth, preferred by @vercel/blob); a
+ * BLOB_READ_WRITE_TOKEN works too, e.g. outside Vercel.
  * The stored `fileUrl` is a storage key, never exposed to clients: files are
  * streamed by the backend after the ownership check.
  */
-const useBlob = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const useBlob = () => Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
 const uploadDir = () => path.resolve(process.env.UPLOAD_DIR || './uploads');
 
 const LOCAL_PREFIX = '/uploads/';

@@ -143,7 +143,7 @@ Tout est documenté dans [`backend/.env.example`](backend/.env.example) et [`fro
 | `FRONTEND_URL` | ✅ en production | Origine(s) autorisée(s) par CORS, base des liens des emails |
 | `GEMINI_API_KEY` | | Simulateur d'entretien (`GEMINI_MODEL` pour changer de modèle) |
 | `EMAIL_USER`, `EMAIL_PASSWORD` | | Envoi des emails (Gmail par défaut, `SMTP_HOST` / `SMTP_PORT` sinon) |
-| `BLOB_READ_WRITE_TOKEN` | en production | Store Vercel Blob **privé** ; dossier local sinon |
+| `BLOB_STORE_ID` (ou `BLOB_READ_WRITE_TOKEN`) | en production | Store Vercel Blob **privé** (`BLOB_STORE_ID` est créé en connectant le store au projet) ; dossier local sinon |
 | `CRON_SECRET` | en production | Protège la route du cron quotidien |
 | `DEMO_USER_EMAIL` | | Compte démo protégé (lecture seule des paramètres, réinitialisé chaque jour) |
 | `VITE_API_URL` | en production | URL de l'API (vide en local : proxy Vite) |
@@ -218,7 +218,7 @@ npm test
 ## Déploiement (Vercel)
 
 1. Créer une base [Neon](https://neon.tech) et appliquer les migrations : `DATABASE_URL=… npm run db:deploy --prefix backend`.
-2. **Projet API** : racine `backend/`. Variables : celles du tableau ci-dessus, dont `NODE_ENV=production`. Ajouter un store **Blob privé** au projet pour obtenir `BLOB_READ_WRITE_TOKEN`. Le cron quotidien est déclaré dans `backend/vercel.json`.
+2. **Projet API** : racine `backend/`. Variables : celles du tableau ci-dessus, dont `NODE_ENV=production`. Connecter un store **Blob privé** au projet, ce qui crée `BLOB_STORE_ID` (authentification OIDC). Le cron quotidien est déclaré dans `backend/vercel.json`.
 3. **Projet web** : racine `frontend/`, framework Vite, `VITE_API_URL=https://<api>.vercel.app/api`.
 4. Renseigner l'URL du projet web dans `FRONTEND_URL` côté API.
 
