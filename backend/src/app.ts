@@ -1,6 +1,7 @@
-import express from 'express';
+import express, { type RequestHandler } from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
+import * as helmetModule from 'helmet';
+import type { HelmetOptions } from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import routes from './routes/index.js';
@@ -8,6 +9,14 @@ import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { globalLimiter } from './middlewares/rateLimit.middleware.js';
 import { logInfo } from './utils/logger.js';
 import { corsOptions } from './config/cors.js';
+
+// helmet only ships CommonJS-flavoured types: depending on the TypeScript setup (Vercel's Express
+// preset type-checks differently from tsc), its default export is typed as the function or as the
+// module object. Unwrap `.default` until we reach the function, which also holds at runtime.
+type Helmet = (options?: Readonly<HelmetOptions>) => RequestHandler;
+const unwrapDefault = (mod: unknown): Helmet =>
+  typeof mod === 'function' ? (mod as Helmet) : unwrapDefault((mod as { default: unknown }).default);
+const helmet = unwrapDefault(helmetModule);
 
 const app = express();
 

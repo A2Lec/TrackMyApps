@@ -153,4 +153,11 @@ describe('CORS configuration', () => {
     // Should get a proper JSON response (not CORS error)
     expect(res.headers['content-type']).toMatch(/json/);
   });
+
+  it('sets the helmet security headers', async () => {
+    const res = await request(app).get('/api/health');
+
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['cross-origin-resource-policy']).toBe('cross-origin');
+  });
 });
