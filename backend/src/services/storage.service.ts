@@ -1,49 +1,89 @@
-import { put, del, head } from '@vercel/blob';
+import { put, del, get } from '@vercel/blob';
+import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { Readable } from 'stream';
+import { logError } from '../utils/logger.js';
 
-const isProduction = process.env.NODE_ENV === 'production';
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
+/**
+ * Documents are stored in a private Vercel Blob store in production and on the
+ * local disk otherwise (development). A store connected to the Vercel project
+ * provides BLOB_STORE_ID (OIDC auth, preferred by @vercel/blob); a
+ * BLOB_READ_WRITE_TOKEN works too, e.g. outside Vercel.
+ * The stored `fileUrl` is a storage key, never exposed to clients: files are
+ * streamed by the backend after the ownership check.
+ */
+const useBlob = () => Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
+const uploadDir = () => path.resolve(process.env.UPLOAD_DIR || './uploads');
+
+const LOCAL_PREFIX = '/uploads/';
+// Files uploaded before the switch to a private store live at public URLs
+const isLegacyPublicBlob = (fileUrl: string) => fileUrl.includes('.public.blob.vercel-storage.com');
+
+const localPath = (fileUrl: string) => path.join(uploadDir(), path.basename(fileUrl));
 
 export const storageService = {
   /**
-   * Upload a file to Vercel Blob (production) or local storage (development)
+   * Store an uploaded file and return its storage key
    */
   async uploadFile(file: Express.Multer.File): Promise<string> {
-    if (isProduction) {
-      // Sanitize filename for URL safety
-      const sanitizedFilename = file.originalname
-        .replace(/\s+/g, '_') // Replace spaces with underscores
-        .replace(/[^a-zA-Z0-9_.-]/g, ''); // Remove unsafe characters
+    const fileName = `${randomUUID()}${path.extname(file.originalname).toLowerCase()}`;
 
-      // Upload to Vercel Blob (file is in memory)
-      const blob = await put(sanitizedFilename, file.buffer, {
-        access: 'public',
+    if (useBlob()) {
+      const blob = await put(`documents/${fileName}`, file.buffer, {
+        access: 'private',
         contentType: file.mimetype,
-        addRandomSuffix: true,
       });
-      
       return blob.url;
-    } else {
-      // Local storage (file is already on disk)
-      return `/uploads/${file.filename}`;
     }
+
+    await fs.promises.mkdir(uploadDir(), { recursive: true });
+    await fs.promises.writeFile(localPath(fileName), file.buffer);
+    return `${LOCAL_PREFIX}${fileName}`;
   },
 
   /**
-   * Delete a file from Vercel Blob (production) or local storage (development)
+   * Open a stored file as a readable stream
    */
-  async deleteFile(fileUrl: string): Promise<void> {
-    if (isProduction) {
-      // Delete from Vercel Blob
-      await del(fileUrl);
-    } else {
-      // Delete from local storage
-      const filePath = path.join(process.cwd(), fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+  async openStream(fileUrl: string): Promise<Readable> {
+    if (fileUrl.startsWith(LOCAL_PREFIX)) {
+      const filePath = localPath(fileUrl);
+      await fs.promises.access(filePath);
+      return fs.createReadStream(filePath);
     }
+
+    if (isLegacyPublicBlob(fileUrl)) {
+      const response = await fetch(fileUrl);
+      if (!response.ok || !response.body) {
+        throw new Error(`Failed to fetch legacy blob (${response.status})`);
+      }
+      return Readable.fromWeb(response.body);
+    }
+
+    const result = await get(fileUrl, { access: 'private' });
+    if (!result || result.statusCode !== 200) {
+      throw new Error('Blob not found');
+    }
+    return Readable.fromWeb(result.stream);
+  },
+
+  /**
+   * Read a stored file into memory (text extraction)
+   */
+  async readFile(fileUrl: string): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+    for await (const chunk of await this.openStream(fileUrl)) {
+      chunks.push(Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
+  },
+
+  async deleteFile(fileUrl: string): Promise<void> {
+    if (fileUrl.startsWith(LOCAL_PREFIX)) {
+      await fs.promises.rm(localPath(fileUrl), { force: true });
+      return;
+    }
+    await del(fileUrl);
   },
 
   /**
@@ -53,36 +93,9 @@ export const storageService = {
     await Promise.all(
       fileUrls.map((url) =>
         this.deleteFile(url).catch((error) => {
-          console.error(`Failed to delete file ${url}:`, error);
+          logError(`Failed to delete file ${url}`, error, { context: 'Storage' });
         })
       )
     );
-  },
-
-  /**
-   * Check if a file exists
-   */
-  async fileExists(fileUrl: string): Promise<boolean> {
-    if (isProduction) {
-      try {
-        await head(fileUrl);
-        return true;
-      } catch {
-        return false;
-      }
-    } else {
-      const filePath = path.join(process.cwd(), fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl);
-      return fs.existsSync(filePath);
-    }
-  },
-
-  /**
-   * Get the file path for local reading (development only)
-   */
-  getLocalFilePath(fileUrl: string): string {
-    if (isProduction) {
-      throw new Error('getLocalFilePath should not be called in production');
-    }
-    return path.join(process.cwd(), fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl);
   },
 };

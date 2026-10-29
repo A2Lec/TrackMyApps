@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database.js';
 import { emailService } from '../services/email.service.js';
+import { demoService } from '../services/demo.service.js';
+import { logError, logInfo, logWarn } from '../utils/logger.js';
 import jwt from 'jsonwebtoken';
 
 function getUserIdFromToken(token: string): string | undefined {
@@ -22,10 +24,9 @@ export const cronController = {
       ? req.headers.authorization.slice('Bearer '.length)
       : undefined;
     let scopedUserId: string | undefined;
+    const isScheduler = Boolean(cronSecret) && bearer === cronSecret;
 
-    if (cronSecret && bearer === cronSecret) {
-      // Trusted scheduler call
-    } else {
+    if (!isScheduler) {
       const userToken = bearer || req.cookies?.token;
       const userId = userToken ? getUserIdFromToken(userToken) : undefined;
       if (userId) {
@@ -33,13 +34,18 @@ export const cronController = {
       } else if (cronSecret) {
         return res.status(401).json({ success: false, message: 'Non autorisé' });
       } else {
-        console.warn('[CRON] CRON_SECRET is not set: /cron/reminders is publicly callable');
+        logWarn('CRON_SECRET is not set: /cron/reminders is publicly callable', { context: 'CRON' });
       }
     }
 
-    console.log('[CRON] Starting reminder check...');
+    logInfo('Starting reminder check...', { context: 'CRON' });
 
     try {
+      // The daily scheduler run also restores the shared demo account
+      if (isScheduler) {
+        await demoService.reset();
+      }
+
       const now = new Date();
       // Check for reminders due in the next minute or past due within 24h that haven't been sent yet
       // Looking back up to 24h prevents reminders from being permanently lost if cron was delayed or paused
@@ -64,7 +70,7 @@ export const cronController = {
         },
       });
 
-      console.log(`[CRON] Found ${reminders.length} reminders to process.`);
+      logInfo(`Found ${reminders.length} reminders to process.`, { context: 'CRON' });
 
       const results = {
         processed: 0,
@@ -92,14 +98,14 @@ export const cronController = {
               });
               
               results.sent++;
-              console.log(`[CRON] Email sent for reminder ${reminder.id}`);
+              logInfo(`Email sent for reminder ${reminder.id}`, { context: 'CRON' });
             } else {
               results.errors++;
-              console.error(`[CRON] Failed to send email for reminder ${reminder.id}: Email service returned failure`);
+              logError(`Failed to send email for reminder ${reminder.id}: email service returned no result`, undefined, { context: 'CRON' });
             }
           } catch (emailError) {
             results.errors++;
-            console.error(`[CRON] Failed to send email for reminder ${reminder.id}:`, emailError);
+            logError(`Failed to send email for reminder ${reminder.id}`, emailError, { context: 'CRON' });
           }
         }
       }
@@ -110,11 +116,10 @@ export const cronController = {
         results,
       });
     } catch (error) {
-      console.error('[CRON] Error processing reminders:', error);
+      logError('Error processing reminders', error, { context: 'CRON' });
       res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }

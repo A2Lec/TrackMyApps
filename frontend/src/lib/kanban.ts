@@ -62,11 +62,13 @@ export function groupApplicationsForKanban(
 /**
  * Filters and sorts applications based on search query, contract type, and sort order.
  */
+export type ApplicationSort = 'date_desc' | 'date_asc' | 'company';
+
 export function filterAndSortApplications(
   apps: Application[],
   search: string,
   jobTypeFilter: JobType | 'ALL',
-  sortBy: 'date_desc' | 'date_asc' | 'company'
+  sortBy: ApplicationSort
 ): Application[] {
   const query = search.trim().toLowerCase();
 
@@ -97,10 +99,11 @@ export function filterAndSortApplications(
  * Resolves the destination ApplicationStatus when an item is dropped onto a target in the Kanban.
  */
 export function resolveDropStatus(
-  over: { id: string; data?: { current?: { status?: string; type?: string } } } | null,
+  target: { id: string | number; data?: { current?: { status?: string; type?: string } } } | null,
   kanbanData?: Partial<Record<ApplicationStatus, Application[]>>
 ): ApplicationStatus | null {
-  if (!over) return null;
+  if (!target) return null;
+  const over = { ...target, id: String(target.id) };
 
   let rawStatus: ApplicationStatus | null = null;
 

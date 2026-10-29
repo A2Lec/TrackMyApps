@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FollowUpTemplatesDialog } from '@/components/FollowUpTemplatesDialog';
 import { ApplicationJournal } from '@/components/ApplicationJournal';
@@ -258,7 +258,7 @@ describe('Sprint 2: Décloisonnement des Rappels & Workflow Candidature 360°', 
           expect.objectContaining({
             applicationId: 'app-sprint2',
             title: 'Relancer Stripe France à J+7',
-            type: 'RELANCE',
+            type: 'FOLLOW_UP',
           })
         );
       });
@@ -272,7 +272,7 @@ describe('Sprint 2: Décloisonnement des Rappels & Workflow Candidature 360°', 
           id: 'rem-sprint2-1',
           userId: 'user-1',
           title: 'Relancer Qonto',
-          type: 'RELANCE',
+          type: 'FOLLOW_UP',
           dueDate: new Date().toISOString(),
           isCompleted: false,
           createdAt: new Date().toISOString(),

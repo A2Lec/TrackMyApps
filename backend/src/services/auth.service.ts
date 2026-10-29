@@ -5,6 +5,7 @@ import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 import { emailService } from './email.service.js';
 import { storageService } from './storage.service.js';
+import { isDemoEmail } from './demo.service.js';
 
 interface RegisterData {
   email: string;
@@ -98,7 +99,7 @@ export const authService = {
 
     const { password, resetToken, resetTokenExpiry, verificationToken, verificationTokenExpiry, ...userWithoutPassword } = user;
 
-    return { user: userWithoutPassword, token };
+    return { user: { ...userWithoutPassword, isDemo: isDemoEmail(user.email) }, token };
   },
 
   async getProfile(userId: string) {
@@ -125,7 +126,7 @@ export const authService = {
       throw createError('Utilisateur non trouvé', 404);
     }
 
-    return user;
+    return { ...user, isDemo: isDemoEmail(user.email) };
   },
 
   async updateProfile(userId: string, data: Partial<RegisterData>) {
@@ -292,7 +293,8 @@ export const authService = {
       where: { email: normalizedEmail },
     });
 
-    if (!user) {
+    // The shared demo account's password must not be reset by visitors
+    if (!user || isDemoEmail(user.email)) {
       return genericResponse;
     }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { CookieConsent } from '@/components/CookieConsent';
 import { LegalLinks } from '@/components/legal/LegalLinks';
 import { getConsent, setConsent } from '@/lib/cookieConsent';

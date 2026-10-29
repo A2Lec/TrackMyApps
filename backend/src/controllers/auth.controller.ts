@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { authService } from '../services/auth.service.js';
 import { asyncHandler, createError } from '../middlewares/errorHandler.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
-import { validateRequest, sendSuccess, parseIntOrDefault } from '../utils/response.utils.js';
+import { validateRequest, sendSuccess } from '../utils/response.utils.js';
 
 export const authController = {
   register: asyncHandler(async (req: Request, res: Response) => {

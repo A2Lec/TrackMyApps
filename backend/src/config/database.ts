@@ -1,13 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 import { logInfo, logError } from '../utils/logger.js';
 
-logInfo(`Database URL: ${process.env.DATABASE_URL ? '✓ Set' : '✗ Missing'}`, { context: 'Database' });
-logInfo(`Node env: ${process.env.NODE_ENV}`, { context: 'Database' });
-
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development'
     ? ['info', 'warn', 'error']
     : ['error'],
+  // Storage keys never leave the backend: files are only served through the
+  // authenticated /documents routes. Opt back in with `omit: { fileUrl: false }`.
+  omit: {
+    document: { fileUrl: true },
+  },
 });
 
 // Test connection on startup

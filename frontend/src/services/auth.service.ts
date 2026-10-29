@@ -1,4 +1,5 @@
 import api from './api';
+import { saveBlob } from '@/lib/download';
 import type { User } from '@/types';
 
 interface LoginData {
@@ -46,6 +47,12 @@ export const authService = {
 
   async logout(): Promise<void> {
     await api.post('/auth/logout');
+  },
+
+  /** GDPR export, downloaded through the API client so it carries the session */
+  async exportData(format: 'json' | 'csv'): Promise<void> {
+    const response = await api.get<Blob>(`/user/export?format=${format}`, { responseType: 'blob' });
+    saveBlob(response.data, `trackmyapps-export.${format}`);
   },
 
   async deleteAccount(): Promise<void> {

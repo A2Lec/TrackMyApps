@@ -1,5 +1,4 @@
 import { Response } from 'express';
-import { validationResult } from 'express-validator';
 import { interviewPrepService } from '../services/interviewPrep.service.js';
 import { asyncHandler, createError } from '../middlewares/errorHandler.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DocumentsPage } from '@/pages/Documents';
 import { documentsService } from '@/services/documents.service';
@@ -23,7 +23,6 @@ const mockDocuments: Document[] = [
     userId: 'user-1',
     name: 'CV Développeur Fullstack 2026',
     fileName: 'cv_fullstack.pdf',
-    fileUrl: '/uploads/cv_fullstack.pdf',
     mimeType: 'application/pdf',
     type: 'CV',
     fileSize: 1024 * 350,
@@ -36,7 +35,6 @@ const mockDocuments: Document[] = [
     userId: 'user-1',
     name: 'Lettre de motivation Stage Stripe',
     fileName: 'lettre_stripe.docx',
-    fileUrl: '/uploads/lettre_stripe.docx',
     mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     type: 'COVER_LETTER',
     fileSize: 1024 * 120,
@@ -49,7 +47,6 @@ const mockDocuments: Document[] = [
     userId: 'user-1',
     name: 'Portfolio Démo Projets',
     fileName: 'portfolio.pdf',
-    fileUrl: '/uploads/portfolio.pdf',
     mimeType: 'application/pdf',
     type: 'PORTFOLIO',
     fileSize: 1024 * 1024 * 2,

@@ -11,17 +11,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, '../shared'),
+      '@domain': path.resolve(__dirname, '../backend/src/types/domain.ts'),
     },
   },
   server: {
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-      },
-      '/uploads': {
         target: 'http://localhost:5000',
         changeOrigin: true,
       },

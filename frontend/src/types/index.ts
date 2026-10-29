@@ -1,4 +1,4 @@
-import type { ApplicationStatus, JobType, EventType, DocumentType, ReminderType } from '@shared/types';
+import type { ApplicationStatus, JobType, EventType, DocumentType, ReminderType } from '@domain';
 
 export interface User {
   id: string;
@@ -13,6 +13,8 @@ export interface User {
   emailNotifications: boolean;
   relanceFrequency: number;
   emailVerified?: boolean;
+  /** Shared demo account: credentials and settings are read-only */
+  isDemo?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,7 +67,6 @@ export interface Document {
   type: DocumentType;
   name: string;
   version?: string;
-  fileUrl: string;
   fileName: string;
   fileSize: number;
   mimeType: string;

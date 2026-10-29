@@ -1,19 +1,11 @@
-import { useAuthStore } from '@/store/authStore';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { useEmailVerified } from '@/hooks/useEmailVerified';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertCircle } from 'lucide-react';
 
 interface EmailVerifiedGuardProps {
   children: ReactNode;
   fallback?: ReactNode;
-}
-
-/**
- * Hook to check if the current user has verified their email
- */
-export function useEmailVerified() {
-  const { user } = useAuthStore();
-  return user?.emailVerified ?? false;
 }
 
 /**
@@ -45,8 +37,8 @@ export function EmailVerifiedGuard({ children, fallback }: EmailVerifiedGuardPro
           <div className="flex items-start gap-2">
             <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <p className="text-sm">
-              Veuillez verifier votre adresse email pour effectuer cette action. 
-              Consultez votre boite de reception.
+              Veuillez vérifier votre adresse email pour effectuer cette action.
+              Consultez votre boîte de réception.
             </p>
           </div>
         </TooltipContent>

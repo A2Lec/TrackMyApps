@@ -1,4 +1,4 @@
-import { Outlet, Navigate, useLocation } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router';
 import { Suspense, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore, isDesktopViewport } from '@/store/uiStore';

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { LegalPage, type LegalSection } from '@/components/legal/LegalPage';
 import { LEGAL } from '@/lib/legal';
 

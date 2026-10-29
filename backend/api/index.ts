@@ -1,16 +1,17 @@
-import { IncomingMessage, ServerResponse } from 'http';
+import type { IncomingMessage, ServerResponse } from 'http';
 
+/**
+ * Vercel serverless entry point: every request is rewritten here (see vercel.json).
+ * The app is imported lazily so that an initialization error is logged and
+ * answered with a 500 instead of crashing the function.
+ */
 export default async function apiHandler(req: IncomingMessage, res: ServerResponse) {
-  console.log(`[Vercel Function] ${req.method} ${req.url} (v1.0.2 - ${new Date().toISOString()})`);
-  
   try {
-    // Dynamic import to catch initialization errors
-    const appModule = await import('../src/app.js');
-    const app = appModule.default;
+    const { default: app } = await import('../src/app.js');
     return app(req, res);
   } catch (error) {
-    console.error('[Vercel Critical Error] Failed to load app:', error);
+    console.error('[Vercel] Failed to load the app:', error);
     res.statusCode = 500;
-    res.end('Internal Server Error: Check Vercel logs for details');
+    res.end('Internal Server Error');
   }
 }

@@ -1,22 +1,22 @@
 import nodemailer from 'nodemailer';
+import { getFrontendUrls } from '../config/cors.js';
+import { logError, logInfo, logWarn } from '../utils/logger.js';
 
+// Gmail by default (EMAIL_PASSWORD is then an app password); any SMTP server works
+const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10);
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // use SSL
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: smtpPort,
+  secure: smtpPort === 465,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
-  tls: {
-    rejectUnauthorized: process.env.NODE_ENV === 'production'
-  }
 });
 
 // FRONTEND_URL may hold a comma-separated list (see CORS config): links use the first entry
 function getFrontendUrl(): string {
-  const first = (process.env.FRONTEND_URL || '').split(',')[0].trim().replace(/^['"]|['"]$/g, '').replace(/\/+$/, '');
-  return first || 'http://localhost:5173';
+  return getFrontendUrls()[0] || 'http://localhost:5173';
 }
 
 // Sillage email palette (light theme): emails cannot read the app's CSS variables
@@ -99,14 +99,16 @@ function paragraph(text: string): string {
 export const emailService = {
   async sendEmail(to: string, subject: string, html: string) {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.warn('Email credentials not set. Skipping email sending.');
+      // Without SMTP, local setups can still verify accounts and reset passwords from the logs
+      const link = html.match(/href="([^"]+)"/)?.[1];
+      logWarn(`Email not sent (EMAIL_USER/EMAIL_PASSWORD not set): "${subject}" to ${to}`, { context: 'Email' });
+      if (link && process.env.NODE_ENV !== 'production') {
+        logInfo(`Link: ${link}`, { context: 'Email' });
+      }
       return;
     }
 
     try {
-      // Verify connection configuration
-      await transporter.verify();
-      
       const info = await transporter.sendMail({
         from: `"TrackMyApps" <${process.env.EMAIL_USER}>`,
         to,
@@ -115,7 +117,7 @@ export const emailService = {
       });
       return info;
     } catch (error) {
-      console.error('Error sending email:', error);
+      logError('Error sending email', error, { context: 'Email' });
       // Don't throw error to prevent crashing the cron job
     }
   },

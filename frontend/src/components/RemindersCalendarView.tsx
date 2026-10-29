@@ -13,7 +13,7 @@ import {
   ExternalLink,
   Calendar as CalendarIcon,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { formatDate, cn } from '@/lib/utils';
 import type { Reminder, Application } from '@/types';
 

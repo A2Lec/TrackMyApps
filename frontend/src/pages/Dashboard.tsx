@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { analyticsService } from '@/services/analytics.service';
 import { remindersService } from '@/services/reminders.service';
 import { applicationsService } from '@/services/applications.service';
@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardSkeleton } from '@/components/loading/DashboardSkeleton';
-import { EmailVerifiedGuard, useEmailVerified } from '@/components/EmailVerifiedGuard';
+import { EmailVerifiedGuard } from '@/components/EmailVerifiedGuard';
+import { useEmailVerified } from '@/hooks/useEmailVerified';
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ import {
 } from '@/lib/utils';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ApplicationForm } from '@/components/ApplicationForm';
+import { getErrorMessage } from '@/lib/errors';
 
 export function DashboardPage() {
   const queryClient = useQueryClient();
@@ -79,8 +81,8 @@ export function DashboardPage() {
       setShowCreateDialog(false);
       toast.success('Candidature créée avec succès');
     },
-    onError: (error: any) => {
-      toast.error('Erreur: ' + (error.response?.data?.message || error.message || 'Erreur inconnue'));
+    onError: (error) => {
+      toast.error('Erreur : ' + getErrorMessage(error, 'Erreur inconnue'));
     },
   });
 
@@ -146,15 +148,12 @@ export function DashboardPage() {
   const acceptedCount = byStatus['ACCEPTED'] || 0;
 
   // Active applications (in progress: Draft, Sent, Interview, Awaiting)
-  const activeApplicationsCount = useMemo(() => {
-    return (
-      (byStatus['DRAFT'] || 0) +
-      (byStatus['SENT'] || 0) +
-      (byStatus['VIEWED'] || 0) +
-      (byStatus['INTERVIEW_SCHEDULED'] || 0) +
-      (byStatus['AWAITING_RESPONSE'] || 0)
-    );
-  }, [byStatus]);
+  const activeApplicationsCount =
+    (byStatus['DRAFT'] || 0) +
+    (byStatus['SENT'] || 0) +
+    (byStatus['VIEWED'] || 0) +
+    (byStatus['INTERVIEW_SCHEDULED'] || 0) +
+    (byStatus['AWAITING_RESPONSE'] || 0);
 
   // Due follow-ups count (overdue + today + suggested J+7)
   const dueFollowUpsCount = useMemo(() => {
@@ -623,7 +622,6 @@ export function DashboardPage() {
           <div className="py-2">
             <ApplicationForm
               onSubmit={(data) => createMutation.mutate(data)}
-              isSubmitting={createMutation.isPending}
               submitRef={submitRef}
             />
           </div>

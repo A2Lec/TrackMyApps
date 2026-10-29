@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ShieldCheck, Mail, ExternalLink } from 'lucide-react';
 import { BrandLogo, BrandName } from '@/components/BrandLogo';
 import { openCookieSettings } from '@/lib/cookieConsent';

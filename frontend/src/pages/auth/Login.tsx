@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/authStore';
@@ -16,18 +16,20 @@ import { SlowServerHint, SLOW_LOADING_DELAY_MS } from '@/components/loading/Slow
 import { prefetchPages } from '@/lib/pageLoaders';
 import { BrandLogo } from '@/components/BrandLogo';
 import { LegalLinks } from '@/components/legal/LegalLinks';
+import { getErrorMessage } from '@/lib/errors';
 
 const loginSchema = z.object({
-  email: z.string().email('Email invalide'),
+  email: z.email('Email invalide'),
   password: z.string().min(1, 'Mot de passe requis'),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-const demoCredentials = {
-  email: 'user@trackmyapps.com',
-  password: 'password123',
-} as const;
+// Shared demo account, shown only when the deployment provides it
+const demoCredentials =
+  import.meta.env.VITE_DEMO_EMAIL && import.meta.env.VITE_DEMO_PASSWORD
+    ? { email: import.meta.env.VITE_DEMO_EMAIL, password: import.meta.env.VITE_DEMO_PASSWORD }
+    : null;
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -49,8 +51,8 @@ export function LoginPage() {
       setAuth(data.user, data.token);
       navigate('/');
     },
-    onError: (error: any) => {
-      setError(error.response?.data?.message || 'Identifiants invalides');
+    onError: (error) => {
+      setError(getErrorMessage(error, 'Identifiants invalides'));
     },
   });
 
@@ -67,6 +69,7 @@ export function LoginPage() {
   };
 
   const handleDemoLogin = () => {
+    if (!demoCredentials) return;
     setError('');
     loginMutation.mutate(demoCredentials);
   };
@@ -152,16 +155,18 @@ export function LoginPage() {
             </Button>
             {isSlow && <SlowServerHint />}
             
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-10 rounded-lg border-primary/30 hover:bg-primary/5 text-primary hover:text-primary transition-colors"
-              onClick={handleDemoLogin}
-              disabled={loginMutation.isPending}
-            >
-              <Play className="h-4 w-4 mr-2 text-primary" />
-              Tester avec le compte démo (1 clic)
-            </Button>
+            {demoCredentials && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-10 rounded-lg border-primary/30 hover:bg-primary/5 text-primary hover:text-primary transition-colors"
+                onClick={handleDemoLogin}
+                disabled={loginMutation.isPending}
+              >
+                <Play className="h-4 w-4 mr-2 text-primary" />
+                Tester avec le compte démo (1 clic)
+              </Button>
+            )}
 
             <p className="text-xs sm:text-sm text-muted-foreground text-center mt-2">
               Pas encore de compte ?{' '}

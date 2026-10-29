@@ -1,8 +1,6 @@
 import prisma from '../config/database.js';
 import { excludePracticeMode, PRACTICE_MODE_MARKER } from '../utils/practiceMode.js';
 
-// Define type locally since we're using SQLite (no Prisma enums)
-type ApplicationStatus = 'DRAFT' | 'SENT' | 'VIEWED' | 'INTERVIEW_SCHEDULED' | 'AWAITING_RESPONSE' | 'REJECTED' | 'ACCEPTED' | 'GHOSTED';
 
 export const analyticsService = {
   async getDashboardStats(userId: string) {

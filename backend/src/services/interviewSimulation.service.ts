@@ -1,11 +1,29 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, type GenerationConfig } from '@google/generative-ai';
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 import { documentExtractionService } from './documentExtraction.service.js';
+import { logError } from '../utils/logger.js';
+import { PRACTICE_MODE_MARKER } from '../utils/practiceMode.js';
 
-// Initialize Gemini API
+// Gemini model, overridable with GEMINI_MODEL
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+
+function getModel(generationConfig?: GenerationConfig) {
+  if (!genAI) {
+    throw createError("Le simulateur d'entretien IA n'est pas configuré sur ce serveur (GEMINI_API_KEY manquante).", 503);
+  }
+  return genAI.getGenerativeModel({ model: GEMINI_MODEL, generationConfig });
+}
+
+interface InterviewFeedback {
+  score: number;
+  strengths: string[];
+  improvements: string[];
+  idealAnswer: { question: string; improvedAnswer: string };
+  summary: string;
+}
 
 interface StartSessionData {
   userId: string;
@@ -20,71 +38,55 @@ interface StartSessionData {
   lmId?: string;
 }
 
+async function getOwnedApplication(userId: string, applicationId: string) {
+  const application = await prisma.application.findUnique({ where: { id: applicationId } });
+
+  if (!application) {
+    throw createError('Candidature non trouvée', 404);
+  }
+  if (application.userId !== userId) {
+    throw createError('Accès non autorisé', 403);
+  }
+  return application;
+}
+
+/**
+ * Free practice mode (no real application): reuse or create a hidden practice
+ * application for the target role
+ */
+async function getPracticeApplication(data: StartSessionData) {
+  const practiceRole = data.targetRole?.trim() || 'Entraînement Libre';
+
+  const existing = await prisma.application.findFirst({
+    where: {
+      userId: data.userId,
+      notes: { contains: PRACTICE_MODE_MARKER },
+      position: practiceRole,
+    },
+  });
+  if (existing) return existing;
+
+  return prisma.application.create({
+    data: {
+      userId: data.userId,
+      companyName: 'Entraînement Libre',
+      position: practiceRole,
+      jobType: data.contractType?.trim() || 'CDI',
+      location: 'Non précisée',
+      status: 'DRAFT',
+      jobDescription: data.jobDescription?.trim() || 'Session d\'entraînement libre aux entretiens.',
+      notes: `${PRACTICE_MODE_MARKER} Mode libre - ${practiceRole}`,
+    },
+  });
+}
+
 export const interviewSimulationService = {
   async startSession(data: StartSessionData) {
-    if (!genAI) {
-      throw createError('Clé API Gemini manquante. Veuillez configurer GEMINI_API_KEY dans le fichier .env du backend.', 500);
-    }
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = getModel();
 
-    let application: any;
-
-    if (data.applicationId) {
-      application = await prisma.application.findUnique({
-        where: { id: data.applicationId },
-        include: {
-          company: true,
-          cvUsed: true,
-          lmUsed: true,
-        },
-      });
-
-      if (!application) {
-        throw createError('Candidature non trouvée', 404);
-      }
-
-      if (application.userId !== data.userId) {
-        throw createError('Accès non autorisé', 403);
-      }
-    } else {
-      // Free Practice Mode (TICK-302): create or retrieve dedicated practice application
-      const practiceRole = data.targetRole?.trim() || 'Entraînement Libre';
-      const practiceContract = data.contractType?.trim() || 'CDI';
-      const practiceDesc = data.jobDescription?.trim() || 'Session d\'entraînement libre aux entretiens.';
-
-      application = await prisma.application.findFirst({
-        where: {
-          userId: data.userId,
-          notes: { contains: '[PRACTICE_MODE]' },
-          position: practiceRole,
-        },
-        include: {
-          company: true,
-          cvUsed: true,
-          lmUsed: true,
-        },
-      });
-
-      if (!application) {
-        application = await prisma.application.create({
-          data: {
-            userId: data.userId,
-            companyName: 'Entraînement Libre',
-            position: practiceRole,
-            jobType: practiceContract,
-            location: 'Non précisée',
-            status: 'DRAFT',
-            jobDescription: practiceDesc,
-            notes: `[PRACTICE_MODE] Mode libre - ${practiceRole}`,
-          },
-          include: {
-            company: true,
-            cvUsed: true,
-            lmUsed: true,
-          },
-        });
-      }
-    }
+    const application = data.applicationId
+      ? await getOwnedApplication(data.userId, data.applicationId)
+      : await getPracticeApplication(data);
 
     const positionTitle = data.targetRole || application.position;
     const companyName = data.applicationId ? application.companyName : 'Entreprise cible (mode libre)';
@@ -101,20 +103,22 @@ export const interviewSimulationService = {
     const lmId = data.lmId || application.lmUsedId;
 
     if (cvId) {
-      const cvDoc = await prisma.document.findUnique({
-        where: { id: cvId },
+      const cvDoc = await prisma.document.findFirst({
+        where: { id: cvId, userId: data.userId },
+        omit: { fileUrl: false },
       });
-      if (cvDoc && cvDoc.userId === data.userId) {
+      if (cvDoc) {
         const cvText = await documentExtractionService.extractText(cvDoc.fileUrl, cvDoc.mimeType);
         contextText += `\n\nCV du candidat:\n${cvText}`;
       }
     }
 
     if (lmId) {
-      const lmDoc = await prisma.document.findUnique({
-        where: { id: lmId },
+      const lmDoc = await prisma.document.findFirst({
+        where: { id: lmId, userId: data.userId },
+        omit: { fileUrl: false },
       });
-      if (lmDoc && lmDoc.userId === data.userId) {
+      if (lmDoc) {
         const lmText = await documentExtractionService.extractText(lmDoc.fileUrl, lmDoc.mimeType);
         contextText += `\n\nLettre de motivation:\n${lmText}`;
       }
@@ -177,7 +181,7 @@ export const interviewSimulationService = {
         application: {
           include: {
             company: true,
-            cvUsed: true,
+            cvUsed: { omit: { fileUrl: false } },
             lmUsed: true,
           },
         },
@@ -240,11 +244,7 @@ export const interviewSimulationService = {
       });
     }
 
-    // Re-initialize model to ensure consistency
-    if (!genAI) {
-      throw createError('Clé API Gemini manquante', 500);
-    }
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = getModel();
 
     const chat = model.startChat({
       history: chatHistory,
@@ -267,8 +267,8 @@ export const interviewSimulationService = {
         message: response,
       };
     } catch (error) {
-      console.error('Gemini API Error:', error);
-      throw createError("Erreur lors de la communication avec l'IA", 500);
+      logError('Gemini API error', error, { context: 'InterviewSimulation' });
+      throw createError("Erreur lors de la communication avec l'IA", 502);
     }
   },
 
@@ -370,59 +370,14 @@ Réponds UNIQUEMENT avec un objet JSON valide respectant scrupuleusement la stru
 }
 `;
 
-    let feedbackData: any;
-
-    if (genAI) {
-      try {
-        const model = genAI.getGenerativeModel({
-          model: 'gemini-2.5-flash',
-          generationConfig: { responseMimeType: 'application/json' },
-        });
-        const result = await model.generateContent(evaluationPrompt);
-        feedbackData = JSON.parse(result.response.text());
-      } catch (err) {
-        console.error('Error generating feedback with Gemini:', err);
-        feedbackData = {
-          score: 75,
-          strengths: [
-            'Bonne réactivité face aux questions du recruteur',
-            "Clarté d'expression et vocabulaire professionnel",
-            'Motivation manifeste pour le poste',
-          ],
-          improvements: [
-            'Structurer davantage les réponses avec la méthode STAR (Situation, Tâche, Action, Résultat)',
-            'Donner des exemples chiffrés pour prouver votre impact',
-            "Lier systématiquement vos compétences aux besoins concrets de l'entreprise",
-          ],
-          idealAnswer: {
-            question: "Parlez-moi d'une difficulté rencontrée et comment vous l'avez surmontée.",
-            improvedAnswer:
-              "Sur un projet récent, nous avions un retard de 4 jours sur un livrable clé. J'ai réorganisé les priorités, réattribué les tâches critiques et automatisé les tests, ce qui a permis de livrer dans les temps avec 0 régression.",
-          },
-          summary:
-            "Prestation encourageante et dynamique. En renforçant les illustrations concrètes et la méthode STAR, vous maximiserez vos chances de décrocher l'offre.",
-        };
-      }
-    } else {
-      feedbackData = {
-        score: 75,
-        strengths: [
-          'Bonne réactivité face aux questions du recruteur',
-          'Vocabulaire professionnel adapté',
-          'Motivation manifeste',
-        ],
-        improvements: [
-          'Structurer les réponses avec la méthode STAR',
-          'Illustrer avec des métriques chiffrées',
-          "Poser des questions pertinentes en fin d'échange",
-        ],
-        idealAnswer: {
-          question: 'Quelles sont vos motivations pour ce poste ?',
-          improvedAnswer:
-            "Ce poste correspond parfaitement à mon expertise en développement. J'ai hâte de relever vos défis d'architecture tout en apportant ma rigueur au quotidien.",
-        },
-        summary: 'Prestation solide et professionnelle. Continuez de vous entraîner pour gagner en aisance.',
-      };
+    // On failure the session stays open so the user can ask for the debrief again
+    let feedbackData: InterviewFeedback;
+    try {
+      const result = await getModel({ responseMimeType: 'application/json' }).generateContent(evaluationPrompt);
+      feedbackData = JSON.parse(result.response.text());
+    } catch (error) {
+      logError('Error generating feedback with Gemini', error, { context: 'InterviewSimulation' });
+      throw createError("Le bilan n'a pas pu être généré. Réessayez dans quelques instants.", 502);
     }
 
     await prisma.interviewSession.update({

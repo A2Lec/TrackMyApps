@@ -7,6 +7,7 @@ import {
   forgotPasswordValidation,
   resetPasswordValidation,
 } from '../middlewares/validation.middleware.js';
+import { blockDemoAccount } from '../middlewares/demo.middleware.js';
 import { authLimiter, passwordResetLimiter } from '../middlewares/rateLimit.middleware.js';
 
 const router = Router();
@@ -22,9 +23,9 @@ router.post('/reset-password', passwordResetLimiter, resetPasswordValidation, au
 router.post('/logout', authController.logout);
 router.post('/resend-verification', authMiddleware, authController.resendVerification);
 router.get('/profile', authMiddleware, authController.getProfile);
-router.put('/profile', authMiddleware, authController.updateProfile);
-router.put('/password', authMiddleware, authController.updatePassword);
-router.put('/preferences', authMiddleware, authController.updatePreferences);
-router.delete('/account', authMiddleware, authController.deleteAccount);
+router.put('/profile', authMiddleware, blockDemoAccount, authController.updateProfile);
+router.put('/password', authMiddleware, blockDemoAccount, authController.updatePassword);
+router.put('/preferences', authMiddleware, blockDemoAccount, authController.updatePreferences);
+router.delete('/account', authMiddleware, blockDemoAccount, authController.deleteAccount);
 
 export default router;

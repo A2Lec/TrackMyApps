@@ -49,6 +49,7 @@ describe('Hook: useMediaQuery', () => {
 
     // Simulate viewport resize / breakpoint trigger
     act(() => {
+      currentMatches = true;
       listeners.forEach((listener) =>
         listener({ matches: true, media: '(min-width: 768px)' } as MediaQueryListEvent)
       );
@@ -58,6 +59,7 @@ describe('Hook: useMediaQuery', () => {
 
     // Simulate resizing back down
     act(() => {
+      currentMatches = false;
       listeners.forEach((listener) =>
         listener({ matches: false, media: '(min-width: 768px)' } as MediaQueryListEvent)
       );

@@ -1,180 +1,96 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import prisma from '../config/database.js';
-import { storageService } from '../services/storage.service.js';
+import { AuthRequest } from '../middlewares/auth.middleware.js';
+import { asyncHandler, createError } from '../middlewares/errorHandler.middleware.js';
 
-interface AuthenticatedRequest extends Request {
-  userId?: string;
+type CsvValue = string | number | boolean | Date | null | undefined;
+
+/**
+ * Quote every cell, escape quotes and neutralize spreadsheet formulas
+ * (values starting with = + - @ would otherwise run in Excel)
+ */
+function csvRow(values: CsvValue[]): string {
+  return values
+    .map((value) => {
+      let text = value instanceof Date ? value.toISOString() : String(value ?? '');
+      if (/^[=+\-@]/.test(text)) text = `'${text}`;
+      return `"${text.replace(/"/g, '""')}"`;
+    })
+    .join(',');
+}
+
+function csvSection<T>(title: string, header: string[], rows: T[], toRow: (row: T) => CsvValue[]): string[] {
+  return [`=== ${title} ===`, header.join(','), ...rows.map((row) => csvRow(toRow(row))), ''];
 }
 
 /**
- * Export all user data (GDPR Article 15)
- * Format: JSON or CSV (query param)
+ * Export all user data (GDPR Articles 15 and 20), as JSON (default) or CSV
  */
-export async function exportUserData(req: AuthenticatedRequest, res: Response) {
-  try {
-    const userId = req.userId!;
-    const format = (req.query.format as string) || 'json';
+export const exportUserData = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const userId = req.userId!;
+  const format = req.query.format === 'csv' ? 'csv' : req.query.format === undefined || req.query.format === 'json' ? 'json' : null;
 
-    // Fetch all user data
-    const [user, applications, documents, reminders, companies] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          createdAt: true,
-          updatedAt: true,
-          emailVerified: true,
-        },
-      }),
-      prisma.application.findMany({
-        where: { userId },
-        include: {
-          company: {
-            select: {
-              name: true,
-              website: true,
-              location: true,
-            },
-          },
-        },
-      }),
-      prisma.document.findMany({
-        where: { userId },
-      }),
-      prisma.reminder.findMany({
-        where: { userId },
-        include: {
-          application: {
-            select: {
-              position: true,
-              companyName: true,
-            },
-          },
-        },
-      }),
-      prisma.company.findMany({
-        where: { userId },
-      }),
-    ]);
+  if (!format) {
+    throw createError('Format non supporté. Utilisez ?format=json ou ?format=csv', 400);
+  }
 
-    if (!user) {
-      return res.status(404).json({ error: 'Utilisateur non trouvé' });
-    }
+  const [user, applications, documents, reminders, companies] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, firstName: true, lastName: true, createdAt: true, updatedAt: true, emailVerified: true },
+    }),
+    prisma.application.findMany({
+      where: { userId },
+      include: { company: { select: { name: true, website: true, location: true } } },
+    }),
+    prisma.document.findMany({ where: { userId } }),
+    prisma.reminder.findMany({
+      where: { userId },
+      include: { application: { select: { position: true, companyName: true } } },
+    }),
+    prisma.company.findMany({ where: { userId } }),
+  ]);
 
-    const exportData = {
+  if (!user) {
+    throw createError('Utilisateur non trouvé', 404);
+  }
+
+  if (format === 'json') {
+    res.setHeader('Content-Disposition', 'attachment; filename="trackmyapps-export.json"');
+    res.json({
       user,
-      applications: applications.map(app => ({
-        ...app,
-        companyName: app.company?.name,
-        company: undefined,
-      })),
+      applications: applications.map(({ company, ...app }) => ({ ...app, companyName: company?.name ?? app.companyName })),
       documents,
-      reminders: reminders.map(rem => ({
+      reminders: reminders.map(({ application, ...rem }) => ({
         ...rem,
-        applicationTitle: rem.application?.position,
-        companyName: rem.application?.companyName,
-        application: undefined,
+        applicationTitle: application?.position,
+        companyName: application?.companyName,
       })),
       companies,
       exportedAt: new Date().toISOString(),
-    };
-
-    if (format === 'json') {
-      // JSON format
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', `attachment; filename="trackmyapps-data-${userId}.json"`);
-      return res.json(exportData);
-    } else if (format === 'csv') {
-      // CSV format (simplified - one CSV per entity)
-      const csvData: string[] = [];
-      
-      // User CSV
-      csvData.push('=== USER ===');
-      csvData.push('id,email,firstName,lastName,emailVerified,createdAt');
-      csvData.push(`${user.id},${user.email},${user.firstName || ''},${user.lastName || ''},${user.emailVerified},${user.createdAt}`);
-      csvData.push('');
-      
-      // Applications CSV
-      csvData.push('=== APPLICATIONS ===');
-      csvData.push('id,position,company,status,location,salary,createdAt,notes');
-      applications.forEach(app => {
-        csvData.push(`${app.id},"${app.position}","${app.company?.name || app.companyName}",${app.status},"${app.location || ''}","${app.salary || ''}",${app.createdAt},"${(app.notes || '').replace(/"/g, '""')}"`);
-      });
-      csvData.push('');
-      
-      // Documents CSV
-      csvData.push('=== DOCUMENTS ===');
-      csvData.push('id,name,type,fileName,createdAt');
-      documents.forEach(doc => {
-        csvData.push(`${doc.id},"${doc.name}",${doc.type},"${doc.fileName}",${doc.createdAt}`);
-      });
-      csvData.push('');
-      
-      // Reminders CSV
-      csvData.push('=== REMINDERS ===');
-      csvData.push('id,title,description,dueDate,isCompleted,type');
-      reminders.forEach(rem => {
-        csvData.push(`${rem.id},"${rem.title}","${rem.description || ''}",${rem.dueDate},${rem.isCompleted},${rem.type}`);
-      });
-      csvData.push('');
-      
-      // Companies CSV
-      csvData.push('=== COMPANIES ===');
-      csvData.push('id,name,website,location,industry,notes');
-      companies.forEach(comp => {
-        csvData.push(`${comp.id},"${comp.name}","${comp.website || ''}","${comp.location || ''}","${comp.industry || ''}","${(comp.notes || '').replace(/"/g, '""')}"`);
-      });
-
-      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="trackmyapps-data-${userId}.csv"`);
-      return res.send('\ufeff' + csvData.join('\n')); // UTF-8 BOM for Excel
-    } else {
-      return res.status(400).json({ error: 'Format non supporté. Utilisez ?format=json ou ?format=csv' });
-    }
-  } catch (error) {
-    console.error('Export error:', error);
-    return res.status(500).json({ error: 'Erreur lors de l\'export des données' });
+    });
+    return;
   }
-}
 
-/**
- * Delete user account and all associated data (GDPR Article 17 - Right to be forgotten)
- */
-export async function deleteUserAccount(req: AuthenticatedRequest, res: Response) {
-  try {
-    const userId = req.userId!;
+  const csv = [
+    ...csvSection('USER', ['id', 'email', 'firstName', 'lastName', 'emailVerified', 'createdAt'], [user], (u) => [
+      u.id, u.email, u.firstName, u.lastName, u.emailVerified, u.createdAt,
+    ]),
+    ...csvSection('APPLICATIONS', ['id', 'position', 'company', 'status', 'location', 'salary', 'createdAt', 'notes'], applications, (app) => [
+      app.id, app.position, app.company?.name || app.companyName, app.status, app.location, app.salary, app.createdAt, app.notes,
+    ]),
+    ...csvSection('DOCUMENTS', ['id', 'name', 'type', 'fileName', 'createdAt'], documents, (doc) => [
+      doc.id, doc.name, doc.type, doc.fileName, doc.createdAt,
+    ]),
+    ...csvSection('REMINDERS', ['id', 'title', 'description', 'dueDate', 'isCompleted', 'type'], reminders, (rem) => [
+      rem.id, rem.title, rem.description, rem.dueDate, rem.isCompleted, rem.type,
+    ]),
+    ...csvSection('COMPANIES', ['id', 'name', 'website', 'location', 'industry', 'notes'], companies, (comp) => [
+      comp.id, comp.name, comp.website, comp.location, comp.industry, comp.notes,
+    ]),
+  ];
 
-    // Get all documents to delete files
-    const documents = await prisma.document.findMany({
-      where: { userId },
-      select: { fileUrl: true },
-    });
-
-    // Delete all user data in transaction
-    await prisma.$transaction(async (tx) => {
-      // Delete in correct order (respecting foreign keys)
-      await tx.reminder.deleteMany({ where: { userId } });
-      await tx.interviewSession.deleteMany({ where: { userId } });
-      await tx.document.deleteMany({ where: { userId } });
-      await tx.application.deleteMany({ where: { userId } });
-      await tx.company.deleteMany({ where: { userId } });
-      await tx.user.delete({ where: { id: userId } });
-    });
-
-    // Delete uploaded files (Vercel Blob in production, local disk in dev)
-    await storageService.deleteFiles(documents.map((doc) => doc.fileUrl));
-
-    return res.json({ 
-      message: 'Compte supprimé avec succès',
-      deletedData: {
-        documents: documents.length,
-      }
-    });
-  } catch (error) {
-    console.error('Account deletion error:', error);
-    return res.status(500).json({ error: 'Erreur lors de la suppression du compte' });
-  }
-}
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="trackmyapps-export.csv"');
+  res.send('﻿' + csv.join('\n')); // UTF-8 BOM for Excel
+});

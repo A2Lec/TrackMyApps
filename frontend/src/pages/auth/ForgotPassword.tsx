@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, KeyRound, Loader2, MailCheck } from 'lucide-react';
 import { LegalLinks } from '@/components/legal/LegalLinks';
+import { getErrorMessage } from '@/lib/errors';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Email invalide'),
+  email: z.email('Email invalide'),
 });
 
 type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
@@ -35,8 +36,8 @@ export function ForgotPasswordPage() {
     onSuccess: (_result, data) => {
       setSentTo(data.email);
     },
-    onError: (error: any) => {
-      setError(error.response?.data?.message || "Erreur lors de l'envoi de l'email");
+    onError: (error) => {
+      setError(getErrorMessage(error, "Erreur lors de l'envoi de l'email"));
     },
   });
 

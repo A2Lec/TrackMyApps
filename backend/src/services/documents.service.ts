@@ -3,9 +3,6 @@ import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 import { storageService } from './storage.service.js';
 
-// Define type locally since we're using SQLite (no Prisma enums)
-type DocumentType = 'CV' | 'LETTRE_MOTIVATION' | 'COVER_LETTER' | 'PORTFOLIO' | 'OTHER';
-
 interface CreateDocumentData {
   name: string;
   type: string;
@@ -18,7 +15,7 @@ interface CreateDocumentData {
 }
 
 export const documentService = {
-  async getAll(userId: string, type?: DocumentType) {
+  async getAll(userId: string, type?: string) {
     const where: Prisma.DocumentWhereInput = { userId };
     if (type) {
       if (type === 'COVER_LETTER' || type === 'LETTRE_MOTIVATION') {
@@ -85,6 +82,22 @@ export const documentService = {
     return document;
   },
 
+  /**
+   * Same as getById, with the storage key needed to read the file
+   */
+  async getWithFileUrl(userId: string, id: string) {
+    const document = await prisma.document.findFirst({
+      where: { id, userId },
+      omit: { fileUrl: false },
+    });
+
+    if (!document) {
+      throw createError('Document non trouvé', 404);
+    }
+
+    return document;
+  },
+
   async create(userId: string, data: CreateDocumentData) {
     const normalizedType = data.type === 'COVER_LETTER' ? 'LETTRE_MOTIVATION' : data.type;
 
@@ -135,6 +148,7 @@ export const documentService = {
   async delete(userId: string, id: string) {
     const existing = await prisma.document.findFirst({
       where: { id, userId },
+      omit: { fileUrl: false },
       include: {
         _count: {
           select: {
@@ -157,12 +171,12 @@ export const documentService = {
       );
     }
 
-    // Delete file from storage
-    await storageService.deleteFile(existing.fileUrl);
-
     await prisma.document.delete({
       where: { id },
     });
+
+    // Best-effort: an orphaned file is better than a document the user cannot delete
+    await storageService.deleteFiles([existing.fileUrl]);
 
     return { message: 'Document supprimé avec succès' };
   },

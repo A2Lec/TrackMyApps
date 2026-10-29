@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { strongPasswordSchema } from '@/schemas/password';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/authStore';
@@ -18,9 +18,10 @@ import { prefetchPages } from '@/lib/pageLoaders';
 import { BrandLogo } from '@/components/BrandLogo';
 import { LegalLinks } from '@/components/legal/LegalLinks';
 import { LEGAL } from '@/lib/legal';
+import { getErrorMessage } from '@/lib/errors';
 
 const registerSchema = z.object({
-  email: z.string().email('Email invalide'),
+  email: z.email('Email invalide'),
   password: strongPasswordSchema,
   confirmPassword: z.string(),
   firstName: z.string().min(1, 'Prénom requis'),
@@ -56,8 +57,8 @@ export function RegisterPage() {
       setAuth(data.user, data.token);
       navigate('/');
     },
-    onError: (error: any) => {
-      setError(error.response?.data?.message || "Erreur lors de l'inscription");
+    onError: (error) => {
+      setError(getErrorMessage(error, "Erreur lors de l'inscription"));
     },
   });
 

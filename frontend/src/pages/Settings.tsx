@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Calendar,
+  Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
@@ -37,7 +38,8 @@ import { useUIStore, type Theme } from '@/store/uiStore';
 import { authService } from '@/services/auth.service';
 import { remindersService } from '@/services/reminders.service';
 import { generateIcsContent, downloadIcsFile } from '@/lib/calendarExport';
-import { useNavigate } from 'react-router-dom';
+import { reminderToCalendarEvent } from '@/lib/reminders';
+import { useNavigate } from 'react-router';
 import { cn } from '@/lib/utils';
 import {
   getNotificationPermission,
@@ -140,16 +142,7 @@ export function SettingsPage() {
         toast.info('Aucun rappel ou entretien à exporter');
         return;
       }
-      const events = reminders.map((r) => ({
-        title: r.title,
-        description:
-          r.description ||
-          (r.application
-            ? `Poste : ${r.application.position} chez ${r.application.companyName}`
-            : undefined),
-        startDate: new Date(r.dueDate),
-        durationMinutes: 30,
-      }));
+      const events = reminders.map(reminderToCalendarEvent);
       const icsContent = generateIcsContent(events);
       downloadIcsFile('trackmyapps-agenda.ics', icsContent);
       toast.success(`${reminders.length} rappel(s) et entretien(s) exporté(s)`);
@@ -172,6 +165,16 @@ export function SettingsPage() {
     { id: 'appearance', label: 'Apparence', icon: Sun },
   ] as const;
 
+  const isDemo = Boolean(user?.isDemo);
+
+  const handleExport = async (format: 'json' | 'csv') => {
+    try {
+      await authService.exportData(format);
+    } catch {
+      toast.error("Erreur lors de l'export des données");
+    }
+  };
+
   const initials = `${user?.firstName?.charAt(0) || ''}${user?.lastName?.charAt(0) || ''}`.toUpperCase() || 'U';
 
   return (
@@ -183,6 +186,16 @@ export function SettingsPage() {
           Gérez votre identité, vos préférences de notification et la sécurité de votre compte
         </p>
       </div>
+
+      {isDemo && (
+        <div className="flex items-start gap-2.5 p-3 rounded-lg border border-primary/30 bg-primary/5 text-xs text-foreground">
+          <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+          <p>
+            Vous utilisez le compte de démonstration : le profil, le mot de passe et les préférences sont en lecture
+            seule, et les données sont réinitialisées chaque jour. Créez un compte gratuit pour enregistrer les vôtres.
+          </p>
+        </div>
+      )}
 
       {/* Main Grid: Responsive Tab Navigation & Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full min-w-0">
@@ -345,7 +358,7 @@ export function SettingsPage() {
                   <Button
                     size="sm"
                     onClick={handleSaveProfile}
-                    disabled={updateProfileMutation.isPending}
+                    disabled={isDemo || updateProfileMutation.isPending}
                     className="h-9 text-xs"
                   >
                     <Save className="mr-1.5 h-3.5 w-3.5" />
@@ -418,6 +431,7 @@ export function SettingsPage() {
                       size="sm"
                       onClick={handleChangePassword}
                       disabled={
+                        isDemo ||
                         changePasswordMutation.isPending ||
                         !passwordData.currentPassword ||
                         !passwordData.newPassword ||
@@ -447,10 +461,7 @@ export function SettingsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
-                        window.location.href = `${apiBaseUrl}/user/export?format=json`;
-                      }}
+                      onClick={() => handleExport('json')}
                       className="h-8 text-xs"
                     >
                       <Download className="mr-1.5 h-3.5 w-3.5" />
@@ -459,10 +470,7 @@ export function SettingsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
-                        window.location.href = `${apiBaseUrl}/user/export?format=csv`;
-                      }}
+                      onClick={() => handleExport('csv')}
                       className="h-8 text-xs"
                     >
                       <Download className="mr-1.5 h-3.5 w-3.5" />
@@ -534,6 +542,7 @@ export function SettingsPage() {
                     variant="destructive"
                     size="sm"
                     onClick={() => setShowDeleteDialog(true)}
+                    disabled={isDemo}
                     className="h-8 text-xs"
                   >
                     <Trash2 className="mr-1.5 h-3.5 w-3.5" />
@@ -567,6 +576,7 @@ export function SettingsPage() {
                   <Checkbox
                     id="emailNotifications"
                     checked={notifications.emailNotifications}
+                    disabled={isDemo}
                     onCheckedChange={(checked) => {
                       const updated = { ...notifications, emailNotifications: !!checked };
                       setNotifications(updated);
@@ -612,6 +622,7 @@ export function SettingsPage() {
                       min="1"
                       max="30"
                       value={notifications.relanceFrequency}
+                      disabled={isDemo}
                       onChange={(e) => {
                         const value = parseInt(e.target.value, 10);
                         if (value > 0) {
