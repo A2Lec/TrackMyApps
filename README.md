@@ -1,215 +1,228 @@
-# TrackMyApps 📋
+<div align="center">
 
-Application SaaS de suivi de candidatures pour étudiants. Gérez vos stages, alternances, CDI et jobs étudiants en un seul endroit.
+<img src="frontend/public/logo.svg" alt="" width="64" height="64">
 
-## 🚀 Fonctionnalités
+# TrackMyApps
 
-- **Dashboard** - Vue d'ensemble de toutes vos candidatures
-- **Kanban Board** - Visualisation drag & drop des candidatures par statut
-- **Gestion des documents** - Stockage de CV et lettres de motivation
-- **Rappels** - Ne manquez plus aucune relance ou entretien
-- **Statistiques** - Analysez vos performances
-- **Calendrier** - Vue calendrier de vos candidatures et rappels
-- **Répertoire entreprises** - Gérez votre carnet d'adresses
-- **Préparation entretiens** - Préparez vos réponses aux questions courantes
+**Le suivi de candidatures pensé pour les étudiants : stages, alternances, CDI et jobs étudiants.**
 
-## 🛠️ Stack technique
+[![CI](https://github.com/A2Lec/TrackMyApps/actions/workflows/ci.yml/badge.svg)](https://github.com/A2Lec/TrackMyApps/actions/workflows/ci.yml)
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+![Node 22](https://img.shields.io/badge/node-22-339933?logo=node.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 
-### Backend
-- Node.js + Express.js
-- TypeScript
-- Prisma ORM
-- PostgreSQL
-- JWT Authentication
-- Multer (file uploads)
+[**Démo en ligne**](https://track-myapps.vercel.app) · bouton « Tester avec le compte démo » sur la page de connexion
 
-### Frontend
-- React 18
-- TypeScript
-- Vite
-- Tailwind CSS + Shadcn/ui
-- TanStack Query (React Query)
-- Zustand (state management)
-- React DnD Kit (drag & drop)
-- Recharts (graphiques)
+</div>
 
-## 📦 Installation
+![Tableau de bord](docs/screenshots/dashboard.png)
 
-### Prérequis
-- Node.js 18+
-- PostgreSQL 14+
-- pnpm ou npm
+## Pourquoi
 
-### 1. Cloner le projet
+Une recherche de stage ou d'alternance, c'est vite des dizaines de candidatures, autant de relances à ne pas oublier et des entretiens à préparer. TrackMyApps rassemble tout au même endroit et propose de s'entraîner aux entretiens avec un recruteur simulé par IA.
+
+L'interface est en français.
+
+## Fonctionnalités
+
+| | |
+|---|---|
+| **Kanban des candidatures** | Glisser-déposer entre les statuts (brouillon, envoyée, entretien, acceptée, refusée), vue liste avec recherche, filtres et pagination, aperçu rapide en panneau latéral |
+| **Fiche candidature** | Offre, notes, journal des échanges avec les recruteurs, documents utilisés, rappels liés |
+| **Rappels et relances** | Rappels en retard / du jour / à venir, actions groupées, vue calendrier, export Google Agenda, Outlook et `.ics`, relance proposée à J+7 quand une candidature passe en « Envoyée », emails de rappel envoyés par un cron quotidien |
+| **Simulateur d'entretien IA** | Entretien écrit ou vocal (dictée et synthèse vocale du navigateur) avec un recruteur Google Gemini adapté au poste, au CV et à la lettre de motivation, puis bilan noté avec points forts, axes de progrès et reformulation STAR |
+| **Préparation** | Banque de questions par catégorie, enregistrables depuis une simulation |
+| **Documents** | CV et lettres (PDF, DOCX), stockés de façon privée, avec le suivi des candidatures où ils ont servi |
+| **Statistiques** | Taux de réponse, entonnoir de conversion, évolution dans le temps |
+| **Compte** | Vérification de l'email, mot de passe oublié, export RGPD (JSON / CSV), suppression du compte, thème clair / sombre |
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/kanban.png" alt="Kanban des candidatures"></td>
+    <td><img src="docs/screenshots/interview-simulator.png" alt="Simulateur d'entretien IA"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/reminders.png" alt="Rappels et relances"></td>
+    <td><img src="docs/screenshots/login.png" alt="Connexion"></td>
+  </tr>
+</table>
+
+## Stack technique
+
+| Frontend | Backend | Infrastructure |
+|---|---|---|
+| React 18, TypeScript, Vite | Node.js 22, Express, TypeScript (ESM) | Vercel (deux projets : web et API serverless) |
+| Tailwind CSS, shadcn/ui (Radix) | Prisma 6, PostgreSQL | Neon (PostgreSQL) |
+| TanStack Query, Zustand | JWT, bcrypt, express-validator | Vercel Blob (stockage privé), Vercel Cron |
+| React Hook Form, Zod | Helmet, express-rate-limit | GitHub Actions, Dependabot |
+| dnd-kit, Recharts | Google Gemini, Nodemailer | Docker Compose (PostgreSQL local) |
+
+## Démarrage rapide
+
+Prérequis : **Node.js 22** et **Docker** (ou un PostgreSQL 14+ existant).
+
+Cloner le dépôt :
+
 ```bash
-cd TrackMyApps
+git clone https://github.com/A2Lec/TrackMyApps.git
 ```
 
-### 2. Configuration du backend
-
 ```bash
-cd backend
-npm install
-
-# Créer le fichier .env à partir de l'exemple
-cp .env.example .env
-
-# Modifier .env avec vos identifiants PostgreSQL
-# DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/trackmyapps"
+cd TrackMyApps && npm install
 ```
 
-### 3. Configuration de la base de données
+Lancer PostgreSQL dans Docker :
 
 ```bash
-# Créer la base de données PostgreSQL
-# (via pgAdmin ou en ligne de commande)
-createdb trackmyapps
-
-# Appliquer les migrations Prisma
-npx prisma migrate dev --name init
-
-# Charger les données de test
-npx prisma db seed
+npm run db:up
 ```
 
-### 4. Configuration du frontend
+Installer les deux packages, créer les `.env`, appliquer les migrations et créer le compte démo :
 
 ```bash
-cd ../frontend
-npm install
-
-# Le fichier .env est déjà configuré pour le développement local
+npm run setup
 ```
 
-### 5. Lancer l'application
+Lancer l'API (port 5000) et le frontend (port 5173) :
 
-Terminal 1 - Backend:
 ```bash
-cd backend
 npm run dev
 ```
 
-Terminal 2 - Frontend:
+Ouvrir http://localhost:5173 et se connecter avec **demo@example.com / Demo1234!** (ou le bouton « compte démo »).
+
+Sans configuration supplémentaire, tout fonctionne en local sauf :
+
+- **les emails** : ils ne partent pas, mais les liens (vérification de l'email, réinitialisation du mot de passe) sont affichés dans les logs de l'API ;
+- **le simulateur IA** : il faut une clé Gemini gratuite dans `GEMINI_API_KEY` ([Google AI Studio](https://aistudio.google.com/apikey)).
+
+<details>
+<summary>Sans Docker ni scripts racine</summary>
+
+Créer une base PostgreSQL, puis :
+
 ```bash
-cd frontend
-npm run dev
+cd backend && npm ci && cp .env.example .env
 ```
 
-L'application sera accessible sur:
-- Frontend: http://localhost:5173
-- API: http://localhost:3001
+Renseigner `DATABASE_URL` et `JWT_SECRET` dans `backend/.env`, puis :
 
-## 👤 Comptes de test
+```bash
+npx prisma migrate deploy && npm run db:seed && npm run dev
+```
 
-Après avoir exécuté le seed, vous pouvez vous connecter avec:
+Dans un second terminal :
 
-| Email | Mot de passe | Rôle |
-|-------|--------------|------|
-| admin@trackmyapps.com | password123 | Admin |
-| user@trackmyapps.com | password123 | Utilisateur |
+```bash
+cd frontend && npm ci && cp .env.example .env && npm run dev
+```
 
-## 📁 Structure du projet
+</details>
+
+## Scripts
+
+À la racine :
+
+| Commande | Rôle |
+|---|---|
+| `npm run db:up` / `db:down` | Démarre / arrête PostgreSQL (Docker) |
+| `npm run setup` | Installation complète (dépendances, `.env`, migrations, compte démo) |
+| `npm run dev` | API et frontend en parallèle |
+| `npm run lint` · `typecheck` · `test` · `build` | Vérifications des deux packages, comme en CI |
+
+Dans `backend/` : `db:migrate` (nouvelle migration), `db:deploy`, `db:seed` (réinitialise le compte démo), `db:studio`, `email:test -- vous@exemple.fr`, `blob:migrate`.
+
+## Variables d'environnement
+
+Tout est documenté dans [`backend/.env.example`](backend/.env.example) et [`frontend/.env.example`](frontend/.env.example).
+
+| Variable | Requise | Rôle |
+|---|---|---|
+| `DATABASE_URL` | ✅ | Connexion PostgreSQL |
+| `JWT_SECRET` | ✅ | Signature des sessions (`npm run setup` en génère un) |
+| `FRONTEND_URL` | ✅ en production | Origine(s) autorisée(s) par CORS, base des liens des emails |
+| `GEMINI_API_KEY` | | Simulateur d'entretien (`GEMINI_MODEL` pour changer de modèle) |
+| `EMAIL_USER`, `EMAIL_PASSWORD` | | Envoi des emails (Gmail par défaut, `SMTP_HOST` / `SMTP_PORT` sinon) |
+| `BLOB_READ_WRITE_TOKEN` | en production | Store Vercel Blob **privé** ; dossier local sinon |
+| `CRON_SECRET` | en production | Protège la route du cron quotidien |
+| `DEMO_USER_EMAIL` | | Compte démo protégé (lecture seule des paramètres, réinitialisé chaque jour) |
+| `VITE_API_URL` | en production | URL de l'API (vide en local : proxy Vite) |
+| `VITE_DEMO_EMAIL`, `VITE_DEMO_PASSWORD` | | Affiche le bouton « compte démo » |
+| `VITE_SITE_URL`, `VITE_LEGAL_OWNER_NAME`, `VITE_LEGAL_CONTACT_EMAIL` | en production | Éditeur affiché dans les pages légales |
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Navigateur
+    SPA["SPA React<br/>TanStack Query · Zustand"]
+  end
+  subgraph Vercel
+    API["API Express<br/>(fonction serverless)"]
+    CRON["Vercel Cron<br/>9 h chaque jour"]
+    BLOB[("Vercel Blob<br/>store privé")]
+  end
+  DB[("PostgreSQL<br/>Neon")]
+  GEMINI["Google Gemini"]
+  SMTP["SMTP"]
+
+  SPA -- "/api · JWT" --> API
+  CRON -- "CRON_SECRET" --> API
+  API -- Prisma --> DB
+  API --> BLOB
+  API --> GEMINI
+  API --> SMTP
+```
 
 ```
 TrackMyApps/
 ├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma    # Schéma de base de données
-│   │   └── seed.ts          # Données de test
-│   ├── src/
-│   │   ├── config/          # Configuration (DB, etc.)
-│   │   ├── controllers/     # Contrôleurs API
-│   │   ├── middlewares/     # Auth, validation, upload
-│   │   ├── routes/          # Routes API
-│   │   ├── services/        # Logique métier
-│   │   ├── app.ts           # Configuration Express
-│   │   └── server.ts        # Point d'entrée
-│   └── uploads/             # Fichiers uploadés
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/      # Composants React
-│   │   │   ├── layout/      # Layout principal
-│   │   │   └── ui/          # Composants UI réutilisables
-│   │   ├── pages/           # Pages de l'application
-│   │   ├── services/        # Services API
-│   │   ├── store/           # État global (Zustand)
-│   │   ├── types/           # Types TypeScript
-│   │   └── lib/             # Utilitaires
-│   └── index.html
-│
-└── README.md
+│   ├── api/index.ts          # Point d'entrée Vercel (serverless)
+│   ├── prisma/               # Schéma, migrations, seed du compte démo
+│   └── src/
+│       ├── routes/ → controllers/ → services/   # HTTP → validation → logique métier + Prisma
+│       ├── middlewares/      # Auth JWT, email vérifié, compte démo, rate limit, erreurs
+│       ├── config/           # Prisma, CORS
+│       └── __tests__/        # Vitest + Supertest
+├── frontend/src/
+│   ├── pages/                # Une page par route (chargées à la demande)
+│   ├── components/           # Par domaine : applications, interview, reminders… + ui/ (shadcn)
+│   ├── services/             # Client API (Axios)
+│   ├── hooks/ · lib/ · store/
+│   └── __tests__/            # Vitest + Testing Library
+├── shared/types.d.ts         # Enums métier partagés (types uniquement)
+├── docker-compose.yml        # PostgreSQL local
+└── scripts/setup.mjs         # Installation en une commande
 ```
 
-## 🔧 Scripts disponibles
+## Choix techniques et sécurité
 
-### Backend
+- **Isolation des données** : chaque requête Prisma est filtrée par l'utilisateur connecté ; les identifiants transmis par le client (entreprise, documents, candidature) sont vérifiés avant d'être liés. Des tests couvrent ces contrôles d'appartenance.
+- **Documents privés** : les fichiers sont dans un store Vercel Blob privé et ne sont jamais exposés par une URL publique. L'API les diffuse après vérification du propriétaire, et la clé de stockage est exclue de toutes les réponses grâce à l'`omit` global de Prisma.
+- **Authentification** : JWT envoyé en en-tête `Authorization` et en cookie `httpOnly`. Le frontend et l'API sont hébergés sur deux domaines `vercel.app` distincts, et les navigateurs bloquent ce cookie tiers ; le jeton est donc aussi conservé côté client. Servir l'API sous le même domaine que le frontend (réécriture `/api`) permettrait de s'en passer.
+- **CORS strict** : seules les origines listées dans `FRONTEND_URL` peuvent faire des requêtes authentifiées.
+- **Protection contre les abus** : limitation des tentatives de connexion et de réinitialisation, jetons de réinitialisation stockés hachés et à durée limitée, réponse identique qu'un compte existe ou non.
+- **Compte démo partagé** : il ne peut pas être verrouillé par un visiteur (identifiants, paramètres et suppression bloqués) et ses données sont recréées chaque jour avec des dates relatives.
+- **RGPD** : export complet (JSON / CSV, cellules protégées contre l'injection de formules), suppression du compte avec ses fichiers, pages légales, consentement pour la mesure d'audience.
+- **Statuts sans enums Prisma** : les statuts sont des `String` validés par l'application, pour faire évoluer les valeurs sans migration ; les types TypeScript sont partagés entre front et back via `shared/types.d.ts`.
+
+## Tests et qualité
+
 ```bash
-npm run dev      # Démarrer en mode développement
-npm run build    # Compiler TypeScript
-npm run start    # Démarrer en production
-npm run seed     # Charger les données de test
+npm test
 ```
 
-### Frontend
-```bash
-npm run dev      # Démarrer en mode développement
-npm run build    # Build de production
-npm run preview  # Prévisualiser le build
-```
+- **Backend** : 61 tests (Vitest + Supertest) sur l'authentification, CORS, le contrôle d'appartenance, les documents, le compte démo, le cron et la réinitialisation du mot de passe.
+- **Frontend** : 150 tests (Vitest + Testing Library) sur la logique du Kanban, les rappels, les formulaires, les pages et les hooks.
+- **CI** (GitHub Actions) : à chaque PR, lint, typecheck, tests et build des deux packages, puis application des migrations sur un PostgreSQL réel avec vérification de leur cohérence avec le schéma, et exécution du seed.
 
-## 📊 API Endpoints
+## Déploiement (Vercel)
 
-### Authentification
-- `POST /api/auth/register` - Inscription
-- `POST /api/auth/login` - Connexion
-- `GET /api/auth/me` - Profil utilisateur
+1. Créer une base [Neon](https://neon.tech) et appliquer les migrations : `DATABASE_URL=… npm run db:deploy --prefix backend`.
+2. **Projet API** : racine `backend/`. Variables : celles du tableau ci-dessus, dont `NODE_ENV=production`. Ajouter un store **Blob privé** au projet pour obtenir `BLOB_READ_WRITE_TOKEN`. Le cron quotidien est déclaré dans `backend/vercel.json`.
+3. **Projet web** : racine `frontend/`, framework Vite, `VITE_API_URL=https://<api>.vercel.app/api`.
+4. Renseigner l'URL du projet web dans `FRONTEND_URL` côté API.
 
-### Candidatures
-- `GET /api/applications` - Liste des candidatures
-- `GET /api/applications/kanban` - Candidatures par statut
-- `POST /api/applications` - Créer une candidature
-- `GET /api/applications/:id` - Détail d'une candidature
-- `PUT /api/applications/:id` - Modifier une candidature
-- `DELETE /api/applications/:id` - Supprimer une candidature
+## Licence
 
-### Documents
-- `GET /api/documents` - Liste des documents
-- `POST /api/documents` - Uploader un document
-- `DELETE /api/documents/:id` - Supprimer un document
-
-### Rappels
-- `GET /api/reminders` - Liste des rappels
-- `POST /api/reminders` - Créer un rappel
-- `PUT /api/reminders/:id` - Modifier un rappel
-- `DELETE /api/reminders/:id` - Supprimer un rappel
-
-### Statistiques
-- `GET /api/analytics/dashboard` - Données du dashboard
-- `GET /api/analytics/stats` - Statistiques détaillées
-- `GET /api/analytics/timeline` - Évolution temporelle
-
-## 🔒 Sécurité
-
-- Authentification JWT avec refresh token
-- Passwords hashés avec bcrypt
-- Validation des entrées avec express-validator
-- CORS configuré
-- Rate limiting (à implémenter)
-
-## 📝 TODO
-
-- [ ] Tests unitaires et e2e
-- [ ] Notifications par email
-- [ ] Export PDF des candidatures
-- [ ] Mode sombre
-- [ ] PWA support
-- [ ] Déploiement Docker
-
-## 📄 Licence
-
-MIT
-
----
-
-Développé avec ❤️ pour les étudiants en recherche de stage/alternance
+[MIT](LICENSE) © Alexis de Lécluse
