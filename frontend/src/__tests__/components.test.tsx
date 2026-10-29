@@ -164,7 +164,7 @@ describe('Component: EmailVerificationBanner', () => {
 describe('Component: Footer', () => {
   it('renders modern footer with brand, operational status, and legal links', async () => {
     const { Footer } = await import('@/components/layout/Footer');
-    const { MemoryRouter } = await import('react-router-dom');
+    const { MemoryRouter } = await import('react-router');
 
     render(
       <MemoryRouter>

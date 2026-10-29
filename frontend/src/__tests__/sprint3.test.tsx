@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DocumentsPage } from '@/pages/Documents';
 import { InterviewPrepPage } from '@/pages/InterviewPrep';
@@ -73,7 +73,6 @@ describe('Sprint 3: Features & Integration Tests', () => {
           userId: 'u-1',
           name: 'CV Senior Fullstack 2026',
           fileName: 'cv_senior.pdf',
-          fileUrl: '/uploads/cv.pdf',
           mimeType: 'application/pdf',
           type: 'CV',
           fileSize: 204800,
@@ -88,7 +87,6 @@ describe('Sprint 3: Features & Integration Tests', () => {
           userId: 'u-1',
           name: 'CV Ancien 2024',
           fileName: 'cv_ancien.pdf',
-          fileUrl: '/uploads/cv_ancien.pdf',
           mimeType: 'application/pdf',
           type: 'CV',
           fileSize: 102400,

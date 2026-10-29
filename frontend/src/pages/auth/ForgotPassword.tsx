@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { ArrowLeft, KeyRound, Loader2, MailCheck } from 'lucide-react';
 import { LegalLinks } from '@/components/legal/LegalLinks';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Email invalide'),
+  email: z.email('Email invalide'),
 });
 
 type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;

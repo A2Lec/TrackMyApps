@@ -23,7 +23,7 @@ interface StartSessionData {
 export const interviewSimulationService = {
   async startSession(data: StartSessionData) {
     if (!genAI) {
-      throw createError('Clé API Gemini manquante. Veuillez configurer GEMINI_API_KEY dans le fichier .env du backend.', 500);
+      throw createError('Le simulateur d\'entretien IA n\'est pas configuré sur ce serveur (GEMINI_API_KEY manquante).', 503);
     }
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
@@ -101,20 +101,22 @@ export const interviewSimulationService = {
     const lmId = data.lmId || application.lmUsedId;
 
     if (cvId) {
-      const cvDoc = await prisma.document.findUnique({
-        where: { id: cvId },
+      const cvDoc = await prisma.document.findFirst({
+        where: { id: cvId, userId: data.userId },
+        omit: { fileUrl: false },
       });
-      if (cvDoc && cvDoc.userId === data.userId) {
+      if (cvDoc) {
         const cvText = await documentExtractionService.extractText(cvDoc.fileUrl, cvDoc.mimeType);
         contextText += `\n\nCV du candidat:\n${cvText}`;
       }
     }
 
     if (lmId) {
-      const lmDoc = await prisma.document.findUnique({
-        where: { id: lmId },
+      const lmDoc = await prisma.document.findFirst({
+        where: { id: lmId, userId: data.userId },
+        omit: { fileUrl: false },
       });
-      if (lmDoc && lmDoc.userId === data.userId) {
+      if (lmDoc) {
         const lmText = await documentExtractionService.extractText(lmDoc.fileUrl, lmDoc.mimeType);
         contextText += `\n\nLettre de motivation:\n${lmText}`;
       }
@@ -177,7 +179,7 @@ export const interviewSimulationService = {
         application: {
           include: {
             company: true,
-            cvUsed: true,
+            cvUsed: { omit: { fileUrl: false } },
             lmUsed: true,
           },
         },
@@ -242,7 +244,7 @@ export const interviewSimulationService = {
 
     // Re-initialize model to ensure consistency
     if (!genAI) {
-      throw createError('Clé API Gemini manquante', 500);
+      throw createError('Le simulateur d\'entretien IA n\'est pas configuré sur ce serveur (GEMINI_API_KEY manquante).', 503);
     }
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
@@ -268,7 +270,7 @@ export const interviewSimulationService = {
       };
     } catch (error) {
       console.error('Gemini API Error:', error);
-      throw createError("Erreur lors de la communication avec l'IA", 500);
+      throw createError("Erreur lors de la communication avec l'IA", 502);
     }
   },
 

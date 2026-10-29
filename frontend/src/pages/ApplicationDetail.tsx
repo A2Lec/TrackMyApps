@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams as useRouterParams, Link } from 'react-router-dom';
+import { useNavigate, useParams as useRouterParams, Link } from 'react-router';
 import { applicationsService } from '@/services/applications.service';
 import { documentsService } from '@/services/documents.service';
+import { openDocument } from '@/lib/documents';
 import { remindersService } from '@/services/reminders.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -638,14 +639,13 @@ export function ApplicationDetailPage() {
                         <div className="h-7 w-7 rounded-lg bg-secondary text-status-sent flex items-center justify-center flex-shrink-0 font-semibold text-[10px]">
                           CV
                         </div>
-                        <a
-                          href={documentsService.getViewUrl(application.cvUsed.id)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-semibold text-foreground truncate hover:text-primary hover:underline"
+                        <button
+                          type="button"
+                          onClick={() => openDocument(application.cvUsed!.id)}
+                          className="font-semibold text-foreground truncate text-left hover:text-primary hover:underline"
                         >
                           {application.cvUsed.name}
-                        </a>
+                        </button>
                       </div>
                       <Button
                         variant="ghost"
@@ -665,14 +665,13 @@ export function ApplicationDetailPage() {
                         <div className="h-7 w-7 rounded-lg bg-secondary text-status-interview flex items-center justify-center flex-shrink-0 font-semibold text-[10px]">
                           LM
                         </div>
-                        <a
-                          href={documentsService.getViewUrl(application.lmUsed.id)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-semibold text-foreground truncate hover:text-primary hover:underline"
+                        <button
+                          type="button"
+                          onClick={() => openDocument(application.lmUsed!.id)}
+                          className="font-semibold text-foreground truncate text-left hover:text-primary hover:underline"
                         >
                           {application.lmUsed.name}
-                        </a>
+                        </button>
                       </div>
                       <Button
                         variant="ghost"

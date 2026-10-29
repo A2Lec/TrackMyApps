@@ -50,7 +50,7 @@ import {
   Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router';
 import { applicationsService } from '@/services/applications.service';
 import { FollowUpTemplatesDialog } from '@/components/FollowUpTemplatesDialog';
 import { RemindersCalendarView } from '@/components/RemindersCalendarView';

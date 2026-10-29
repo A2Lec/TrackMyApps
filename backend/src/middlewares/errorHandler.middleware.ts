@@ -1,30 +1,37 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import multer from 'multer';
+import { logError } from '../utils/logger.js';
 
 export interface ApiError extends Error {
   statusCode: number;
-  errors?: any[];
+  errors?: unknown[];
 }
 
 export const errorHandler = (
   err: ApiError,
   req: Request,
   res: Response,
-  next: NextFunction
+  // Express only treats 4-argument middlewares as error handlers
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _next: NextFunction
 ) => {
-  console.error('Error:', err.message);
-
   let statusCode = err.statusCode || 500;
-  let message = err.message || 'Internal Server Error';
+  let message = err.message || 'Erreur interne du serveur';
 
-  // Upload errors (size limit, rejected file type) are client errors, not 500s
+  // Upload errors (size limit, unexpected field) are client errors, not 500s
   if (err instanceof multer.MulterError) {
     statusCode = 400;
     if (err.code === 'LIMIT_FILE_SIZE') {
       message = 'Fichier trop volumineux.';
     }
-  } else if (err.message?.startsWith('Format de fichier non autorisé')) {
-    statusCode = 400;
+  }
+
+  if (statusCode >= 500) {
+    logError(`${req.method} ${req.originalUrl}`, err, { context: 'ErrorHandler' });
+    // Unexpected errors may carry internal details (SQL, stack traces): never send them in production
+    if (statusCode === 500 && process.env.NODE_ENV === 'production') {
+      message = 'Erreur interne du serveur';
+    }
   }
 
   res.status(statusCode).json({
@@ -41,8 +48,10 @@ export const createError = (message: string, statusCode: number): ApiError => {
   return error;
 };
 
-export const asyncHandler = (fn: Function) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+type AsyncRequestHandler<Req extends Request> = (req: Req, res: Response, next: NextFunction) => Promise<unknown>;
+
+export const asyncHandler = <Req extends Request = Request>(fn: AsyncRequestHandler<Req>): RequestHandler => {
+  return (req, res, next) => {
+    Promise.resolve(fn(req as Req, res, next)).catch(next);
   };
 };

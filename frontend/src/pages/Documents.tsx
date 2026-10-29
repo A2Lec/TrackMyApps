@@ -1,5 +1,7 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
+import { openDocument } from '@/lib/documents';
+import { useAuthStore } from '@/store/authStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentsService } from '@/services/documents.service';
 import { Button } from '@/components/ui/button';
@@ -46,6 +48,8 @@ import type { Document as DocType, DocumentType } from '@/types';
 
 export function DocumentsPage() {
   const queryClient = useQueryClient();
+  // The shared demo account cannot store files
+  const isDemo = useAuthStore((state) => Boolean(state.user?.isDemo));
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<DocumentType | 'all'>('all');
   const [showUploadDialog, setShowUploadDialog] = useState(false);
@@ -186,6 +190,8 @@ export function DocumentsPage() {
               setShowUploadDialog(true);
             }}
             size="sm"
+            disabled={isDemo}
+            title={isDemo ? "L'import de documents est désactivé sur le compte de démonstration" : undefined}
             className="w-full sm:w-auto h-9 font-medium"
           >
             <Upload className="mr-1.5 h-4 w-4" />
@@ -292,10 +298,7 @@ export function DocumentsPage() {
                       <div className="min-w-0 flex-1">
                         <h3
                           className="text-sm font-semibold text-foreground truncate cursor-pointer group-hover:text-primary transition-colors"
-                          onClick={() => {
-                            const viewUrl = documentsService.getViewUrl(doc.id);
-                            window.open(viewUrl, '_blank');
-                          }}
+                          onClick={() => openDocument(doc.id)}
                           title={doc.name}
                         >
                           {doc.name}
@@ -315,10 +318,7 @@ export function DocumentsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => {
-                            const viewUrl = documentsService.getViewUrl(doc.id);
-                            window.open(viewUrl, '_blank');
-                          }}
+                          onClick={() => openDocument(doc.id)}
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           Aperçu
@@ -422,10 +422,7 @@ export function DocumentsPage() {
                       variant="ghost"
                       size="sm"
                       className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-                      onClick={() => {
-                        const viewUrl = documentsService.getViewUrl(doc.id);
-                        window.open(viewUrl, '_blank');
-                      }}
+                      onClick={() => openDocument(doc.id)}
                     >
                       <ExternalLink className="h-3 w-3 mr-1" />
                       Voir
@@ -447,6 +444,8 @@ export function DocumentsPage() {
           </p>
           <Button
             size="sm"
+            disabled={isDemo}
+            title={isDemo ? "L'import de documents est désactivé sur le compte de démonstration" : undefined}
             onClick={() => {
               setUploadData({ name: '', type: 'CV', file: null });
               setShowUploadDialog(true);

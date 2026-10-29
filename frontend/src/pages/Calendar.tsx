@@ -16,7 +16,7 @@ import {
   ExternalLink,
   Clock,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { formatDate, cn } from '@/lib/utils';
 import { StatusBadge } from '@/components/StatusBadge';
 import type { Reminder, Application, ApplicationStatus } from '@/types';

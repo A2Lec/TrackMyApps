@@ -64,7 +64,18 @@ describe('CORS configuration', () => {
     expect(res.headers['access-control-allow-origin']).toBe('https://myapp.vercel.app');
   });
 
-  it('should allow all origins when FRONTEND_URL is not set', async () => {
+  it('should allow the Vite dev server outside production when FRONTEND_URL is not set', async () => {
+    delete process.env.FRONTEND_URL;
+
+    const res = await request(app)
+      .options('/api/auth/login')
+      .set('Origin', 'http://localhost:5173')
+      .set('Access-Control-Request-Method', 'POST');
+
+    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+  });
+
+  it('should block unknown origins when FRONTEND_URL is not set', async () => {
     delete process.env.FRONTEND_URL;
 
     const res = await request(app)
@@ -72,10 +83,10 @@ describe('CORS configuration', () => {
       .set('Origin', 'https://anything.example.com')
       .set('Access-Control-Request-Method', 'POST');
 
-    expect(res.headers['access-control-allow-origin']).toBe('https://anything.example.com');
+    expect(res.headers['access-control-allow-origin']).toBeUndefined();
   });
 
-  it('should allow all origins when FRONTEND_URL is *', async () => {
+  it('should not treat FRONTEND_URL=* as a wildcard', async () => {
     process.env.FRONTEND_URL = '*';
 
     const res = await request(app)
@@ -83,7 +94,29 @@ describe('CORS configuration', () => {
       .set('Origin', 'https://anything.example.com')
       .set('Access-Control-Request-Method', 'POST');
 
-    expect(res.headers['access-control-allow-origin']).toBe('https://anything.example.com');
+    expect(res.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
+  it('should block look-alike Vercel deployments', async () => {
+    process.env.FRONTEND_URL = 'https://track-myapps.vercel.app';
+
+    const res = await request(app)
+      .options('/api/auth/login')
+      .set('Origin', 'https://trackmyapps-attacker.vercel.app')
+      .set('Access-Control-Request-Method', 'POST');
+
+    expect(res.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
+  it('should allow every origin of a comma-separated FRONTEND_URL', async () => {
+    process.env.FRONTEND_URL = 'https://a.example.com, "https://b.example.com/"';
+
+    const res = await request(app)
+      .options('/api/auth/login')
+      .set('Origin', 'https://b.example.com')
+      .set('Access-Control-Request-Method', 'POST');
+
+    expect(res.headers['access-control-allow-origin']).toBe('https://b.example.com');
   });
 
   it('should block requests from non-matching origins', async () => {

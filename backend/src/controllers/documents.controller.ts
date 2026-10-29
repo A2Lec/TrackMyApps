@@ -1,13 +1,29 @@
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
-import path from 'path';
-import fs from 'fs';
+import { pipeline } from 'stream/promises';
 import { documentService } from '../services/documents.service.js';
 import { storageService } from '../services/storage.service.js';
 import { asyncHandler, createError } from '../middlewares/errorHandler.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
 
-const isProduction = process.env.NODE_ENV === 'production';
+/**
+ * Stream a document to its owner. Files are never exposed through a public URL.
+ */
+async function sendDocument(req: AuthRequest, res: Response, disposition: 'inline' | 'attachment') {
+  const document = await documentService.getWithFileUrl(req.userId!, req.params.id);
+
+  let stream;
+  try {
+    stream = await storageService.openStream(document.fileUrl);
+  } catch {
+    throw createError('Fichier non trouvé sur le serveur', 404);
+  }
+
+  res.setHeader('Content-Type', document.mimeType);
+  res.setHeader('Content-Disposition', `${disposition}; filename*=UTF-8''${encodeURIComponent(document.fileName)}`);
+  res.setHeader('Cache-Control', 'private, no-store');
+  await pipeline(stream, res);
+}
 
 export const documentController = {
   getAll: asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -30,44 +46,11 @@ export const documentController = {
   }),
 
   view: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const document = await documentService.getById(req.userId!, req.params.id);
-
-    if (isProduction) {
-      // In production, redirect to Vercel Blob URL
-      res.redirect(document.fileUrl);
-    } else {
-      // In development, serve from local storage
-      const filePath = storageService.getLocalFilePath(document.fileUrl);
-
-      if (!fs.existsSync(filePath)) {
-        console.error('File not found at:', filePath);
-        throw createError('Fichier non trouvé sur le serveur', 404);
-      }
-
-      // Set headers to display inline in browser
-      res.setHeader('Content-Type', document.mimeType);
-      res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
-      res.sendFile(filePath);
-    }
+    await sendDocument(req, res, 'inline');
   }),
 
   download: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const document = await documentService.getById(req.userId!, req.params.id);
-
-    if (isProduction) {
-      // In production, redirect to Vercel Blob URL with download disposition
-      res.redirect(document.fileUrl);
-    } else {
-      // In development, serve from local storage
-      const filePath = storageService.getLocalFilePath(document.fileUrl);
-
-      if (!fs.existsSync(filePath)) {
-        console.error('File not found at:', filePath);
-        throw createError('Fichier non trouvé sur le serveur', 404);
-      }
-
-      res.download(filePath, document.fileName);
-    }
+    await sendDocument(req, res, 'attachment');
   }),
 
   upload: asyncHandler(async (req: AuthRequest, res: Response) => {

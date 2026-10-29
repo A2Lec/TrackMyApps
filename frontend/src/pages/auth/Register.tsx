@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { strongPasswordSchema } from '@/schemas/password';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/authStore';
@@ -20,7 +20,7 @@ import { LegalLinks } from '@/components/legal/LegalLinks';
 import { LEGAL } from '@/lib/legal';
 
 const registerSchema = z.object({
-  email: z.string().email('Email invalide'),
+  email: z.email('Email invalide'),
   password: strongPasswordSchema,
   confirmPassword: z.string(),
   firstName: z.string().min(1, 'Prénom requis'),

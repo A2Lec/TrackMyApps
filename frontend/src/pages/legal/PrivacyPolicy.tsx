@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { LegalPage, LegalTable, type LegalSection } from '@/components/legal/LegalPage';
 import { LEGAL } from '@/lib/legal';
 import { openCookieSettings } from '@/lib/cookieConsent';
@@ -230,8 +230,8 @@ const sections: LegalSection[] = [
           <li>Accès aux données de chaque compte strictement limité à son titulaire ; limitation des tentatives de connexion.</li>
         </ul>
         <p>
-          Les documents déposés sont accessibles par une adresse longue et aléatoire, impossible à deviner : ne la
-          partagez pas, car toute personne qui la connaît peut ouvrir le fichier.
+          Les documents déposés sont stockés de façon privée : ils ne sont transmis qu'au titulaire du compte, une
+          fois connecté, et ne sont jamais accessibles par une adresse publique.
         </p>
       </>
     ),

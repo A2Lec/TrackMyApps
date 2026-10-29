@@ -1,4 +1,5 @@
 import api from './api';
+import { saveBlob } from '@/lib/download';
 import type { Document, DocumentType } from '@/types';
 
 export const documentsService = {
@@ -32,24 +33,34 @@ export const documentsService = {
     return response.data;
   },
 
-  getViewUrl(id: string): string {
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    return `${baseUrl}/documents/view/${id}`;
+  /**
+   * Open a document in a new tab. Files are only served to their owner through
+   * the authenticated API, so the tab shows a local copy (object URL).
+   */
+  async open(id: string): Promise<void> {
+    // Opened synchronously, before the request, so popup blockers allow it
+    const tab = window.open('', '_blank');
+    try {
+      const response = await api.get<Blob>(`/documents/view/${id}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(response.data);
+      if (tab) {
+        tab.location.href = url;
+      } else {
+        window.location.assign(url);
+      }
+      setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+      tab?.close();
+      throw error;
+    }
   },
 
   async download(id: string, fileName: string): Promise<void> {
-    const response = await api.get(`/documents/download/${id}`, {
+    const response = await api.get<Blob>(`/documents/download/${id}`, {
       responseType: 'blob',
     });
-    
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', fileName);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
+
+    saveBlob(response.data, fileName);
   },
 
   async delete(id: string): Promise<void> {

@@ -3,69 +3,22 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import routes from './routes/index.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { globalLimiter } from './middlewares/rateLimit.middleware.js';
 import { logInfo } from './utils/logger.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { corsOptions } from './config/cors.js';
 
 const app = express();
 
 // Trust proxy for Vercel
 app.set('trust proxy', 1);
 
-// CORS configuration
-const defaultAllowedOrigins = [
-  'https://track-myapps.vercel.app',
-  'https://trackmyapps.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://localhost:5000',
-  'http://127.0.0.1:5173',
-];
-
-const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    const raw = process.env.FRONTEND_URL;
-    if (!origin || !raw || raw === '*') {
-      callback(null, true);
-      return;
-    }
-
-    const incoming = origin.replace(/\/+$/, '').toLowerCase();
-    const allowed = [...defaultAllowedOrigins];
-
-    const envUrls = raw.split(',').map((u) =>
-      u.trim().replace(/^['"]|['"]$/g, '').replace(/\/+$/, '').toLowerCase()
-    );
-    allowed.push(...envUrls);
-
-    const isAllowed =
-      allowed.includes(incoming) ||
-      /^https:\/\/track-?my-?apps.*\.vercel\.app$/.test(incoming);
-
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      logInfo(`CORS blocked origin: ${origin} (allowed: ${raw})`, { context: 'CORS' });
-      callback(null, false);
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Origin'],
-  optionsSuccessStatus: 200,
-};
-
+// CORS: only the origins listed in FRONTEND_URL (see config/cors.ts)
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 // Security headers
-// @ts-ignore
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   crossOriginOpenerPolicy: false,
@@ -76,8 +29,6 @@ app.use(compression());
 
 // Cookie parser
 app.use(cookieParser());
-
-// Preflight is handled by the cors middleware above (preflightContinue: false by default)
 
 // Body parsing
 app.use(express.json());
@@ -95,25 +46,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve uploaded files
-// WARNING: In Vercel (serverless), /tmp is ephemeral. Files will not persist across restarts.
-// For production, consider using an external storage service like AWS S3 or Vercel Blob.
-const uploadDir = process.env.UPLOAD_DIR || (process.env.NODE_ENV === 'production' ? '/tmp' : './uploads');
-app.use('/uploads', express.static(path.resolve(uploadDir)));
-
 // Health check at root
 app.get('/', (req, res) => {
-  try {
-    res.json({ 
-      status: 'ok', 
-      message: 'TrackMyApps API is running',
-      env: process.env.NODE_ENV,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Root route error:', error);
-    res.status(500).json({ status: 'error', message: 'Internal server error' });
-  }
+  res.json({ status: 'ok', message: 'TrackMyApps API is running' });
 });
 
 // Favicon
@@ -123,10 +58,6 @@ app.get('/favicon.ico', (req, res) => {
 
 // API routes
 app.use('/api', routes);
-app.use('/', routes); // Fallback for requests without /api prefix
-
-// Error handling
-app.use(errorHandler);
 
 // 404 handler
 app.use((req, res) => {
@@ -135,5 +66,8 @@ app.use((req, res) => {
     message: 'Route non trouvée',
   });
 });
+
+// Error handling
+app.use(errorHandler);
 
 export default app;

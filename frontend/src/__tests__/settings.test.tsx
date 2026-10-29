@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SettingsPage } from '@/pages/Settings';
 import { authService } from '@/services/auth.service';
@@ -114,5 +114,16 @@ describe('Page: SettingsPage', () => {
         })
       );
     });
+  });
+
+  it('makes the shared demo account read-only', () => {
+    useAuthStore.setState({ user: { ...mockUser, isDemo: true } });
+    renderWithProviders(<SettingsPage />);
+
+    expect(screen.getByText(/compte de démonstration/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Enregistrer le profil/i })).toBeDisabled();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Compte & Sécurité/i })[0]);
+    expect(screen.getByRole('button', { name: /Supprimer mon compte/i })).toBeDisabled();
   });
 });

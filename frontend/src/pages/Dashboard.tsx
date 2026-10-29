@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { analyticsService } from '@/services/analytics.service';
 import { remindersService } from '@/services/reminders.service';
 import { applicationsService } from '@/services/applications.service';

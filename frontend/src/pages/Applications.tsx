@@ -92,7 +92,7 @@ import {
   resolveDropStatus,
 } from '@/lib/kanban';
 import type { Application, ApplicationStatus, JobType, KanbanColumns } from '@/types';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { ApplicationForm } from '@/components/ApplicationForm';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
