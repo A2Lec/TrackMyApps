@@ -11,7 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, '../shared'),
+      '@domain': path.resolve(__dirname, '../backend/src/types/domain.ts'),
     },
   },
   server: {

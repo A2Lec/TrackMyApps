@@ -8,7 +8,7 @@ export type {
   EventType,
   DocumentType,
   ReminderType,
-} from '../../../shared/types.js';
+} from './domain.js';
 
 export interface ApiResponse<T = unknown> {
   success: boolean;

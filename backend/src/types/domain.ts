@@ -1,7 +1,7 @@
 /**
- * Domain enums shared by the frontend and the backend.
- * Type declarations only: nothing here exists at runtime, so both packages
- * import it with `import type` and build/deploy independently.
+ * Domain enums, shared with the frontend (imported there through the
+ * `@domain` alias). Types only: the frontend reads this file at build time,
+ * nothing here may exist at runtime.
  */
 
 export type ApplicationStatus =

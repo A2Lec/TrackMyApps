@@ -1,4 +1,4 @@
-import type { ApplicationStatus, JobType, EventType, DocumentType, ReminderType } from '@shared/types';
+import type { ApplicationStatus, JobType, EventType, DocumentType, ReminderType } from '@domain';
 
 export interface User {
   id: string;

@@ -190,7 +190,6 @@ TrackMyApps/
 │   ├── services/             # Client API (Axios)
 │   ├── hooks/ · lib/ · store/
 │   └── __tests__/            # Vitest + Testing Library
-├── shared/types.d.ts         # Enums métier partagés (types uniquement)
 ├── docker-compose.yml        # PostgreSQL local
 └── scripts/setup.mjs         # Installation en une commande
 ```
@@ -204,7 +203,7 @@ TrackMyApps/
 - **Protection contre les abus** : limitation des tentatives de connexion et de réinitialisation, jetons de réinitialisation stockés hachés et à durée limitée, réponse identique qu'un compte existe ou non.
 - **Compte démo partagé** : il ne peut pas être verrouillé par un visiteur (identifiants, paramètres et suppression bloqués) et ses données sont recréées chaque jour avec des dates relatives.
 - **RGPD** : export complet (JSON / CSV, cellules protégées contre l'injection de formules), suppression du compte avec ses fichiers, pages légales, consentement pour la mesure d'audience.
-- **Statuts sans enums Prisma** : les statuts sont des `String` validés par l'application, pour faire évoluer les valeurs sans migration ; les types TypeScript sont partagés entre front et back via `shared/types.d.ts`.
+- **Statuts sans enums Prisma** : les statuts sont des `String` validés par l'application, pour faire évoluer les valeurs sans migration ; les types TypeScript sont partagés entre front et back via `backend/src/types/domain.ts` (types uniquement, importés par le frontend avec l'alias `@domain`).
 
 ## Tests et qualité
 

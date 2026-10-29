@@ -31,7 +31,7 @@ TrackMyApps is a SaaS for students to track job applications (internships, alter
 
 Two independent packages (`frontend/`, `backend/`), each with its own `package.json` and lockfile; the root `package.json` only holds orchestration scripts. Node 22 (`.nvmrc`).
 
-`shared/types.d.ts` holds the domain enums (ApplicationStatus, JobType, EventType, DocumentType, ReminderType) as **type declarations only**: both packages import it with `import type`, so nothing from outside a package is needed at runtime or deploy time. Do not put runtime values there.
+`backend/src/types/domain.ts` holds the domain enums (ApplicationStatus, JobType, EventType, DocumentType, ReminderType) as **types only**. The backend stays self-contained (its Vercel project builds from `backend/` alone); the frontend imports them with `import type ... from '@domain'`. Do not put runtime values there.
 
 ### Backend
 - **Runtime**: Express, TypeScript ESM (`"type": "module"`, `.js` extensions in local imports)
@@ -54,7 +54,7 @@ Two independent packages (`frontend/`, `backend/`), each with its own `package.j
 - API client `services/api.ts`: unwraps `{ success, data }`, logs out on 401. Use `getErrorMessage(error, fallback)` from `lib/errors.ts` for toasts.
 - Components grouped by domain: `components/applications/`, `interview/`, `reminders/`, `application-detail/`. Pure logic lives in `lib/` (kanban, reminders, journal, calendar export) and is unit-tested.
 - Follow the React Compiler lint rules: no synchronous `setState` in effects (derive during render or adjust state while rendering), no impure calls (`Date.now()`) in render.
-- Path alias `@/` → `src/`, `@shared/` → `../shared/`
+- Path alias `@/` → `src/`, `@domain` → `../backend/src/types/domain.ts`
 
 ### Domain notes
 - Statuses/types are plain `String` columns validated in application code (no Prisma enums). French labels: `frontend/src/constants/labels.ts`.
