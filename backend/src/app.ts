@@ -8,7 +8,7 @@ import routes from './routes/index.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { globalLimiter } from './middlewares/rateLimit.middleware.js';
 import { logInfo } from './utils/logger.js';
-import { corsOptions } from './config/cors.js';
+import { corsOptions, rejectForeignOrigins } from './config/cors.js';
 
 // helmet only ships CommonJS-flavoured types: depending on the TypeScript setup (Vercel's Express
 // preset type-checks differently from tsc), its default export is typed as the function or as the
@@ -26,6 +26,7 @@ app.set('trust proxy', 1);
 // CORS: only the origins listed in FRONTEND_URL (see config/cors.ts)
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+app.use(rejectForeignOrigins);
 
 // Security headers
 app.use(helmet({

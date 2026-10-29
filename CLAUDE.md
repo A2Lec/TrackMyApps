@@ -39,13 +39,13 @@ Two independent packages (`frontend/`, `backend/`), each with its own `package.j
 - **ORM**: Prisma 6, PostgreSQL. Config in `prisma.config.ts` (loads `.env`, declares the seed). `config/database.ts` sets a global `omit` on `Document.fileUrl`: storage keys never reach clients; opt back in with `omit: { fileUrl: false }` only where the file is read or deleted.
 - **Auth**: JWT via Bearer header or `token` cookie (`middlewares/auth.middleware.ts`, `AuthRequest.userId`). Write routes also require a verified email (`emailVerification.middleware.ts`).
 - **Ownership**: every query is scoped by `userId`; IDs coming from the client (company, documents, application) are checked before being linked. Keep it that way (see `__tests__/ownership.test.ts`).
-- **CORS** (`config/cors.ts`): only the comma-separated origins of `FRONTEND_URL` (+ localhost:5173 outside production). Cookies are `SameSite=None`, so never widen this.
+- **CORS** (`config/cors.ts`): only the comma-separated origins of `FRONTEND_URL` (+ localhost:5173 outside production). Cookies are `SameSite=None`, so never widen this. `rejectForeignOrigins` (same file) refuses non-GET requests whose `Origin` is not listed (CSRF guard).
 - **Demo account** (`DEMO_USER_EMAIL`): `blockDemoAccount` middleware refuses credential/settings changes, account deletion and document writes; `services/demo.service.ts` reseeds it (seed + daily cron).
 - **Storage** (`services/storage.service.ts`): private Vercel Blob when `BLOB_STORE_ID` (OIDC, set by connecting the store to the Vercel project) or `BLOB_READ_WRITE_TOKEN` is set, local `UPLOAD_DIR` otherwise. Files are streamed by `/documents/view|download/:id`.
 - **Errors**: throw `createError(message, status)`; wrap async handlers with `asyncHandler`. 500 messages are hidden in production.
 - **Logging**: `logInfo/logWarn/logError/logDebug` from `utils/logger.ts` (info/debug silenced in production). No `console.*` in `src/` except scripts.
 - **Deployment**: `api/index.ts` is the Vercel function; `vercel.json` rewrites everything to it and declares the cron (`/api/cron/reminders`, 9 AM, authenticated by `CRON_SECRET`). Outside Vercel, `src/server.ts` listens.
-- **AI**: `services/interviewSimulation.service.ts` (`GEMINI_MODEL`, default `gemini-2.5-flash`). Missing key → 503, Gemini failure → 502.
+- **AI**: `services/interviewSimulation.service.ts` (`GEMINI_MODEL`, default `gemini-2.5-flash`). Missing key → 503, Gemini failure → 502. Routes require a verified email, `aiLimiter` (per user) and bounded inputs: every call is billed.
 
 ### Frontend
 - React 18, TypeScript, Vite 8, React Router 7 (import from `react-router`), lazy-loaded pages, `ProtectedRoute`/`PublicRoute` in `App.tsx`
@@ -53,6 +53,7 @@ Two independent packages (`frontend/`, `backend/`), each with its own `package.j
 - State: Zustand (`store/authStore.ts`, `store/uiStore.ts`); server data with TanStack Query
 - API client `services/api.ts`: unwraps `{ success, data }`, logs out on 401. Use `getErrorMessage(error, fallback)` from `lib/errors.ts` for toasts.
 - Components grouped by domain: `components/applications/`, `interview/`, `reminders/`, `application-detail/`. Pure logic lives in `lib/` (kanban, reminders, journal, calendar export) and is unit-tested.
+- User-entered links go through `isSafeUrl` (`lib/utils.ts`) before being rendered as `href` (React 18 runs `javascript:` URLs).
 - Follow the React Compiler lint rules: no synchronous `setState` in effects (derive during render or adjust state while rendering), no impure calls (`Date.now()`) in render.
 - Path alias `@/` → `src/`, `@domain` → `../backend/src/types/domain.ts`
 

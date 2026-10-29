@@ -126,3 +126,27 @@ export const resetPasswordValidation = [
     .withMessage('Lien de réinitialisation invalide'),
   strongPassword('password'),
 ];
+
+// A non-string token (e.g. {"not": ""}) would turn into a Prisma filter matching any user
+export const verifyEmailValidation = [
+  body('token')
+    .isString()
+    .notEmpty()
+    .withMessage('Token requis'),
+];
+
+// Bounded inputs: everything sent to the simulator ends up in a (billed) Gemini prompt
+export const interviewStartValidation = [
+  body('interviewerType').isIn(['HR', 'MANAGER', 'TECHNICAL', 'CTO']).withMessage("Type d'interlocuteur invalide"),
+  body('difficulty').isIn(['EASY', 'MEDIUM', 'HARD']).withMessage('Difficulté invalide'),
+  body(['applicationId', 'cvId', 'lmId']).optional({ values: 'falsy' }).isUUID().withMessage('ID invalide'),
+  body(['targetRole', 'contractType']).optional({ values: 'null' }).isString().isLength({ max: 200 })
+    .withMessage('Champ trop long (200 caractères max)'),
+  body('jobDescription').optional({ values: 'null' }).isString().isLength({ max: 10000 })
+    .withMessage('Description du poste trop longue (10 000 caractères max)'),
+];
+
+export const interviewMessageValidation = [
+  body('message').isString().trim().notEmpty().isLength({ max: 4000 })
+    .withMessage('Message invalide (4 000 caractères max)'),
+];
