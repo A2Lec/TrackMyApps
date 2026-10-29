@@ -1,3 +1,9 @@
+/**
+ * Domain enums shared by the frontend and the backend.
+ * Type declarations only: nothing here exists at runtime, so both packages
+ * import it with `import type` and build/deploy independently.
+ */
+
 export type ApplicationStatus =
   | 'DRAFT'
   | 'SENT'

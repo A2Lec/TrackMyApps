@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 import type { ApiResponse } from '../types/index.js';
@@ -6,7 +6,7 @@ import type { ApiResponse } from '../types/index.js';
 /**
  * Validate request and throw error if validation fails
  */
-export function validateRequest(req: any): void {
+export function validateRequest(req: Request): void {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     throw createError(errors.array()[0].msg, 400);
@@ -36,17 +36,6 @@ export function sendSuccessMessage(res: Response, message: string, statusCode: n
 }
 
 /**
- * Send error response
- */
-export function sendError(res: Response, message: string, statusCode: number = 500): Response {
-  const response: ApiResponse = {
-    success: false,
-    error: message,
-  };
-  return res.status(statusCode).json(response);
-}
-
-/**
  * Parse integer from string with default value
  */
 export function parseIntOrDefault(value: string | undefined, defaultValue: number): number {
@@ -64,18 +53,3 @@ export function parseBoolean(value: string | boolean | undefined): boolean {
   return false;
 }
 
-/**
- * Format date to ISO string or return undefined
- */
-export function formatDateOrUndefined(date: Date | string | undefined): string | undefined {
-  if (!date) return undefined;
-  return new Date(date).toISOString();
-}
-
-/**
- * Sanitize search query
- */
-export function sanitizeSearch(search: string | undefined): string | undefined {
-  if (!search) return undefined;
-  return search.trim();
-}

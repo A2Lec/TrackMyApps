@@ -1,8 +1,9 @@
 import { Prisma } from '@prisma/client';
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
-import type { ApplicationStatus, JobType, EventType } from '../types/index.js';
+import type { ApplicationStatus, JobType } from '../types/index.js';
 import { excludePracticeMode } from '../utils/practiceMode.js';
+import { logWarn } from '../utils/logger.js';
 
 interface CreateApplicationData {
   companyName: string;
@@ -190,7 +191,7 @@ export const applicationService = {
               precomputedWebsite = url.origin;
             }
           }
-        } catch (e) {
+        } catch {
           // Invalid URL, ignore
         }
       }
@@ -207,7 +208,7 @@ export const applicationService = {
           clearTimeout(timeoutId);
 
           if (response.ok) {
-            const suggestions = await response.json() as any[];
+            const suggestions = await response.json() as { name: string; domain: string }[];
             // Check if we got results and if the first result name is similar enough to the requested name
             if (suggestions && suggestions.length > 0) {
               const suggestion = suggestions[0];
@@ -230,7 +231,7 @@ export const applicationService = {
             }
           }
         } catch (error) {
-          console.error('Error fetching company website from Clearbit:', error);
+          logWarn('Could not fetch the company website from Clearbit', { context: 'Applications', data: error });
           // Continue without website if API fails
         }
       }

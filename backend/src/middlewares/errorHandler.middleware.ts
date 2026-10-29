@@ -12,7 +12,6 @@ export const errorHandler = (
   req: Request,
   res: Response,
   // Express only treats 4-argument middlewares as error handlers
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction
 ) => {
   let statusCode = err.statusCode || 500;

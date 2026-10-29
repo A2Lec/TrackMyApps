@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 
@@ -28,7 +29,7 @@ export const companyService = {
       return [];
     }
 
-    const where: any = { userId };
+    const where: Prisma.CompanyWhereInput = { userId };
     
     if (search) {
       where.OR = [

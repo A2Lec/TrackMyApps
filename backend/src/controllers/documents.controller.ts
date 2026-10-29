@@ -28,7 +28,7 @@ async function sendDocument(req: AuthRequest, res: Response, disposition: 'inlin
 export const documentController = {
   getAll: asyncHandler(async (req: AuthRequest, res: Response) => {
     const { type } = req.query;
-    const documents = await documentService.getAll(req.userId!, type as any);
+    const documents = await documentService.getAll(req.userId!, typeof type === 'string' ? type : undefined);
 
     res.json({
       success: true,

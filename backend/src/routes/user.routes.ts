@@ -1,14 +1,10 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import { blockDemoAccount } from '../middlewares/demo.middleware.js';
-import { exportUserData, deleteUserAccount } from '../controllers/user.controller.js';
+import { exportUserData } from '../controllers/user.controller.js';
 
 const router = Router();
 
-// Export user data (GDPR Article 15)
+// Export user data (GDPR Articles 15 and 20). Account deletion: DELETE /auth/account
 router.get('/export', authMiddleware, exportUserData);
-
-// Delete user account (GDPR Article 17)
-router.delete('/account', authMiddleware, blockDemoAccount, deleteUserAccount);
 
 export default router;

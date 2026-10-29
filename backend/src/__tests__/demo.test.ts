@@ -41,7 +41,6 @@ describe('Demo account protection', () => {
     ['put', '/api/auth/profile'],
     ['put', '/api/auth/preferences'],
     ['delete', '/api/auth/account'],
-    ['delete', '/api/user/account'],
     ['post', '/api/documents'],
     ['delete', '/api/documents/doc-1'],
   ] as const)('refuses %s %s', async (method, path) => {

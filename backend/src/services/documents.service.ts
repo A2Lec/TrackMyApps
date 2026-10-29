@@ -3,9 +3,6 @@ import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 import { storageService } from './storage.service.js';
 
-// Status/type columns are plain strings (no Prisma enums)
-type DocumentType = 'CV' | 'LETTRE_MOTIVATION' | 'COVER_LETTER' | 'PORTFOLIO' | 'OTHER';
-
 interface CreateDocumentData {
   name: string;
   type: string;
@@ -18,7 +15,7 @@ interface CreateDocumentData {
 }
 
 export const documentService = {
-  async getAll(userId: string, type?: DocumentType) {
+  async getAll(userId: string, type?: string) {
     const where: Prisma.DocumentWhereInput = { userId };
     if (type) {
       if (type === 'COVER_LETTER' || type === 'LETTRE_MOTIVATION') {

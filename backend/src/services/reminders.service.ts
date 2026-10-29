@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 
@@ -22,7 +23,7 @@ function pickReminderFields(data: Partial<CreateReminderData & { isCompleted: bo
 
 export const reminderService = {
   async getAll(userId: string, includeCompleted = false) {
-    const where: any = { userId };
+    const where: Prisma.ReminderWhereInput = { userId };
     if (!includeCompleted) {
       where.isCompleted = false;
     }
@@ -144,7 +145,7 @@ export const reminderService = {
       }
     }
 
-    const updateData: any = pickReminderFields(data);
+    const updateData: Prisma.ReminderUncheckedUpdateInput = pickReminderFields(data);
     if (data.dueDate) {
       updateData.emailSent = false;
     }

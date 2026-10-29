@@ -1,4 +1,4 @@
-import { body, param, query } from 'express-validator';
+import { body, param } from 'express-validator';
 
 const strongPassword = (field: string) =>
   body(field)

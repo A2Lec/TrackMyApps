@@ -6,7 +6,7 @@ type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
 interface LogOptions {
   context?: string;
-  data?: any;
+  data?: unknown;
 }
 
 class Logger {
@@ -48,7 +48,7 @@ class Logger {
     }
   }
 
-  error(message: string, error?: Error | any, options?: LogOptions): void {
+  error(message: string, error?: unknown, options?: LogOptions): void {
     if (this.shouldLog('error')) {
       console.error(this.formatMessage('error', message, options));
       if (error) {
@@ -80,5 +80,5 @@ export const logger = new Logger();
 // Convenience exports
 export const logInfo = (message: string, options?: LogOptions) => logger.info(message, options);
 export const logWarn = (message: string, options?: LogOptions) => logger.warn(message, options);
-export const logError = (message: string, error?: Error | any, options?: LogOptions) => logger.error(message, error, options);
+export const logError = (message: string, error?: unknown, options?: LogOptions) => logger.error(message, error, options);
 export const logDebug = (message: string, options?: LogOptions) => logger.debug(message, options);
