@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, Eye, EyeOff, KeyRound, Loader2, XCircle } from 'lucide-react';
 import { LegalLinks } from '@/components/legal/LegalLinks';
+import { getErrorMessage } from '@/lib/errors';
 
 const resetPasswordSchema = z.object({
   password: strongPasswordSchema,
@@ -39,8 +40,8 @@ export function ResetPasswordPage() {
 
   const resetMutation = useMutation({
     mutationFn: (data: ResetPasswordForm) => authService.resetPassword(token!, data.password),
-    onError: (error: any) => {
-      setError(error.response?.data?.message || 'Erreur lors de la réinitialisation du mot de passe');
+    onError: (error) => {
+      setError(getErrorMessage(error, 'Erreur lors de la réinitialisation du mot de passe'));
     },
   });
 

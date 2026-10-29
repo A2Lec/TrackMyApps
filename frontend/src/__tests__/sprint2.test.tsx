@@ -258,7 +258,7 @@ describe('Sprint 2: Décloisonnement des Rappels & Workflow Candidature 360°', 
           expect.objectContaining({
             applicationId: 'app-sprint2',
             title: 'Relancer Stripe France à J+7',
-            type: 'RELANCE',
+            type: 'FOLLOW_UP',
           })
         );
       });
@@ -272,7 +272,7 @@ describe('Sprint 2: Décloisonnement des Rappels & Workflow Candidature 360°', 
           id: 'rem-sprint2-1',
           userId: 'user-1',
           title: 'Relancer Qonto',
-          type: 'RELANCE',
+          type: 'FOLLOW_UP',
           dueDate: new Date().toISOString(),
           isCompleted: false,
           createdAt: new Date().toISOString(),

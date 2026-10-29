@@ -18,10 +18,10 @@ interface SpeechRecognitionInstance extends EventTarget {
   start: () => void;
   stop: () => void;
   abort: () => void;
-  onstart: ((this: SpeechRecognitionInstance, ev: Event) => any) | null;
-  onend: ((this: SpeechRecognitionInstance, ev: Event) => any) | null;
-  onerror: ((this: SpeechRecognitionInstance, ev: SpeechRecognitionErrorEvent) => any) | null;
-  onresult: ((this: SpeechRecognitionInstance, ev: SpeechRecognitionEvent) => any) | null;
+  onstart: ((this: SpeechRecognitionInstance, ev: Event) => void) | null;
+  onend: ((this: SpeechRecognitionInstance, ev: Event) => void) | null;
+  onerror: ((this: SpeechRecognitionInstance, ev: SpeechRecognitionErrorEvent) => void) | null;
+  onresult: ((this: SpeechRecognitionInstance, ev: SpeechRecognitionEvent) => void) | null;
 }
 
 declare global {
@@ -118,8 +118,8 @@ export function useSpeechRecognition() {
       recognitionRef.current.start();
       setIsListening(true);
       setError(null);
-    } catch (err: any) {
-      console.warn('SpeechRecognition start error:', err);
+    } catch {
+      // Already started: the browser throws InvalidStateError
     }
   }, [isListening]);
 
@@ -128,8 +128,8 @@ export function useSpeechRecognition() {
     try {
       recognitionRef.current.stop();
       setIsListening(false);
-    } catch (err: any) {
-      console.warn('SpeechRecognition stop error:', err);
+    } catch {
+      // Already stopped
     }
     return transcriptRef.current;
   }, [isListening]);
@@ -250,8 +250,8 @@ export function useSpeechSynthesis() {
         // Strip markdown links [title](url) -> title
         .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
         // Strip list bullets and numbered prefixes at start of line
-        .replace(/^\s*[\*\-\+]\s+/gm, '')
-        .replace(/^\s*\d+[\.\)]\s+/gm, '')
+        .replace(/^\s*[*\-+]\s+/gm, '')
+        .replace(/^\s*\d+[.)]\s+/gm, '')
         // Strip blockquotes
         .replace(/^\s*>\s*/gm, '')
         // Convert French & Tech abbreviations into spoken form

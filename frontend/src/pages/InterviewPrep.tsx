@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -52,7 +52,7 @@ import {
 import { cn } from '@/lib/utils';
 import api from '@/services/api';
 import { applicationsService } from '@/services/applications.service';
-import { InterviewSimulation } from '@/components/InterviewSimulation';
+import { InterviewSimulation } from '@/components/interview/InterviewSimulation';
 import type { InterviewPrep } from '@/types';
 import { toast } from 'sonner';
 
@@ -122,16 +122,16 @@ export function InterviewPrepPage() {
     isFavorite: false,
   });
 
-  useEffect(() => {
+  // Follow links that change the query params while the page is open
+  const [shownParams, setShownParams] = useState({ tabParam, appParam });
+  if (shownParams.tabParam !== tabParam || shownParams.appParam !== appParam) {
+    setShownParams({ tabParam, appParam });
     if (tabParam) setActiveTab(tabParam);
-  }, [tabParam]);
-
-  useEffect(() => {
     if (appParam) {
       setSelectedApplicationId(appParam);
       setSimulationMode('application');
     }
-  }, [appParam]);
+  }
 
   const { data: questions, isLoading: isLoadingQuestions } = useQuery({
     queryKey: ['interview-prep'],

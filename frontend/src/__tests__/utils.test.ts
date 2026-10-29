@@ -23,7 +23,8 @@ describe('Utility: cn (Classnames & Tailwind Merge)', () => {
   });
 
   it('should handle falsy and conditional values', () => {
-    expect(cn('btn', false && 'btn-primary', null, undefined, 'btn-large')).toBe('btn btn-large');
+    const isPrimary = false;
+    expect(cn('btn', isPrimary && 'btn-primary', null, undefined, 'btn-large')).toBe('btn btn-large');
   });
 
   it('should resolve Tailwind class conflicts with priority to the latter', () => {

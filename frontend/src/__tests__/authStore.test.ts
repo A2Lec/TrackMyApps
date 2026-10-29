@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAuthStore } from '@/store/authStore';
-import { useEmailVerified } from '@/components/EmailVerifiedGuard';
+import { useEmailVerified } from '@/hooks/useEmailVerified';
 import type { User } from '@/types';
 
 const mockUser: User = {

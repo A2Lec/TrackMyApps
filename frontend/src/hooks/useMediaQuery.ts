@@ -1,37 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 
 /**
- * Custom hook to detect media query matches with SSR/hydration safety.
+ * Whether a CSS media query currently matches, kept in sync with viewport changes.
  * @param query CSS media query string, e.g. '(min-width: 768px)'
- * @returns boolean indicating whether the media query currently matches
  */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia(query).matches;
-    }
-    return false;
-  });
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const mediaQueryList = window.matchMedia(query);
+      mediaQueryList.addEventListener('change', onChange);
+      return () => mediaQueryList.removeEventListener('change', onChange);
+    },
+    [query]
+  );
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const mediaQueryList = window.matchMedia(query);
-    const updateMatches = (e: MediaQueryListEvent) => {
-      setMatches(e.matches);
-    };
-
-    setMatches(mediaQueryList.matches);
-
-    if (mediaQueryList.addEventListener) {
-      mediaQueryList.addEventListener('change', updateMatches);
-      return () => mediaQueryList.removeEventListener('change', updateMatches);
-    } else {
-      // Fallback for older browsers
-      mediaQueryList.addListener(updateMatches);
-      return () => mediaQueryList.removeListener(updateMatches);
-    }
-  }, [query]);
-
-  return matches;
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false
+  );
 }

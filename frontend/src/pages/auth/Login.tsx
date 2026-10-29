@@ -16,6 +16,7 @@ import { SlowServerHint, SLOW_LOADING_DELAY_MS } from '@/components/loading/Slow
 import { prefetchPages } from '@/lib/pageLoaders';
 import { BrandLogo } from '@/components/BrandLogo';
 import { LegalLinks } from '@/components/legal/LegalLinks';
+import { getErrorMessage } from '@/lib/errors';
 
 const loginSchema = z.object({
   email: z.email('Email invalide'),
@@ -50,8 +51,8 @@ export function LoginPage() {
       setAuth(data.user, data.token);
       navigate('/');
     },
-    onError: (error: any) => {
-      setError(error.response?.data?.message || 'Identifiants invalides');
+    onError: (error) => {
+      setError(getErrorMessage(error, 'Identifiants invalides'));
     },
   });
 

@@ -69,6 +69,35 @@ const TYPE_ICONS: Record<ExchangeType, React.ComponentType<{ className?: string 
   OTHER: MessageSquare,
 };
 
+interface ExchangeFormData {
+  date: string;
+  type: ExchangeType;
+  interlocutorName: string;
+  interlocutorRoleOrLink: string;
+  feeling: ExchangeFeeling;
+  notes: string;
+  nextSteps: string;
+  createReminder: boolean;
+  reminderDueDate: string;
+}
+
+const toDateInput = (date: Date) => date.toISOString().split('T')[0];
+
+// New exchange: today, with a follow-up reminder suggested one week later
+function emptyExchangeForm(): ExchangeFormData {
+  return {
+    date: toDateInput(new Date()),
+    type: 'VISIO',
+    interlocutorName: '',
+    interlocutorRoleOrLink: '',
+    feeling: 'POSITIVE',
+    notes: '',
+    nextSteps: '',
+    createReminder: false,
+    reminderDueDate: toDateInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
+  };
+}
+
 export function ApplicationJournal({
   application,
   exchanges,
@@ -81,41 +110,11 @@ export function ApplicationJournal({
   const [showSystemEvents, setShowSystemEvents] = useState(false);
 
   // Form State
-  const [formData, setFormData] = useState<{
-    date: string;
-    type: ExchangeType;
-    interlocutorName: string;
-    interlocutorRoleOrLink: string;
-    feeling: ExchangeFeeling;
-    notes: string;
-    nextSteps: string;
-    createReminder: boolean;
-    reminderDueDate: string;
-  }>({
-    date: new Date().toISOString().split('T')[0],
-    type: 'VISIO',
-    interlocutorName: '',
-    interlocutorRoleOrLink: '',
-    feeling: 'POSITIVE',
-    notes: '',
-    nextSteps: '',
-    createReminder: false,
-    reminderDueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  });
+  const [formData, setFormData] = useState<ExchangeFormData>(emptyExchangeForm);
 
   const handleOpenCreate = () => {
     setEditingId(null);
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      type: 'VISIO',
-      interlocutorName: '',
-      interlocutorRoleOrLink: '',
-      feeling: 'POSITIVE',
-      notes: '',
-      nextSteps: '',
-      createReminder: false,
-      reminderDueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    });
+    setFormData(emptyExchangeForm());
     setShowDialog(true);
   };
 
@@ -130,7 +129,7 @@ export function ApplicationJournal({
       notes: exchange.notes,
       nextSteps: exchange.nextSteps || '',
       createReminder: false,
-      reminderDueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      reminderDueDate: emptyExchangeForm().reminderDueDate,
     });
     setShowDialog(true);
   };
@@ -201,7 +200,7 @@ export function ApplicationJournal({
         queryClient.invalidateQueries({ queryKey: ['upcomingReminders'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         toast.success('Rappel programmé pour la prochaine étape');
-      } catch (err: any) {
+      } catch {
         toast.error('Erreur lors de la création du rappel');
       }
     }

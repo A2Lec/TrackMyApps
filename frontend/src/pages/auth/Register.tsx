@@ -18,6 +18,7 @@ import { prefetchPages } from '@/lib/pageLoaders';
 import { BrandLogo } from '@/components/BrandLogo';
 import { LegalLinks } from '@/components/legal/LegalLinks';
 import { LEGAL } from '@/lib/legal';
+import { getErrorMessage } from '@/lib/errors';
 
 const registerSchema = z.object({
   email: z.email('Email invalide'),
@@ -56,8 +57,8 @@ export function RegisterPage() {
       setAuth(data.user, data.token);
       navigate('/');
     },
-    onError: (error: any) => {
-      setError(error.response?.data?.message || "Erreur lors de l'inscription");
+    onError: (error) => {
+      setError(getErrorMessage(error, "Erreur lors de l'inscription"));
     },
   });
 

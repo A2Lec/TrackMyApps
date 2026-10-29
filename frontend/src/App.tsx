@@ -14,6 +14,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/store/authStore';
 import { setupNotificationChecker, showBrowserNotification, getNotificationPermission } from '@/utils/notifications';
 import { remindersService } from '@/services/reminders.service';
+import { getErrorMessage } from '@/lib/errors';
 
 // Lazy load pages
 const LoginPage = lazy(() => pageLoaders.login().then(module => ({ default: module.LoginPage })));
@@ -45,10 +46,8 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
     },
     mutations: {
-      onError: (error: any) => {
-        const message = error?.response?.data?.message
-          || error?.message
-          || 'Une erreur est survenue';
+      onError: (error) => {
+        const message = getErrorMessage(error, 'Une erreur est survenue');
         toast.error(message);
       },
     },
@@ -90,7 +89,7 @@ function App() {
 
     const checkReminders = async () => {
       // Trigger backend email check (poor man's cron for free tier)
-      remindersService.triggerEmailCheck().catch(console.error);
+      remindersService.triggerEmailCheck();
 
       if (getNotificationPermission() !== 'granted') return;
 

@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { applicationSchema, type ApplicationFormData } from '@/schemas/application';
 import { useEffect, useState } from 'react';
@@ -31,12 +31,11 @@ const defaultFormValues: ApplicationFormData = {
 
 interface ApplicationFormProps {
   onSubmit: (data: ApplicationFormData) => void;
-  isSubmitting?: boolean;
   defaultValues?: Partial<ApplicationFormData>;
   submitRef?: React.MutableRefObject<(() => void) | null>;
 }
 
-export function ApplicationForm({ onSubmit, isSubmitting: _isSubmitting, defaultValues, submitRef }: ApplicationFormProps) {
+export function ApplicationForm({ onSubmit, defaultValues, submitRef }: ApplicationFormProps) {
   const hasInitialDetails = Boolean(
     defaultValues?.location ||
     defaultValues?.jobUrl ||
@@ -58,19 +57,15 @@ export function ApplicationForm({ onSubmit, isSubmitting: _isSubmitting, default
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
     defaultValues: { ...defaultFormValues, ...defaultValues },
   });
 
-  // Automatically expand details if errors occur in optional fields
-  useEffect(() => {
-    if (errors.jobUrl || errors.location) {
-      setShowDetails(true);
-    }
-  }, [errors.jobUrl, errors.location]);
+  // Errors in optional fields keep the details section open
+  const detailsVisible = showDetails || Boolean(errors.jobUrl || errors.location);
 
   const handleFormSubmit = (data: ApplicationFormData) => {
     const sanitizedData: ApplicationFormData = {
@@ -80,14 +75,15 @@ export function ApplicationForm({ onSubmit, isSubmitting: _isSubmitting, default
     onSubmit(sanitizedData);
   };
 
+  // Lets a parent (dialog footer button) submit the form
   useEffect(() => {
     if (submitRef) {
       submitRef.current = handleSubmit(handleFormSubmit);
     }
-  }, [submitRef, handleSubmit]);
+  });
 
-  const jobType = watch('jobType');
-  const status = watch('status');
+  const jobType = useWatch({ control, name: 'jobType' });
+  const status = useWatch({ control, name: 'status' });
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
@@ -165,7 +161,7 @@ export function ApplicationForm({ onSubmit, isSubmitting: _isSubmitting, default
       <div className="pt-2 border-t border-border/60">
         <button
           type="button"
-          onClick={() => setShowDetails((prev) => !prev)}
+          onClick={() => setShowDetails(!detailsVisible)}
           className="flex items-center justify-between w-full py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors group"
         >
           <span className="flex items-center gap-1.5">
@@ -173,11 +169,11 @@ export function ApplicationForm({ onSubmit, isSubmitting: _isSubmitting, default
             Détails complémentaires (optionnel)
           </span>
           <ChevronDown
-            className={cn('h-4 w-4 transition-transform duration-200', showDetails && 'rotate-180')}
+            className={cn('h-4 w-4 transition-transform duration-200', detailsVisible && 'rotate-180')}
           />
         </button>
 
-        {showDetails && (
+        {detailsVisible && (
           <div className="space-y-4 pt-3 animate-in fade-in-50 duration-200">
             <div className="space-y-2">
               <Label htmlFor="location">Localisation</Label>
@@ -240,6 +236,4 @@ export function ApplicationForm({ onSubmit, isSubmitting: _isSubmitting, default
   );
 }
 
-// Keep this export for backward compat but update type
-export { defaultFormValues as initialApplicationFormData };
 export type { ApplicationFormData };

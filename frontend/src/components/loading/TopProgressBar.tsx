@@ -19,18 +19,23 @@ export function TopProgressBar() {
   const visible = useDelayedFlag(loading, SHOW_DELAY_MS);
   const isSlow = useDelayedFlag(loading, SLOW_LOADING_DELAY_MS);
   const [phase, setPhase] = useState<'idle' | 'loading' | 'finishing'>('idle');
+  const [wasVisible, setWasVisible] = useState(visible);
 
-  useEffect(() => {
+  // Derive the phase from visibility changes during render; only the fade-out needs a timer
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
     if (visible) {
       setPhase('loading');
-      return;
-    }
-    if (phase === 'loading') {
+    } else if (phase === 'loading') {
       setPhase('finishing');
-      const id = window.setTimeout(() => setPhase('idle'), FINISH_MS);
-      return () => window.clearTimeout(id);
     }
-  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
+
+  useEffect(() => {
+    if (phase !== 'finishing') return;
+    const id = window.setTimeout(() => setPhase('idle'), FINISH_MS);
+    return () => window.clearTimeout(id);
+  }, [phase]);
 
   return (
     <>

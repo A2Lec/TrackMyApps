@@ -5,49 +5,40 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/authStore';
+import { getErrorMessage } from '@/lib/errors';
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('');
+  const token = searchParams.get('token');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error');
+  const [message, setMessage] = useState(token ? '' : 'Token de vérification manquant');
   const verifiedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const token = searchParams.get('token');
-
-    if (!token) {
-      setStatus('error');
-      setMessage('Token de vérification manquant');
-      return;
-    }
-
     // The token is single-use: avoid a second call (e.g. StrictMode double effect) turning success into an error
-    if (verifiedTokenRef.current === token) return;
+    if (!token || verifiedTokenRef.current === token) return;
     verifiedTokenRef.current = token;
 
-    verifyEmail(token);
-  }, [searchParams]);
+    let redirectTimer: number | undefined;
+    authService
+      .verifyEmail(token)
+      .then(() => {
+        // Update the persisted user so the banner and guards unlock immediately
+        if (useAuthStore.getState().user) {
+          useAuthStore.getState().updateUser({ emailVerified: true });
+        }
+        setStatus('success');
+        setMessage('Votre email a été vérifié avec succès !');
+        redirectTimer = window.setTimeout(() => navigate('/'), 3000);
+      })
+      .catch((error) => {
+        setStatus('error');
+        setMessage(getErrorMessage(error, "Erreur lors de la vérification de l'email"));
+      });
 
-  const verifyEmail = async (token: string) => {
-    try {
-      await authService.verifyEmail(token);
-      // Update the persisted user so the banner and guards unlock immediately
-      if (useAuthStore.getState().user) {
-        useAuthStore.getState().updateUser({ emailVerified: true });
-      }
-      setStatus('success');
-      setMessage('Votre email a été vérifié avec succès !');
-      
-      // Redirect to dashboard after 3 seconds
-      setTimeout(() => {
-        navigate('/');
-      }, 3000);
-    } catch (error: any) {
-      setStatus('error');
-      setMessage(error.response?.data?.message || 'Erreur lors de la vérification de l\'email');
-    }
-  };
+    return () => window.clearTimeout(redirectTimer);
+  }, [token, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

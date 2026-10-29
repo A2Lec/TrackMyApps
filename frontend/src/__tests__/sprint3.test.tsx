@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DocumentsPage } from '@/pages/Documents';
 import { InterviewPrepPage } from '@/pages/InterviewPrep';
-import { InterviewSimulation } from '@/components/InterviewSimulation';
+import { InterviewSimulation } from '@/components/interview/InterviewSimulation';
 import { documentsService } from '@/services/documents.service';
 import { applicationsService } from '@/services/applications.service';
 import { interviewSimulationService } from '@/services/interviewSimulation.service';

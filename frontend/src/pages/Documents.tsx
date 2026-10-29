@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { formatDate, cn, documentTypeLabels } from '@/lib/utils';
 import type { Document as DocType, DocumentType } from '@/types';
+import { getErrorMessage } from '@/lib/errors';
 
 export function DocumentsPage() {
   const queryClient = useQueryClient();
@@ -81,8 +82,8 @@ export function DocumentsPage() {
       setUploadData({ name: '', type: 'CV', file: null });
       toast.success('Document importé avec succès');
     },
-    onError: (err: any) => {
-      toast.error('Erreur: ' + (err.response?.data?.message || err.message || 'Échec de l\'import'));
+    onError: (err) => {
+      toast.error('Erreur : ' + getErrorMessage(err, 'Échec de l\'import'));
     },
   });
 
@@ -327,7 +328,7 @@ export function DocumentsPage() {
                           onClick={async () => {
                             try {
                               await documentsService.download(doc.id, doc.fileName);
-                            } catch (error) {
+                            } catch {
                               toast.error('Impossible de télécharger le fichier');
                             }
                           }}

@@ -38,6 +38,7 @@ import { useUIStore, type Theme } from '@/store/uiStore';
 import { authService } from '@/services/auth.service';
 import { remindersService } from '@/services/reminders.service';
 import { generateIcsContent, downloadIcsFile } from '@/lib/calendarExport';
+import { reminderToCalendarEvent } from '@/lib/reminders';
 import { useNavigate } from 'react-router';
 import { cn } from '@/lib/utils';
 import {
@@ -141,16 +142,7 @@ export function SettingsPage() {
         toast.info('Aucun rappel ou entretien à exporter');
         return;
       }
-      const events = reminders.map((r) => ({
-        title: r.title,
-        description:
-          r.description ||
-          (r.application
-            ? `Poste : ${r.application.position} chez ${r.application.companyName}`
-            : undefined),
-        startDate: new Date(r.dueDate),
-        durationMinutes: 30,
-      }));
+      const events = reminders.map(reminderToCalendarEvent);
       const icsContent = generateIcsContent(events);
       downloadIcsFile('trackmyapps-agenda.ics', icsContent);
       toast.success(`${reminders.length} rappel(s) et entretien(s) exporté(s)`);

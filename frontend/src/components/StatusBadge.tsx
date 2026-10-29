@@ -88,7 +88,7 @@ export function DocumentCode({ type, className }: { type: DocumentType; classNam
   );
 }
 
-export const REMINDER_TYPE_ICONS: Record<ReminderType, LucideIcon> = {
+const REMINDER_TYPE_ICONS: Record<ReminderType, LucideIcon> = {
   FOLLOW_UP: Send,
   RELANCE: Send,
   INTERVIEW: CalendarClock,

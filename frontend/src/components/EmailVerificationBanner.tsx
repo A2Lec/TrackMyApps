@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/errors';
 
 export function EmailVerificationBanner() {
   const { user, updateUser } = useAuthStore();
@@ -42,8 +43,8 @@ export function EmailVerificationBanner() {
       toast.success('Email de vérification envoyé ! Pensez à vérifier vos spams.', {
         icon: <CheckCircle2 className="h-4 w-4 text-success" />
       });
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Erreur lors de l'envoi de l'email");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Erreur lors de l'envoi de l'email"));
     } finally {
       setIsResending(false);
     }
