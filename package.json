@@ -1,0 +1,22 @@
+{
+  "name": "trackmyapps",
+  "private": true,
+  "description": "Suivi de candidatures pour étudiants : stages, alternances, CDI et jobs étudiants",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "setup": "node scripts/setup.mjs",
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
+    "typecheck": "npm run typecheck --prefix backend && npm run typecheck --prefix frontend",
+    "test": "npm test --prefix backend && npm test --prefix frontend",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}
