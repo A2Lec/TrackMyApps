@@ -6,5 +6,5 @@ export const LEGAL = {
   ownerName: import.meta.env.VITE_LEGAL_OWNER_NAME || "[Nom de l'éditeur]",
   contactEmail: import.meta.env.VITE_LEGAL_CONTACT_EMAIL || 'contact@example.com',
   minimumAge: 15,
-  lastUpdated: '29 octobre 2026',
+  lastUpdated: '30 octobre 2026',
 } as const;
