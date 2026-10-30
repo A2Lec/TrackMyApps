@@ -3,7 +3,6 @@ import { toast } from 'sonner';
 import type { InterviewFeedback } from '@/services/interviewSimulation.service';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
@@ -63,7 +62,9 @@ export function FeedbackDialog({ open, onOpenChange, feedback }: FeedbackDialogP
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 p-5">
+        {/* Native scroll on the flex item itself: the dialog only has a max-height, so a
+            ScrollArea viewport (h-full) would grow with its content and get clipped */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-5">
           {feedback ? (
             <div className="space-y-5">
               <div className="p-3.5 rounded-lg bg-muted/40 border border-border/60 text-xs sm:text-sm leading-relaxed text-foreground">
@@ -131,7 +132,7 @@ export function FeedbackDialog({ open, onOpenChange, feedback }: FeedbackDialogP
           ) : (
             <div className="text-center py-8 text-muted-foreground text-xs">Aucun débriefing disponible pour cette session.</div>
           )}
-        </ScrollArea>
+        </div>
 
         <DialogFooter className="p-4 border-t border-border/40 shrink-0 flex items-center justify-between sm:justify-between">
           <Button
