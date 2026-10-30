@@ -21,11 +21,11 @@ export function BrandLogo({ className, title = 'TrackMyApps' }: BrandLogoProps) 
       <rect width="64" height="64" rx="14" className="fill-[#0F6E66] dark:fill-[#3FC2B2]" />
       <g fill="none" strokeLinecap="round" strokeLinejoin="round">
         <g strokeWidth="3.5" className="stroke-white dark:stroke-[#0C1312]">
-          <rect x="10" y="22" width="38" height="28" rx="4" />
-          <path d="M11.5 24 L29 37 L46.5 24" />
+          <rect x="12" y="18" width="40" height="28" rx="4" />
+          <path d="M13.5 20 L32 33.5 L50.5 20" />
         </g>
-        <path d="M37 25 L43 31 L55 14" strokeWidth="10" className="stroke-[#0F6E66] dark:stroke-[#3FC2B2]" />
-        <path d="M37 25 L43 31 L55 14" strokeWidth="4.5" className="stroke-[#F5A524] dark:stroke-[#0C1312]" />
+        <path d="M23 30 L31 38 L51 12" strokeWidth="11" className="stroke-[#0F6E66] dark:stroke-[#3FC2B2]" />
+        <path d="M23 30 L31 38 L51 12" strokeWidth="5.5" className="stroke-[#F5A524] dark:stroke-[#0C1312]" />
       </g>
     </svg>
   );
