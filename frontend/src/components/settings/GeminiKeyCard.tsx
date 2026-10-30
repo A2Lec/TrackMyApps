@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { Link } from 'react-router';
 import { CheckCircle2, ExternalLink, KeyRound, ShieldCheck, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,6 +87,15 @@ export function GeminiKeyCard() {
                 Google AI Studio <ExternalLink className="h-3 w-3" />
               </a>
               , puis collez-la ci-dessous. Les échanges avec l'IA sont décomptés de votre quota Google.
+            </p>
+
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Vos simulations (CV, lettre, réponses) sont envoyées à Google avec votre clé, selon les conditions de
+              l'offre associée. Hors Union européenne, Suisse et Royaume-Uni, Google peut utiliser les données de
+              l'offre gratuite pour améliorer ses modèles.{' '}
+              <Link to="/privacy-policy#ia" className="text-primary hover:underline">
+                En savoir plus
+              </Link>
             </p>
 
             <form onSubmit={handleSave} className="space-y-1.5">

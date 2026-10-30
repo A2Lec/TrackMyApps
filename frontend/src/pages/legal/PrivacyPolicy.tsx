@@ -82,14 +82,34 @@ const sections: LegalSection[] = [
     content: (
       <>
         <p>
-          Lorsque vous lancez une simulation, les informations nécessaires sont envoyées à l'API{' '}
-          <strong>Google Gemini</strong> (Google LLC) : intitulé du poste, nom de l'entreprise, description de l'offre,
-          texte du CV et de la lettre que vous sélectionnez, puis vos réponses au fil de l'entretien.
+          La simulation fonctionne avec <strong>votre propre clé API Google Gemini</strong>, que vous enregistrez dans
+          Paramètres → Intelligence artificielle. Lorsque vous lancez une simulation, les informations nécessaires sont
+          envoyées à l'API Gemini (Google LLC) avec votre clé : intitulé du poste, nom de l'entreprise, description de
+          l'offre, texte du CV et de la lettre que vous sélectionnez, puis vos réponses au fil de l'entretien.
         </p>
         <p>
-          Le service utilise l'offre payante de l'API Gemini : selon les conditions de Google, ces données ne sont pas
-          utilisées pour entraîner ou améliorer les modèles de Google. Google les conserve pendant une durée limitée,
-          uniquement pour détecter les abus et respecter ses obligations légales.
+          L'utilisation de l'API est donc rattachée à votre compte Google et régie par les{' '}
+          <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">
+            conditions de l'API Gemini
+          </a>
+          , qui dépendent de l'offre associée à votre clé :
+        </p>
+        <ul>
+          <li>
+            <strong>Offre payante</strong> (clé liée à un projet Google Cloud avec facturation active), ou utilisateur
+            situé dans l'Espace économique européen, en Suisse ou au Royaume-Uni, quelle que soit l'offre : Google
+            n'utilise pas ces données pour améliorer ses produits et ne les conserve que pendant une durée limitée, pour
+            détecter les abus et respecter ses obligations légales.
+          </li>
+          <li>
+            <strong>Offre gratuite, hors de ces pays</strong> : Google peut utiliser ces données pour améliorer ses
+            produits et ses modèles, et des personnes peuvent les lire après dissociation de votre compte. Google
+            demande de ne pas transmettre d'informations personnelles ou sensibles à son offre gratuite.
+          </li>
+        </ul>
+        <p>
+          Votre clé est chiffrée avant d'être enregistrée, n'est jamais réaffichée ni renvoyée à votre navigateur, et
+          ne sert qu'à vos propres simulations. Vous pouvez la supprimer à tout moment.
         </p>
         <p>
           Les résultats de l'IA sont indicatifs. Si vous ne souhaitez pas transmettre votre CV, lancez la simulation
@@ -112,7 +132,7 @@ const sections: LegalSection[] = [
           rows={[
             ['Vercel Inc.', 'Hébergement du site et de l\'API, stockage des documents (Vercel Blob), mesure d\'audience (Vercel Web Analytics)', 'États-Unis — certifié Data Privacy Framework UE–États-Unis'],
             ['Neon', 'Base de données', 'Serveurs à Londres (Royaume-Uni) — pays reconnu adéquat par la Commission européenne'],
-            ['Google LLC', 'Envoi des emails (Gmail) et IA de simulation d\'entretien (API Gemini, offre payante)', 'États-Unis — certifié Data Privacy Framework UE–États-Unis'],
+            ['Google LLC', 'Envoi des emails (Gmail) et IA de simulation d\'entretien (API Gemini, avec votre propre clé API)', 'États-Unis — certifié Data Privacy Framework UE–États-Unis'],
             ['Clearbit (HubSpot)', 'Recherche du site web d\'une entreprise à partir de son nom, lors de la création d\'une candidature', 'Seul le nom de l\'entreprise est transmis, aucune donnée vous concernant'],
           ]}
         />
@@ -145,7 +165,8 @@ const sections: LegalSection[] = [
           ['Session de connexion', '7 jours'],
           ['Choix concernant la mesure d\'audience', '6 mois, puis la question vous est reposée'],
           ['Journaux techniques de l\'hébergeur', 'Quelques jours au maximum'],
-          ['Données envoyées à l\'API Gemini', 'Durée limitée fixée par Google, pour la seule détection des abus'],
+          ['Clé API Gemini (chiffrée)', 'Jusqu\'à ce que vous la supprimiez, ou jusqu\'à la suppression de votre compte'],
+          ['Données envoyées à l\'API Gemini', 'Selon les conditions de Google et l\'offre associée à votre clé (voir la section sur l\'IA)'],
         ]}
       />
     ),

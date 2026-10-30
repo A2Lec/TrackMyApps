@@ -71,4 +71,11 @@ describe('Legal pages', () => {
     expect(container.textContent).toContain('Google Gemini');
     expect(container.textContent).toContain('CNIL');
   });
+
+  it('the privacy policy reflects that users bring their own Gemini key', () => {
+    const { container } = inRouter(<PrivacyPolicyPage />);
+    expect(container.textContent).toContain('votre propre clé API Google Gemini');
+    expect(container.textContent).toContain('Offre gratuite');
+    expect(container.textContent).not.toContain("Le service utilise l'offre payante");
+  });
 });
