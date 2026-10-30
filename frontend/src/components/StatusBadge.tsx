@@ -16,12 +16,10 @@ import {
   STATUS_COLORS,
   STATUS_DOT_COLORS,
   JOB_TYPE_TAGS,
-  DOCUMENT_TYPE_COLORS,
-  DOCUMENT_TYPE_CODES,
   REMINDER_TYPE_COLORS,
   REMINDER_TYPE_LABELS,
 } from '@/constants/labels';
-import type { ApplicationStatus, DocumentType, JobType, ReminderType } from '@/types';
+import type { ApplicationStatus, JobType, ReminderType } from '@/types';
 
 /** 9px status square (2px radius); hollow for GHOSTED */
 export function StatusDot({ status, className }: { status: ApplicationStatus; className?: string }) {
@@ -68,22 +66,6 @@ export function ContractTag({ jobType, className }: { jobType: JobType; classNam
       )}
     >
       {JOB_TYPE_TAGS[jobType] ?? jobType}
-    </span>
-  );
-}
-
-/** 34px square with the document's mono code (CV on primary-soft, others on secondary) */
-export function DocumentCode({ type, className }: { type: DocumentType; className?: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        'inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-md font-mono text-[10px] font-bold',
-        DOCUMENT_TYPE_COLORS[type] ?? DOCUMENT_TYPE_COLORS.OTHER,
-        className
-      )}
-    >
-      {DOCUMENT_TYPE_CODES[type] ?? 'DOC'}
     </span>
   );
 }

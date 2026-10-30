@@ -43,7 +43,8 @@ import {
   Eye,
   FileCheck2,
 } from 'lucide-react';
-import { formatDate, cn, documentTypeLabels } from '@/lib/utils';
+import { formatDate, cn } from '@/lib/utils';
+import { DOCUMENT_TYPE_LABELS } from '@/constants/labels';
 import type { Document as DocType, DocumentType } from '@/types';
 import { getErrorMessage } from '@/lib/errors';
 
@@ -371,7 +372,7 @@ export function DocumentsPage() {
                   {/* Badges de statut, type et traçabilité candidatures (TICK-304) */}
                   <div className="flex items-center gap-1.5 flex-wrap pt-1">
                     <span className="inline-flex items-center rounded-sm bg-secondary px-[7px] py-[3px] font-mono text-[11px] font-semibold uppercase leading-4 tracking-wider text-secondary-foreground">
-                      {documentTypeLabels[doc.type] || 'Lettre de motivation'}
+                      {DOCUMENT_TYPE_LABELS[doc.type] || 'Lettre de motivation'}
                     </span>
 
                     {doc.isDefault && (

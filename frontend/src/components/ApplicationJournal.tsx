@@ -45,8 +45,8 @@ import {
   EXCHANGE_TYPE_CONFIG,
   EXCHANGE_FEELING_CONFIG,
 } from '@/lib/journal';
-import { formatDate, formatDateTime, EVENT_TYPE_LABELS, cn, isSafeUrl } from '@/lib/utils';
-import { EVENT_TYPE_STATUS } from '@/constants/labels';
+import { formatDate, formatDateTime, cn, isSafeUrl } from '@/lib/utils';
+import { EVENT_TYPE_LABELS, EVENT_TYPE_STATUS } from '@/constants/labels';
 import { StatusDot } from '@/components/StatusBadge';
 import type { Application, EventType } from '@/types';
 import { remindersService } from '@/services/reminders.service';

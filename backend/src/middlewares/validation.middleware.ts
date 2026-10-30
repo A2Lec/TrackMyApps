@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body } from 'express-validator';
 
 const strongPassword = (field: string) =>
   body(field)
@@ -103,12 +103,6 @@ export const companyReviewValidation = [
   body('wasHired')
     .isBoolean()
     .withMessage('Indiquez si vous avez été embauché'),
-];
-
-export const uuidValidation = [
-  param('id')
-    .isUUID()
-    .withMessage('ID invalide'),
 ];
 
 // Same email normalization as register/login so the lookup matches the stored address

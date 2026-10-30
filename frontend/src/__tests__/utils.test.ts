@@ -4,18 +4,19 @@ import {
   isSafeUrl,
   formatDate,
   formatDateTime,
-  STATUS_ORDER,
-  statusLabels,
-  statusColors,
-  statusDotColors,
-  jobTypeLabels,
-  jobTypeColors,
-  documentTypeLabels,
-  documentTypeColors,
-  reminderTypeLabels,
-  reminderTypeColors,
-  eventTypeLabels,
 } from '@/lib/utils';
+import {
+  ALL_STATUSES,
+  STATUS_LABELS,
+  STATUS_COLORS,
+  STATUS_DOT_COLORS,
+  JOB_TYPE_LABELS,
+  JOB_TYPE_COLORS,
+  DOCUMENT_TYPE_LABELS,
+  REMINDER_TYPE_LABELS,
+  REMINDER_TYPE_COLORS,
+  EVENT_TYPE_LABELS,
+} from '@/constants/labels';
 import type { ApplicationStatus, JobType, DocumentType, ReminderType, EventType } from '@/types';
 
 describe('Utility: cn (Classnames & Tailwind Merge)', () => {
@@ -86,41 +87,39 @@ describe('Design System Tokens & Labels', () => {
 
   const allJobTypes: JobType[] = ['STAGE', 'ALTERNANCE', 'CDI', 'JOB_ETUDIANT'];
 
-  it('STATUS_ORDER should contain exactly all 8 application statuses in canonical order', () => {
-    expect(STATUS_ORDER).toHaveLength(8);
-    expect(STATUS_ORDER).toEqual(allStatuses);
+  it('ALL_STATUSES should contain exactly all 8 application statuses in canonical order', () => {
+    expect(ALL_STATUSES).toHaveLength(8);
+    expect(ALL_STATUSES).toEqual(allStatuses);
   });
 
   it('every application status should have defined labels, colors, and dot colors', () => {
     allStatuses.forEach((status) => {
-      expect(statusLabels[status]).toBeDefined();
-      expect(typeof statusLabels[status]).toBe('string');
-      expect(statusLabels[status].length).toBeGreaterThan(0);
+      expect(STATUS_LABELS[status]).toBeDefined();
+      expect(typeof STATUS_LABELS[status]).toBe('string');
+      expect(STATUS_LABELS[status].length).toBeGreaterThan(0);
 
-      expect(statusColors[status]).toBeDefined();
-      expect(statusColors[status]).toContain('bg-');
-      expect(statusColors[status]).toContain('text-');
+      expect(STATUS_COLORS[status]).toBeDefined();
+      expect(STATUS_COLORS[status]).toContain('bg-');
+      expect(STATUS_COLORS[status]).toContain('text-');
 
-      expect(statusDotColors[status]).toBeDefined();
-      expect(statusDotColors[status]).toContain('bg-');
+      expect(STATUS_DOT_COLORS[status]).toBeDefined();
+      expect(STATUS_DOT_COLORS[status]).toContain('bg-');
     });
   });
 
   it('every job type should have defined labels and color badges', () => {
     allJobTypes.forEach((type) => {
-      expect(jobTypeLabels[type]).toBeDefined();
-      expect(jobTypeColors[type]).toBeDefined();
-      expect(jobTypeColors[type]).toContain('bg-');
-      expect(jobTypeColors[type]).toContain('text-');
+      expect(JOB_TYPE_LABELS[type]).toBeDefined();
+      expect(JOB_TYPE_COLORS[type]).toBeDefined();
+      expect(JOB_TYPE_COLORS[type]).toContain('bg-');
+      expect(JOB_TYPE_COLORS[type]).toContain('text-');
     });
   });
 
-  it('every document type should have valid labels and color badges', () => {
+  it('every document type should have a label', () => {
     const docTypes: DocumentType[] = ['CV', 'LETTRE_MOTIVATION', 'COVER_LETTER', 'PORTFOLIO', 'OTHER'];
     docTypes.forEach((type) => {
-      expect(documentTypeLabels[type]).toBeDefined();
-      expect(documentTypeColors[type]).toBeDefined();
-      expect(documentTypeColors[type]).toContain('bg-');
+      expect(DOCUMENT_TYPE_LABELS[type]).toBeDefined();
     });
   });
 
@@ -138,8 +137,8 @@ describe('Design System Tokens & Labels', () => {
       'OTHER',
     ];
     reminderTypes.forEach((type) => {
-      expect(reminderTypeLabels[type]).toBeDefined();
-      expect(reminderTypeColors[type]).toBeDefined();
+      expect(REMINDER_TYPE_LABELS[type]).toBeDefined();
+      expect(REMINDER_TYPE_COLORS[type]).toBeDefined();
     });
   });
 
@@ -156,7 +155,7 @@ describe('Design System Tokens & Labels', () => {
       'STATUS_CHANGED',
     ];
     eventTypes.forEach((type) => {
-      expect(eventTypeLabels[type]).toBeDefined();
+      expect(EVENT_TYPE_LABELS[type]).toBeDefined();
     });
   });
 });

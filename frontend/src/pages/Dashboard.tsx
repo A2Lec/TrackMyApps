@@ -46,10 +46,10 @@ import {
 } from '@/lib/calendarExport';
 import {
   formatDate,
-  jobTypeLabels,
   cn,
   twoDigits,
 } from '@/lib/utils';
+import { JOB_TYPE_LABELS } from '@/constants/labels';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ApplicationForm } from '@/components/ApplicationForm';
 import { getErrorMessage } from '@/lib/errors';
@@ -579,7 +579,7 @@ export function DashboardPage() {
                             {app.jobType && (
                               <>
                                 <span className="text-muted-foreground/60 flex-shrink-0">•</span>
-                                <span className="flex-shrink-0">{jobTypeLabels[app.jobType] || app.jobType}</span>
+                                <span className="flex-shrink-0">{JOB_TYPE_LABELS[app.jobType] || app.jobType}</span>
                               </>
                             )}
                           </div>
