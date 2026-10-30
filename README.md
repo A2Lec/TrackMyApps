@@ -94,7 +94,7 @@ Ouvrir http://localhost:5173 et se connecter avec **demo@example.com / Demo1234!
 Sans configuration supplémentaire, tout fonctionne en local sauf :
 
 - **les emails** : ils ne partent pas, mais les liens (vérification de l'email, réinitialisation du mot de passe) sont affichés dans les logs de l'API ;
-- **le simulateur IA** : il faut une clé Gemini gratuite dans `GEMINI_API_KEY` ([Google AI Studio](https://aistudio.google.com/apikey)).
+- **le simulateur IA** : chaque utilisateur ajoute sa propre clé Gemini gratuite ([Google AI Studio](https://aistudio.google.com/apikey)) dans Paramètres > Intelligence artificielle. Il est désactivé sur le compte démo.
 
 <details>
 <summary>Sans Docker ni scripts racine</summary>
@@ -141,7 +141,7 @@ Tout est documenté dans [`backend/.env.example`](backend/.env.example) et [`fro
 | `DATABASE_URL` | ✅ | Connexion PostgreSQL |
 | `JWT_SECRET` | ✅ | Signature des sessions (`npm run setup` en génère un) |
 | `FRONTEND_URL` | ✅ en production | Origine(s) autorisée(s) par CORS, base des liens des emails |
-| `GEMINI_API_KEY` | | Simulateur d'entretien (`GEMINI_MODEL` pour changer de modèle) |
+| `ENCRYPTION_KEY` | pour le simulateur IA | Chiffre les clés Gemini des utilisateurs (`npm run setup` en génère une ; `GEMINI_MODEL` pour changer de modèle) |
 | `EMAIL_USER`, `EMAIL_PASSWORD` | | Envoi des emails (Gmail par défaut, `SMTP_HOST` / `SMTP_PORT` sinon) |
 | `BLOB_STORE_ID` (ou `BLOB_READ_WRITE_TOKEN`) | en production | Store Vercel Blob **privé** (`BLOB_STORE_ID` est créé en connectant le store au projet) ; dossier local sinon |
 | `CRON_SECRET` | en production | Protège la route du cron quotidien |

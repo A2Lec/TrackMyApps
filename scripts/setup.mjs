@@ -19,7 +19,9 @@ function createEnv(dir) {
   }
   copyFileSync(`${dir}/.env.example`, target);
   if (dir === 'backend') {
-    const env = readFileSync(target, 'utf8').replace('JWT_SECRET="change-me"', `JWT_SECRET="${randomBytes(32).toString('hex')}"`);
+    const env = readFileSync(target, 'utf8')
+      .replace('JWT_SECRET="change-me"', `JWT_SECRET="${randomBytes(32).toString('hex')}"`)
+      .replace('ENCRYPTION_KEY="change-me"', `ENCRYPTION_KEY="${randomBytes(32).toString('base64')}"`);
     writeFileSync(target, env);
   }
   console.log(`✓ ${target} créé depuis .env.example`);

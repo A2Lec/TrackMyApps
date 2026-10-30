@@ -28,6 +28,9 @@ model User {
   emailNotifications Boolean @default(true)
   relanceFrequency   Int     @default(7)
 
+  // Personal Gemini API key, AES-256-GCM encrypted (utils/encryption.ts). Omitted by default.
+  geminiApiKey String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

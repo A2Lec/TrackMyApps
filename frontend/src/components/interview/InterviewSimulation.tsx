@@ -145,7 +145,7 @@ export function InterviewSimulation({
       if (autoPlayVoice) playMessage(null, data.message);
     },
     onError: (err) => {
-      setError(getErrorMessage(err, 'Impossible de démarrer la simulation. Vérifiez que la clé API Gemini est configurée.'));
+      setError(getErrorMessage(err, 'Impossible de démarrer la simulation. Vérifiez votre clé API Gemini dans les paramètres.'));
     },
   });
 

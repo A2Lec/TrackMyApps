@@ -146,6 +146,12 @@ export const interviewStartValidation = [
     .withMessage('Description du poste trop longue (10 000 caractères max)'),
 ];
 
+// Google API keys are ~39 URL-safe characters ("AIza...")
+export const geminiKeyValidation = [
+  body('apiKey').isString().trim().matches(/^[A-Za-z0-9_-]{20,200}$/)
+    .withMessage('Format de clé API invalide'),
+];
+
 export const interviewMessageValidation = [
   body('message').isString().trim().notEmpty().isLength({ max: 4000 })
     .withMessage('Message invalide (4 000 caractères max)'),

@@ -7,8 +7,10 @@ const prisma = new PrismaClient({
     : ['error'],
   // Storage keys never leave the backend: files are only served through the
   // authenticated /documents routes. Opt back in with `omit: { fileUrl: false }`.
+  // Same for the encrypted Gemini keys, only read by services/gemini.service.ts.
   omit: {
     document: { fileUrl: true },
+    user: { geminiApiKey: true },
   },
 });
 

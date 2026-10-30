@@ -43,6 +43,11 @@ describe('Demo account protection', () => {
     ['delete', '/api/auth/account'],
     ['post', '/api/documents'],
     ['delete', '/api/documents/doc-1'],
+    ['put', '/api/user/gemini-key'],
+    ['delete', '/api/user/gemini-key'],
+    ['post', '/api/interview-simulation/start'],
+    ['post', '/api/interview-simulation/session-1/message'],
+    ['post', '/api/interview-simulation/session-1/complete'],
   ] as const)('refuses %s %s', async (method, path) => {
     const res = await request(app)[method](path).set(auth).send({});
 

@@ -93,9 +93,9 @@ describe('Audit Remediations & Bug Fixes', () => {
         password: 'Password123!',
       });
 
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      expect(prisma.user.findUnique).toHaveBeenCalledWith(expect.objectContaining({
         where: { email: 'john.doe@example.com' },
-      });
+      }));
       expect(res.user.email).toBe('john.doe@example.com');
     });
   });

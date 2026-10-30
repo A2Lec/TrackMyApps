@@ -1,21 +1,8 @@
-import { GoogleGenerativeAI, type GenerationConfig } from '@google/generative-ai';
 import prisma from '../config/database.js';
 import { createError } from '../middlewares/errorHandler.middleware.js';
 import { documentExtractionService } from './documentExtraction.service.js';
-import { logError } from '../utils/logger.js';
+import { geminiService } from './gemini.service.js';
 import { PRACTICE_MODE_MARKER } from '../utils/practiceMode.js';
-
-// Gemini model, overridable with GEMINI_MODEL
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const apiKey = process.env.GEMINI_API_KEY;
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
-
-function getModel(generationConfig?: GenerationConfig) {
-  if (!genAI) {
-    throw createError("Le simulateur d'entretien IA n'est pas configuré sur ce serveur (GEMINI_API_KEY manquante).", 503);
-  }
-  return genAI.getGenerativeModel({ model: GEMINI_MODEL, generationConfig });
-}
 
 interface InterviewFeedback {
   score: number;
@@ -82,7 +69,7 @@ async function getPracticeApplication(data: StartSessionData) {
 
 export const interviewSimulationService = {
   async startSession(data: StartSessionData) {
-    const model = getModel();
+    const model = await geminiService.getModel(data.userId);
 
     const application = data.applicationId
       ? await getOwnedApplication(data.userId, data.applicationId)
@@ -124,6 +111,27 @@ export const interviewSimulationService = {
       }
     }
 
+    // Generate System Prompt
+    const systemPrompt = this.generateSystemPrompt(data.interviewerType, data.difficulty, contextText);
+
+    // Ask for the first message before creating the session, so a Gemini failure leaves no empty session
+    const chat = model.startChat({
+      history: [
+        {
+          role: 'user',
+          parts: [{ text: systemPrompt + "\n\nCommence l'entretien par une phrase d'introduction et ta première question." }],
+        },
+      ],
+    });
+
+    let response: string;
+    try {
+      const result = await chat.sendMessage('Start');
+      response = result.response.text();
+    } catch (error) {
+      throw geminiService.toHttpError(error, "Erreur lors de la communication avec l'IA");
+    }
+
     // Create Session in DB
     const sessionTitle = data.applicationId
       ? `Entretien ${data.interviewerType} - ${application.companyName}`
@@ -139,22 +147,6 @@ export const interviewSimulationService = {
         status: 'IN_PROGRESS',
       },
     });
-
-    // Generate System Prompt
-    const systemPrompt = this.generateSystemPrompt(data.interviewerType, data.difficulty, contextText);
-
-    // Send first message to AI to start conversation
-    const chat = model.startChat({
-      history: [
-        {
-          role: 'user',
-          parts: [{ text: systemPrompt + "\n\nCommence l'entretien par une phrase d'introduction et ta première question." }],
-        },
-      ],
-    });
-
-    const result = await chat.sendMessage('Start');
-    const response = result.response.text();
 
     // Save AI's first message
     await prisma.interviewMessage.create({
@@ -195,6 +187,8 @@ export const interviewSimulationService = {
     if (session.userId !== userId) {
       throw createError('Accès non autorisé', 403);
     }
+
+    const model = await geminiService.getModel(userId);
 
     // Save User Message
     await prisma.interviewMessage.create({
@@ -244,8 +238,6 @@ export const interviewSimulationService = {
       });
     }
 
-    const model = getModel();
-
     const chat = model.startChat({
       history: chatHistory,
     });
@@ -267,8 +259,7 @@ export const interviewSimulationService = {
         message: response,
       };
     } catch (error) {
-      logError('Gemini API error', error, { context: 'InterviewSimulation' });
-      throw createError("Erreur lors de la communication avec l'IA", 502);
+      throw geminiService.toHttpError(error, "Erreur lors de la communication avec l'IA");
     }
   },
 
@@ -373,11 +364,11 @@ Réponds UNIQUEMENT avec un objet JSON valide respectant scrupuleusement la stru
     // On failure the session stays open so the user can ask for the debrief again
     let feedbackData: InterviewFeedback;
     try {
-      const result = await getModel({ responseMimeType: 'application/json' }).generateContent(evaluationPrompt);
+      const model = await geminiService.getModel(userId, { responseMimeType: 'application/json' });
+      const result = await model.generateContent(evaluationPrompt);
       feedbackData = JSON.parse(result.response.text());
     } catch (error) {
-      logError('Error generating feedback with Gemini', error, { context: 'InterviewSimulation' });
-      throw createError("Le bilan n'a pas pu être généré. Réessayez dans quelques instants.", 502);
+      throw geminiService.toHttpError(error, "Le bilan n'a pas pu être généré. Réessayez dans quelques instants.");
     }
 
     await prisma.interviewSession.update({
