@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, Award, Bot, History, Loader2, Mic, ShieldCheck, Trash2 } from 'lucide-react';
+import { Link } from 'react-router';
+import { AlertTriangle, Award, Bot, History, KeyRound, Loader2, Mic, ShieldCheck, Trash2 } from 'lucide-react';
 import { documentsService } from '@/services/documents.service';
+import { useAuthStore } from '@/store/authStore';
 import type { InterviewSession } from '@/services/interviewSimulation.service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,6 +41,8 @@ export function SimulationSetup({
   isStarting,
 }: SimulationSetupProps) {
   const [showSessions, setShowSessions] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const isDemo = Boolean(user?.isDemo);
 
   const { data: cvDocuments } = useQuery({
     queryKey: ['documents', 'CV'],
@@ -138,6 +142,28 @@ export function SimulationSetup({
           </div>
         ) : (
           <>
+            {isDemo ? (
+              <div className="p-3.5 rounded-lg bg-primary/5 border border-primary/30 text-xs flex items-start gap-2.5">
+                <KeyRound className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                <span>
+                  Le simulateur n'est pas disponible sur le compte de démonstration. Créez un compte gratuit et ajoutez
+                  votre clé API Gemini pour vous entraîner.
+                </span>
+              </div>
+            ) : (
+              !user?.hasGeminiKey && (
+                <div className="p-3.5 rounded-lg bg-primary/5 border border-primary/30 text-xs flex items-start gap-2.5">
+                  <KeyRound className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>
+                    Le simulateur utilise votre propre clé API Google Gemini (gratuite).{' '}
+                    <Link to="/settings?tab=ai" className="text-primary font-semibold hover:underline">
+                      Ajouter ma clé dans les paramètres
+                    </Link>
+                  </span>
+                </div>
+              )
+            )}
+
             {error && (
               <div className="p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-start gap-2.5">
                 <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
@@ -260,7 +286,7 @@ export function SimulationSetup({
               </span>
             </div>
 
-            <Button className="w-full h-10 text-xs font-semibold" onClick={onStart} disabled={isStarting}>
+            <Button className="w-full h-10 text-xs font-semibold" onClick={onStart} disabled={isStarting || isDemo}>
               {isStarting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

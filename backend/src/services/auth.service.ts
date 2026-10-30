@@ -83,6 +83,7 @@ export const authService = {
     const normalizedEmail = data.email.trim().toLowerCase();
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
+      omit: { geminiApiKey: false },
     });
 
     if (!user) {
@@ -97,9 +98,12 @@ export const authService = {
 
     const token = this.generateToken(user.id);
 
-    const { password, resetToken, resetTokenExpiry, verificationToken, verificationTokenExpiry, ...userWithoutPassword } = user;
+    const { password, resetToken, resetTokenExpiry, verificationToken, verificationTokenExpiry, geminiApiKey, ...userWithoutPassword } = user;
 
-    return { user: { ...userWithoutPassword, isDemo: isDemoEmail(user.email) }, token };
+    return {
+      user: { ...userWithoutPassword, hasGeminiKey: Boolean(geminiApiKey), isDemo: isDemoEmail(user.email) },
+      token,
+    };
   },
 
   async getProfile(userId: string) {
@@ -117,6 +121,7 @@ export const authService = {
         emailNotifications: true,
         relanceFrequency: true,
         emailVerified: true,
+        geminiApiKey: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -126,7 +131,8 @@ export const authService = {
       throw createError('Utilisateur non trouvé', 404);
     }
 
-    return { ...user, isDemo: isDemoEmail(user.email) };
+    const { geminiApiKey, ...profile } = user;
+    return { ...profile, hasGeminiKey: Boolean(geminiApiKey), isDemo: isDemoEmail(user.email) };
   },
 
   async updateProfile(userId: string, data: Partial<RegisterData>) {

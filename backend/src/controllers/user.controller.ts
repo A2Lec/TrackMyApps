@@ -2,6 +2,19 @@ import { Response } from 'express';
 import prisma from '../config/database.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
 import { asyncHandler, createError } from '../middlewares/errorHandler.middleware.js';
+import { geminiService } from '../services/gemini.service.js';
+import { sendSuccess, validateRequest } from '../utils/response.utils.js';
+
+export const saveGeminiKey = asyncHandler(async (req: AuthRequest, res: Response) => {
+  validateRequest(req);
+  await geminiService.saveKey(req.userId!, req.body.apiKey);
+  return sendSuccess(res, { hasGeminiKey: true });
+});
+
+export const deleteGeminiKey = asyncHandler(async (req: AuthRequest, res: Response) => {
+  await geminiService.deleteKey(req.userId!);
+  return sendSuccess(res, { hasGeminiKey: false });
+});
 
 type CsvValue = string | number | boolean | Date | null | undefined;
 

@@ -13,6 +13,8 @@ export interface User {
   emailNotifications: boolean;
   relanceFrequency: number;
   emailVerified?: boolean;
+  /** A personal Gemini API key is saved (the key itself never leaves the backend) */
+  hasGeminiKey?: boolean;
   /** Shared demo account: credentials and settings are read-only */
   isDemo?: boolean;
   createdAt: string;

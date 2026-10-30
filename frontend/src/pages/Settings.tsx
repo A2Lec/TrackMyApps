@@ -31,6 +31,7 @@ import {
   AlertTriangle,
   Calendar,
   Info,
+  Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
@@ -39,8 +40,9 @@ import { authService } from '@/services/auth.service';
 import { remindersService } from '@/services/reminders.service';
 import { generateIcsContent, downloadIcsFile } from '@/lib/calendarExport';
 import { reminderToCalendarEvent } from '@/lib/reminders';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { cn } from '@/lib/utils';
+import { GeminiKeyCard } from '@/components/settings/GeminiKeyCard';
 import {
   getNotificationPermission,
   requestNotificationPermission,
@@ -49,9 +51,13 @@ import {
 
 export function SettingsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, logout, updateUser } = useAuthStore();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'notifications' | 'appearance'>('profile');
+  // ?tab=ai opens the AI tab directly (link from the interview simulator)
+  const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'ai' | 'notifications' | 'appearance'>(() =>
+    searchParams.get('tab') === 'ai' ? 'ai' : 'profile'
+  );
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
@@ -161,6 +167,7 @@ export function SettingsPage() {
   const tabs = [
     { id: 'profile', label: 'Profil personnel', icon: User },
     { id: 'account', label: 'Compte & Sécurité', icon: Lock },
+    { id: 'ai', label: 'Intelligence artificielle', icon: Sparkles },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'appearance', label: 'Apparence', icon: Sun },
   ] as const;
@@ -552,6 +559,9 @@ export function SettingsPage() {
               </Card>
             </div>
           )}
+
+          {/* AI Tab */}
+          {activeTab === 'ai' && <GeminiKeyCard />}
 
           {/* 3. Notifications Tab */}
           {activeTab === 'notifications' && (

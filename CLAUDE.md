@@ -45,7 +45,7 @@ Two independent packages (`frontend/`, `backend/`), each with its own `package.j
 - **Errors**: throw `createError(message, status)`; wrap async handlers with `asyncHandler`. 500 messages are hidden in production.
 - **Logging**: `logInfo/logWarn/logError/logDebug` from `utils/logger.ts` (info/debug silenced in production). No `console.*` in `src/` except scripts.
 - **Deployment**: `api/index.ts` is the Vercel function; `vercel.json` rewrites everything to it and declares the cron (`/api/cron/reminders`, 9 AM, authenticated by `CRON_SECRET`). Outside Vercel, `src/server.ts` listens.
-- **AI**: `services/interviewSimulation.service.ts` (`GEMINI_MODEL`, default `gemini-2.5-flash`). Missing key → 503, Gemini failure → 502. Routes require a verified email, `aiLimiter` (per user) and bounded inputs: every call is billed.
+- **AI**: `services/interviewSimulation.service.ts`; Gemini access in `services/gemini.service.ts` (`GEMINI_MODEL`, default `gemini-2.5-flash`). Each user brings their own API key (`PUT/DELETE /user/gemini-key`, checked with Gemini before saving), stored AES-256-GCM encrypted in `User.geminiApiKey` (`utils/encryption.ts`, `ENCRYPTION_KEY`, user id as AAD), globally omitted and never returned (only `hasGeminiKey`). No key → 400, invalid key → 400, quota → 429, other Gemini failure → 502. Disabled on the demo account (`blockDemoAccount`). Routes require a verified email, `aiLimiter` (per user) and bounded inputs.
 
 ### Frontend
 - React 18, TypeScript, Vite 8, React Router 7 (import from `react-router`), lazy-loaded pages, `ProtectedRoute`/`PublicRoute` in `App.tsx`
@@ -64,7 +64,7 @@ Two independent packages (`frontend/`, `backend/`), each with its own `package.j
 
 ## Environment Variables
 
-Documented in `backend/.env.example` and `frontend/.env.example` (required vs optional). Required: `DATABASE_URL`, `JWT_SECRET`; `FRONTEND_URL`, `BLOB_STORE_ID` (or `BLOB_READ_WRITE_TOKEN`), `CRON_SECRET` in production.
+Documented in `backend/.env.example` and `frontend/.env.example` (required vs optional). Required: `DATABASE_URL`, `JWT_SECRET`; `FRONTEND_URL`, `BLOB_STORE_ID` (or `BLOB_READ_WRITE_TOKEN`), `CRON_SECRET`, `ENCRYPTION_KEY` in production.
 
 ## Key Conventions
 

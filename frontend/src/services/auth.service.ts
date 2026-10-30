@@ -55,6 +55,16 @@ export const authService = {
     saveBlob(response.data, `trackmyapps-export.${format}`);
   },
 
+  async saveGeminiKey(apiKey: string): Promise<Pick<User, 'hasGeminiKey'>> {
+    const response = await api.put<Pick<User, 'hasGeminiKey'>>('/user/gemini-key', { apiKey });
+    return response.data;
+  },
+
+  async deleteGeminiKey(): Promise<Pick<User, 'hasGeminiKey'>> {
+    const response = await api.delete<Pick<User, 'hasGeminiKey'>>('/user/gemini-key');
+    return response.data;
+  },
+
   async deleteAccount(): Promise<void> {
     await api.delete('/auth/account');
   },
