@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { StatusBadge, StatusDot, ContractTag } from '@/components/StatusBadge';
-import { STATUS_ORDER, cn, formatDate, isSafeUrl, statusLabels } from '@/lib/utils';
+import { cn, formatDate, isSafeUrl } from '@/lib/utils';
+import { ALL_STATUSES, STATUS_LABELS } from '@/constants/labels';
 
 interface ApplicationQuickViewProps {
   application: Application | null;
@@ -47,7 +48,7 @@ export function ApplicationQuickView({ application, onClose, onStatusChange, onD
                 Changer le statut
               </label>
               <div className="grid grid-cols-2 gap-1.5">
-                {STATUS_ORDER.map((status) => (
+                {ALL_STATUSES.map((status) => (
                   <button
                     key={status}
                     onClick={() => onStatusChange(status)}
@@ -59,7 +60,7 @@ export function ApplicationQuickView({ application, onClose, onStatusChange, onD
                     )}
                   >
                     <StatusDot status={status} />
-                    <span className="truncate">{statusLabels[status]}</span>
+                    <span className="truncate">{STATUS_LABELS[status]}</span>
                   </button>
                 ))}
               </div>

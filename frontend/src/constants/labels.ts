@@ -107,24 +107,6 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   OTHER: 'Autre',
 };
 
-// Documents have no color either: the CV (main document) is on primary-soft, the rest on secondary
-export const DOCUMENT_TYPE_COLORS: Record<DocumentType, string> = {
-  CV: 'bg-primary-soft text-primary',
-  LETTRE_MOTIVATION: 'bg-secondary text-secondary-foreground',
-  COVER_LETTER: 'bg-secondary text-secondary-foreground',
-  PORTFOLIO: 'bg-secondary text-secondary-foreground',
-  OTHER: 'bg-secondary text-secondary-foreground',
-};
-
-/** Mono code shown in the document square */
-export const DOCUMENT_TYPE_CODES: Record<DocumentType, string> = {
-  CV: 'CV',
-  LETTRE_MOTIVATION: 'LM',
-  COVER_LETTER: 'LM',
-  PORTFOLIO: 'PF',
-  OTHER: 'DOC',
-};
-
 export const REMINDER_TYPE_LABELS: Record<ReminderType, string> = {
   FOLLOW_UP: 'Relance',
   INTERVIEW: 'Entretien',
@@ -154,19 +136,6 @@ export const REMINDER_TYPE_COLORS: Record<ReminderType, string> = {
   OTHER: REMINDER_CHIP,
 };
 
-export const REMINDER_TYPE_DOT_COLORS: Record<ReminderType, string> = {
-  FOLLOW_UP: 'bg-status-waiting',
-  RELANCE: 'bg-status-waiting',
-  INTERVIEW: 'bg-status-interview',
-  INTERVIEW_PREP: 'bg-status-interview',
-  DEADLINE: 'bg-destructive',
-  THANK_YOU_EMAIL: 'bg-status-draft',
-  DECISION: 'bg-status-draft',
-  DOCUMENT: 'bg-status-draft',
-  CUSTOM: 'bg-status-draft',
-  OTHER: 'bg-status-draft',
-};
-
 export const KANBAN_STATUS_ORDER: ApplicationStatus[] = [
   'DRAFT',
   'SENT',
@@ -184,18 +153,4 @@ export const ALL_STATUSES: ApplicationStatus[] = [
   'REJECTED',
   'ACCEPTED',
   'GHOSTED',
-];
-
-export const STATUS_ORDER: ApplicationStatus[] = ALL_STATUSES;
-
-export const JOB_TYPE_OPTIONS = [
-  { value: 'STAGE' as const, label: 'Stage' },
-  { value: 'ALTERNANCE' as const, label: 'Alternance' },
-  { value: 'CDI' as const, label: 'CDI' },
-  { value: 'JOB_ETUDIANT' as const, label: 'Job étudiant' },
-];
-
-export const STATUS_OPTIONS = [
-  { value: 'DRAFT' as const, label: 'Brouillon' },
-  { value: 'SENT' as const, label: 'Envoyée' },
 ];

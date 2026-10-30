@@ -52,34 +52,6 @@ export const showBrowserNotification = (
   }
 };
 
-// Schedule notification for a reminder
-export const scheduleReminderNotification = (
-  title: string,
-  dueDate: Date,
-  description?: string
-) => {
-  const now = new Date();
-  const timeUntilDue = dueDate.getTime() - now.getTime();
-
-  if (timeUntilDue <= 0) {
-    // Show immediately if due date is in the past or now
-    showBrowserNotification(title, {
-      body: description || 'Vous avez un rappel en attente',
-      tag: `reminder-${Date.now()}`,
-      requireInteraction: true,
-    });
-  } else if (timeUntilDue < 24 * 60 * 60 * 1000) {
-    // Schedule within 24 hours (browser limitation)
-    setTimeout(() => {
-      showBrowserNotification(title, {
-        body: description || 'Vous avez un rappel maintenant',
-        tag: `reminder-${Date.now()}`,
-        requireInteraction: true,
-      });
-    }, timeUntilDue);
-  }
-};
-
 // Check notification at regular intervals
 export const setupNotificationChecker = (
   checkCallback: () => Promise<void>,

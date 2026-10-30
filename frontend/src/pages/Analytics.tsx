@@ -28,7 +28,8 @@ import {
   Lightbulb,
   Mic,
 } from 'lucide-react';
-import { statusLabels, jobTypeLabels, cn, STATUS_HEX_VARS, twoDigits } from '@/lib/utils';
+import { cn, twoDigits } from '@/lib/utils';
+import { JOB_TYPE_LABELS, STATUS_HEX_VARS, STATUS_LABELS } from '@/constants/labels';
 
 // Status colors come from the Sillage tokens; contracts have no color (single primary bar)
 const STATUS_COLORS: Record<string, string> = STATUS_HEX_VARS;
@@ -58,13 +59,13 @@ export function AnalyticsPage() {
   }
 
   const statusData = Object.entries(dashboard?.statusOverview || dashboard?.byStatus || {}).map(([status, count]) => ({
-    name: statusLabels[status as keyof typeof statusLabels] || status,
+    name: STATUS_LABELS[status as keyof typeof STATUS_LABELS] || status,
     value: count as number,
     status,
   }));
 
   const jobTypeData = Object.entries(stats?.byJobType || {}).map(([type, count]) => ({
-    name: jobTypeLabels[type as keyof typeof jobTypeLabels] || type,
+    name: JOB_TYPE_LABELS[type as keyof typeof JOB_TYPE_LABELS] || type,
     value: count as number,
     type,
   }));

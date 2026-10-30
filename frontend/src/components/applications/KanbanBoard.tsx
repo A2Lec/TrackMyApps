@@ -19,7 +19,8 @@ import type { Application, ApplicationStatus, JobType, KanbanColumns } from '@/t
 import { Button } from '@/components/ui/button';
 import { StatusDot } from '@/components/StatusBadge';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { KANBAN_STATUS_ORDER, cn, statusLabels, twoDigits } from '@/lib/utils';
+import { cn, twoDigits } from '@/lib/utils';
+import { KANBAN_STATUS_ORDER, STATUS_LABELS } from '@/constants/labels';
 import {
   filterAndSortApplications,
   groupApplicationsForKanban,
@@ -124,7 +125,7 @@ export function KanbanBoard({ kanbanData, onCardClick, onDelete, onAdd, onMove, 
                 )}
               >
                 <StatusDot status={status} />
-                <span>{statusLabels[status]}</span>
+                <span>{STATUS_LABELS[status]}</span>
                 <span className="font-mono opacity-80">{twoDigits((columns[status] || []).length)}</span>
               </button>
             ))}
@@ -177,7 +178,7 @@ function KanbanColumn({
       <div className="flex items-center justify-between mb-2.5 px-1">
         <div className="flex items-center gap-2">
           <StatusDot status={status} className="h-2.5 w-2.5" />
-          <h3 className="font-semibold text-sm text-foreground tracking-tight">{statusLabels[status]}</h3>
+          <h3 className="font-semibold text-sm text-foreground tracking-tight">{STATUS_LABELS[status]}</h3>
           <span className="font-mono text-xs font-medium text-muted-foreground">{twoDigits(filteredApps.length)}</span>
         </div>
 
@@ -186,7 +187,7 @@ function KanbanColumn({
           size="icon"
           onClick={onAddClick}
           className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
-          title={`Ajouter une candidature en "${statusLabels[status]}"`}
+          title={`Ajouter une candidature en "${STATUS_LABELS[status]}"`}
         >
           <Plus className="h-3.5 w-3.5" />
         </Button>

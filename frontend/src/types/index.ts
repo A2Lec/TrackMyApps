@@ -181,12 +181,6 @@ export interface AnalyticsData {
   };
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-}
-
 export interface KanbanColumns {
   DRAFT: Application[];
   SENT: Application[];

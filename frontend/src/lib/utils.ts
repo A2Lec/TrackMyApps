@@ -46,42 +46,6 @@ export function twoDigits(value: number): string {
 }
 
 /**
- * Re-export standardized domain labels and theme tokens
- */
-export {
-  STATUS_LABELS,
-  STATUS_COLORS,
-  STATUS_DOT_COLORS,
-  STATUS_HEX_VARS,
-  JOB_TYPE_LABELS,
-  JOB_TYPE_COLORS,
-  JOB_TYPE_TAGS,
-  EVENT_TYPE_LABELS,
-  DOCUMENT_TYPE_LABELS,
-  DOCUMENT_TYPE_COLORS,
-  DOCUMENT_TYPE_CODES,
-  REMINDER_TYPE_LABELS,
-  REMINDER_TYPE_COLORS,
-  REMINDER_TYPE_DOT_COLORS,
-  STATUS_ORDER,
-  KANBAN_STATUS_ORDER,
-  ALL_STATUSES,
-  JOB_TYPE_OPTIONS,
-  STATUS_OPTIONS,
-  // CamelCase aliases for backwards compatibility
-  STATUS_LABELS as statusLabels,
-  STATUS_COLORS as statusColors,
-  STATUS_DOT_COLORS as statusDotColors,
-  JOB_TYPE_LABELS as jobTypeLabels,
-  JOB_TYPE_COLORS as jobTypeColors,
-  DOCUMENT_TYPE_LABELS as documentTypeLabels,
-  DOCUMENT_TYPE_COLORS as documentTypeColors,
-  REMINDER_TYPE_LABELS as reminderTypeLabels,
-  REMINDER_TYPE_COLORS as reminderTypeColors,
-  EVENT_TYPE_LABELS as eventTypeLabels,
-} from '@/constants/labels';
-
-/**
  * True for http(s) URLs only. User-entered links (job offers, company websites) are rendered
  * as hrefs, and React 18 still runs `javascript:` URLs there.
  */

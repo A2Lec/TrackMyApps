@@ -3,7 +3,8 @@ import type { Application, ApplicationStatus } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusDot, ContractTag } from '@/components/StatusBadge';
-import { STATUS_ORDER, cn, formatDate, isSafeUrl, statusLabels } from '@/lib/utils';
+import { cn, formatDate, isSafeUrl } from '@/lib/utils';
+import { ALL_STATUSES, STATUS_LABELS } from '@/constants/labels';
 
 interface ApplicationHeaderProps {
   application: Application;
@@ -116,7 +117,7 @@ export function ApplicationHeader({
             Statut d'avancement
           </span>
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-            {STATUS_ORDER.map((status) => (
+            {ALL_STATUSES.map((status) => (
               <button
                 key={status}
                 onClick={() => onStatusChange(status)}
@@ -129,7 +130,7 @@ export function ApplicationHeader({
                 )}
               >
                 <StatusDot status={status} />
-                <span>{statusLabels[status]}</span>
+                <span>{STATUS_LABELS[status]}</span>
               </button>
             ))}
           </div>
