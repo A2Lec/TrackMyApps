@@ -64,9 +64,11 @@ export const authController = {
   }),
 
   updateProfile: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const { firstName, lastName, school, graduationYear, field, fieldOfStudy } = req.body;
+    validateRequest(req);
+    const { email, firstName, lastName, school, graduationYear, field, fieldOfStudy } = req.body;
 
     const user = await authService.updateProfile(req.userId!, {
+      email,
       firstName,
       lastName,
       school,

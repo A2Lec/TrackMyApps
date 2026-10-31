@@ -91,6 +91,11 @@ export function SettingsPage() {
         graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : undefined,
       }),
     onSuccess: (updatedUser) => {
+      if (updatedUser.email !== user?.email) {
+        toast.info(`Un email de vérification a été envoyé à ${updatedUser.email}`);
+      }
+      // Show the address actually stored (normalized by the backend)
+      setProfileData((current) => ({ ...current, email: updatedUser.email }));
       // Merge instead of replacing so fields absent from the response (e.g. emailVerified) are kept
       updateUser(updatedUser);
       setProfileSuccess(true);
