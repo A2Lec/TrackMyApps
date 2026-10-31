@@ -29,6 +29,15 @@ export const registerValidation = [
     .withMessage('Le nom est requis'),
 ];
 
+// Email is optional on profile updates; same normalization as register so uniqueness checks compare like with like
+export const updateProfileValidation = [
+  body('email')
+    .optional()
+    .isEmail()
+    .withMessage('Email invalide')
+    .normalizeEmail(),
+];
+
 export const loginValidation = [
   body('email')
     .isEmail()

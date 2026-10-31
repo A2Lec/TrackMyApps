@@ -20,6 +20,20 @@ interface RegisterData {
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1h
 const RESET_RESEND_DELAY_MS = 60 * 1000;
 
+const EMAIL_TAKEN_MESSAGE = 'Cet email est déjà utilisé';
+
+// Prisma unique constraint violation: two concurrent requests passed the existence check
+function isUniqueConstraintError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === 'P2002';
+}
+
+function newVerificationToken() {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiry = new Date();
+  expiry.setHours(expiry.getHours() + 24); // 24h expiry
+  return { token, expiry };
+}
+
 function hashResetToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
@@ -37,17 +51,14 @@ export const authService = {
     });
 
     if (existingUser) {
-      throw createError('Cet email est déjà utilisé', 400);
+      throw createError(EMAIL_TAKEN_MESSAGE, 409);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const { field, ...rest } = data;
     
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpiry = new Date();
-    verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + 24); // 24h expiry
+    const { token: verificationToken, expiry: verificationTokenExpiry } = newVerificationToken();
 
     const user = await prisma.user.create({
       data: {
@@ -69,8 +80,13 @@ export const authService = {
         emailVerified: true,
         createdAt: true,
       },
+    }).catch((error: unknown) => {
+      if (isUniqueConstraintError(error)) {
+        throw createError(EMAIL_TAKEN_MESSAGE, 409);
+      }
+      throw error;
     });
-    
+
     // Send verification email
     await emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
 
@@ -143,25 +159,69 @@ export const authService = {
     if (data.graduationYear !== undefined) allowedUpdates.graduationYear = data.graduationYear;
     if (data.field !== undefined) allowedUpdates.fieldOfStudy = data.field;
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: allowedUpdates,
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        school: true,
-        graduationYear: true,
-        fieldOfStudy: true,
-        avatarUrl: true,
-        emailNotifications: true,
-        relanceFrequency: true,
-        emailVerified: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    let verificationToken: string | null = null;
+
+    if (data.email !== undefined) {
+      const current = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      });
+      if (!current) {
+        throw createError('Utilisateur non trouvé', 404);
+      }
+
+      const normalizedEmail = data.email.trim().toLowerCase();
+      if (normalizedEmail !== current.email) {
+        // One address per account: refuse an address already used by another account
+        const owner = await prisma.user.findUnique({
+          where: { email: normalizedEmail },
+          select: { id: true },
+        });
+        if ((owner && owner.id !== userId) || isDemoEmail(normalizedEmail)) {
+          throw createError(EMAIL_TAKEN_MESSAGE, 409);
+        }
+
+        // The new address must be verified again before write routes are allowed
+        const verification = newVerificationToken();
+        verificationToken = verification.token;
+        allowedUpdates.email = normalizedEmail;
+        allowedUpdates.emailVerified = false;
+        allowedUpdates.verificationToken = verification.token;
+        allowedUpdates.verificationTokenExpiry = verification.expiry;
+      }
+    }
+
+    let user;
+    try {
+      user = await prisma.user.update({
+        where: { id: userId },
+        data: allowedUpdates,
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          school: true,
+          graduationYear: true,
+          fieldOfStudy: true,
+          avatarUrl: true,
+          emailNotifications: true,
+          relanceFrequency: true,
+          emailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw createError(EMAIL_TAKEN_MESSAGE, 409);
+      }
+      throw error;
+    }
+
+    if (verificationToken) {
+      await emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
+    }
 
     return user;
   },

@@ -4,6 +4,7 @@ import { authMiddleware } from '../middlewares/auth.middleware.js';
 import {
   registerValidation,
   loginValidation,
+  updateProfileValidation,
   forgotPasswordValidation,
   resetPasswordValidation,
   verifyEmailValidation,
@@ -24,7 +25,7 @@ router.post('/reset-password', passwordResetLimiter, resetPasswordValidation, au
 router.post('/logout', authController.logout);
 router.post('/resend-verification', authMiddleware, emailVerificationLimiter, authController.resendVerification);
 router.get('/profile', authMiddleware, authController.getProfile);
-router.put('/profile', authMiddleware, blockDemoAccount, authController.updateProfile);
+router.put('/profile', authMiddleware, blockDemoAccount, updateProfileValidation, authController.updateProfile);
 router.put('/password', authMiddleware, blockDemoAccount, authController.updatePassword);
 router.put('/preferences', authMiddleware, blockDemoAccount, authController.updatePreferences);
 router.delete('/account', authMiddleware, blockDemoAccount, authController.deleteAccount);
